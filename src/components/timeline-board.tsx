@@ -400,9 +400,9 @@ export function TimelineBoard({ initialCards }: Props) {
   return (
     <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
       <aside className="space-y-6">
-        <section className="rounded-[28px] border border-white/50 bg-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+        <section className="rounded-[28px] border border-slate-300/80 bg-white p-6 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-100 text-sky-600">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
               <FontAwesomeIcon icon={faCalendarDays} />
             </div>
             <div>
@@ -447,12 +447,12 @@ export function TimelineBoard({ initialCards }: Props) {
                 value={newRegionName}
                 onChange={(event) => setNewRegionName(event.target.value)}
                 placeholder="새 카테고리 이름"
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                className="w-full rounded-2xl border border-slate-300 bg-slate-50/80 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
               />
               <button
                 type="button"
                 onClick={createRegion}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm font-semibold text-sky-700 transition hover:border-sky-400 hover:bg-sky-50"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
               >
                 <FontAwesomeIcon icon={faPlus} />
                 카테고리 추가
@@ -464,7 +464,7 @@ export function TimelineBoard({ initialCards }: Props) {
                 setDraft((current) => ({ ...current, description: event.target.value }))
               }
               placeholder="설명"
-              className="h-24 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+              className="h-24 w-full rounded-2xl border border-slate-300 bg-slate-50/80 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
             />
             <input
               value={draft.tags}
@@ -474,7 +474,7 @@ export function TimelineBoard({ initialCards }: Props) {
             />
             <button
               type="submit"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-sky-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-400"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
             >
               <FontAwesomeIcon icon={faPlus} />
               카드 추가
@@ -494,7 +494,7 @@ export function TimelineBoard({ initialCards }: Props) {
                 saveState === "error"
                   ? "text-rose-500"
                   : saveState === "saved"
-                    ? "text-emerald-600"
+                    ? "text-slate-600"
                     : "text-slate-500"
               }`}
             >
@@ -503,16 +503,16 @@ export function TimelineBoard({ initialCards }: Props) {
           </form>
         </section>
 
-        <section className="rounded-[28px] border border-emerald-200 bg-emerald-50 p-6 text-slate-700 shadow-[0_24px_70px_rgba(16,185,129,0.08)]">
+        <section className="rounded-[28px] border border-slate-300/80 bg-[linear-gradient(180deg,_#fafaf8_0%,_#f4f4ef_100%)] p-6 text-slate-700 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm text-emerald-700">선택한 카드</p>
+              <p className="text-sm text-slate-600">선택한 카드</p>
               <h3 className="text-xl font-semibold">{activeCard?.title}</h3>
             </div>
             <button
               type="button"
               onClick={resetCards}
-              className="rounded-full border border-emerald-200 px-3 py-2 text-sm text-emerald-700 transition hover:border-emerald-300 hover:text-emerald-800"
+              className="rounded-full border border-slate-300 px-3 py-2 text-sm text-slate-700 transition hover:border-slate-400 hover:text-slate-950"
             >
               <FontAwesomeIcon icon={faRotateLeft} />
             </button>
@@ -532,7 +532,7 @@ export function TimelineBoard({ initialCards }: Props) {
             <textarea
               value={activeCard?.description ?? ""}
               onChange={(event) => patchActiveCard("description", event.target.value)}
-              className="h-24 w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm outline-none placeholder:text-emerald-300 focus:border-emerald-300"
+              className="h-24 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none placeholder:text-slate-400 focus:border-slate-400"
             />
             <input
               value={activeCard?.tags.join(", ") ?? ""}
@@ -543,7 +543,7 @@ export function TimelineBoard({ initialCards }: Props) {
               type="button"
               onClick={deleteActiveCard}
               disabled={!activeCard}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <FontAwesomeIcon icon={faTrash} />
               삭제
@@ -552,14 +552,14 @@ export function TimelineBoard({ initialCards }: Props) {
         </section>
       </aside>
 
-      <section className="rounded-[32px] border border-white/50 bg-white/75 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-4">
+      <section className="rounded-[32px] border border-slate-300/80 bg-white p-6 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-500">Timeline Board</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">Timeline Board</p>
             <h2 className="mt-1 text-2xl font-semibold text-slate-900">지역별 역사 연표</h2>
           </div>
           <div className="hidden items-center gap-3 rounded-full bg-slate-100 px-4 py-2 text-sm text-slate-600 lg:flex">
-            <FontAwesomeIcon icon={faArrowsLeftRight} className="text-sky-500" />
+            <FontAwesomeIcon icon={faArrowsLeftRight} className="text-slate-700" />
             카드를 드래그해서 다른 지역으로 이동하거나 순서를 바꾸세요.
           </div>
         </div>
@@ -666,7 +666,7 @@ export function TimelineBoard({ initialCards }: Props) {
                     setDraggedId(null);
                   }
                 }}
-                className="rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,_rgba(240,249,255,0.8),_rgba(255,255,255,0.96))] p-4"
+                className="rounded-[28px] border border-slate-300 bg-[linear-gradient(180deg,_#fcfcfb_0%,_#f6f6f2_100%)] p-4"
               >
                 <div className="mb-4 flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-sky-600">
@@ -698,16 +698,16 @@ export function TimelineBoard({ initialCards }: Props) {
                           }
                         }}
                         onClick={() => setActiveId(card.id)}
-                        className="block w-full rounded-[24px] border bg-white p-4 text-left shadow-sm transition hover:-translate-y-1"
+                        className="block w-full rounded-[24px] border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1"
                         style={{
-                          borderColor: isActive ? "#38bdf8" : "rgba(226,232,240,1)",
+                          borderColor: isActive ? "#111827" : "rgba(226,232,240,1)",
                           boxShadow: isActive
-                            ? "0 18px 40px rgba(56,189,248,0.18)"
-                            : "0 10px 30px rgba(15,23,42,0.06)",
+                            ? "0 16px 36px rgba(15,23,42,0.08)"
+                            : "0 10px 30px rgba(15,23,42,0.04)",
                         }}
                       >
                         <div className="flex items-center justify-between gap-3">
-                          <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-600">
+                          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
                             {card.yearLabel}
                           </span>
                           <span className="inline-flex items-center gap-1 text-xs text-slate-400">
@@ -799,7 +799,7 @@ export function TimelineBoard({ initialCards }: Props) {
                                   key={card.id}
                                   type="button"
                                   onClick={() => setActiveId(card.id)}
-                                  className="block rounded-2xl bg-sky-50 px-3 py-2 text-left text-sm font-medium text-sky-700 transition hover:bg-sky-100"
+                                  className="block rounded-2xl bg-slate-50 px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100"
                                 >
                                   {card.title}
                                 </button>

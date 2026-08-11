@@ -1,0 +1,2720 @@
+{
+  "metadata": {
+    "list_name_ko": "가디언 선정 역대 최고의 소설 100선",
+    "list_name_en": "The 100 best novels of all time",
+    "publisher": "The Guardian",
+    "edition": "2026",
+    "basis": "2026-05-27 정정 반영 순위",
+    "note_ko": "major_characters는 각 작품의 핵심 인물을 선별한 것으로 전체 등장인물 목록은 아닙니다."
+  },
+  "books": [
+    {
+      "title": "Middlemarch",
+      "title_ko": "미들마치",
+      "author": "George Eliot",
+      "author_ko": "조지 엘리엇",
+      "major_characters": [
+        {
+          "name": "도로시아 브룩",
+          "description_ko": "이상주의적이고 지적인 젊은 여성으로 의미 있는 삶과 사랑을 추구한다."
+        },
+        {
+          "name": "터셔스 리드게이트",
+          "description_ko": "의학 개혁의 꿈을 품고 미들마치에 온 젊은 의사."
+        },
+        {
+          "name": "로저먼드 빈시",
+          "description_ko": "아름답고 야심찬 여성으로 라이게이트와 결혼한다."
+        },
+        {
+          "name": "에드워드 카소본",
+          "description_ko": "나이 든 학자로 도러시아의 첫 남편."
+        },
+        {
+          "name": "윌 래디슬로",
+          "description_ko": "카소본의 친척이자 자유로운 성향의 청년으로 도러시아와 가까워진다."
+        },
+        {
+          "name": "프레드 빈시",
+          "description_ko": "로저먼드의 오빠로 메리 가스를 사랑하며 성장한다."
+        },
+        {
+          "name": "메리 가스",
+          "description_ko": "현실적이고 도덕적 중심이 강한 여성으로 프레드의 성장을 이끈다."
+        }
+      ]
+    },
+    {
+      "title": "Beloved",
+      "title_ko": "빌러비드",
+      "author": "Toni Morrison",
+      "author_ko": "토니 모리슨",
+      "major_characters": [
+        {
+          "name": "세서",
+          "description_ko": "노예제에서 탈출한 뒤 과거의 기억과 죄책감에 사로잡혀 살아가는 여성."
+        },
+        {
+          "name": "덴버",
+          "description_ko": "세서의 딸로 집 안의 고립에서 벗어나 독립하려 한다."
+        },
+        {
+          "name": "빌러비드",
+          "description_ko": "세서의 죽은 딸과 연결된 것으로 보이는 수수께끼의 젊은 여성."
+        },
+        {
+          "name": "폴 D",
+          "description_ko": "세서와 같은 농장에서 노예 생활을 했던 남성으로 그녀와 재회한다."
+        },
+        {
+          "name": "베이비 석스",
+          "description_ko": "세서의 시어머니이자 해방된 공동체의 영적 지도자."
+        }
+      ]
+    },
+    {
+      "title": "Ulysses",
+      "title_ko": "율리시스",
+      "author": "James Joyce",
+      "author_ko": "제임스 조이스",
+      "major_characters": [
+        {
+          "name": "레오폴드 블룸",
+          "description_ko": "1904년 6월 16일 더블린을 돌아다니는 유대계 광고 모집원."
+        },
+        {
+          "name": "스티븐 디덜러스",
+          "description_ko": "젊은 교사이자 예술가 지망생으로 블룸과 평행적인 하루를 보낸다."
+        },
+        {
+          "name": "몰리 블룸",
+          "description_ko": "레오폴드의 아내이자 가수. 작품 마지막의 장대한 내적 독백을 담당한다."
+        },
+        {
+          "name": "벅 멀리건",
+          "description_ko": "스티븐의 친구이자 의대생으로 조롱과 긴장을 유발한다."
+        }
+      ]
+    },
+    {
+      "title": "To the Lighthouse",
+      "title_ko": "등대로",
+      "author": "Virginia Woolf",
+      "author_ko": "버지니아 울프",
+      "major_characters": [
+        {
+          "name": "램지 부인",
+          "description_ko": "가족과 손님들을 정서적으로 묶어주는 램지 가문의 어머니."
+        },
+        {
+          "name": "램지 씨",
+          "description_ko": "철학자이자 가장으로 자신의 지적 성취와 타인의 인정에 불안해한다."
+        },
+        {
+          "name": "릴리 브리스코",
+          "description_ko": "화가로 예술과 여성의 독립 문제를 고민한다."
+        },
+        {
+          "name": "제임스 램지",
+          "description_ko": "등대 방문을 간절히 원하는 램지 부부의 어린 아들."
+        },
+        {
+          "name": "찰스 탠즐리",
+          "description_ko": "램지 씨의 제자로 여성과 예술에 대해 편협한 태도를 보인다."
+        }
+      ]
+    },
+    {
+      "title": "In Search of Lost Time",
+      "title_ko": "잃어버린 시간을 찾아서",
+      "author": "Marcel Proust",
+      "author_ko": "마르셀 프루스트",
+      "major_characters": [
+        {
+          "name": "화자(마르셀)",
+          "description_ko": "기억, 사랑, 예술, 시간의 의미를 탐색하며 자신의 삶을 회상하는 화자."
+        },
+        {
+          "name": "샤를 스완",
+          "description_ko": "세련된 사교계 인물로 오데트에 대한 집착적 사랑을 경험한다."
+        },
+        {
+          "name": "오데트 드 크레시",
+          "description_ko": "스완의 연인이자 후일 아내."
+        },
+        {
+          "name": "알베르틴 시모네",
+          "description_ko": "화자가 강한 사랑과 질투를 품는 젊은 여성."
+        },
+        {
+          "name": "샤를뤼스 남작",
+          "description_ko": "게르망트 가문과 연결된 귀족으로 사교계의 복잡한 욕망과 위선을 보여준다."
+        }
+      ]
+    },
+    {
+      "title": "Anna Karenina",
+      "title_ko": "안나 카레니나",
+      "author": "Leo Tolstoy",
+      "author_ko": "레프 톨스토이",
+      "major_characters": [
+        {
+          "name": "안나 카레니나",
+          "description_ko": "사교계의 기혼 여성으로 브론스키와 사랑에 빠지며 사회적 압박과 내적 갈등을 겪는다."
+        },
+        {
+          "name": "알렉세이 브론스키",
+          "description_ko": "젊은 장교로 안나와 연애 관계를 맺는다."
+        },
+        {
+          "name": "알렉세이 카레닌",
+          "description_ko": "안나의 남편이자 고위 관료."
+        },
+        {
+          "name": "콘스탄틴 레빈",
+          "description_ko": "농촌 지주로 사랑, 노동, 신앙, 삶의 의미를 탐구한다."
+        },
+        {
+          "name": "키티 셰르바츠카야",
+          "description_ko": "레빈과 사랑 및 결혼을 통해 성장하는 젊은 여성."
+        }
+      ]
+    },
+    {
+      "title": "War and Peace",
+      "title_ko": "전쟁과 평화",
+      "author": "Leo Tolstoy",
+      "author_ko": "레프 톨스토이",
+      "major_characters": [
+        {
+          "name": "피에르 베주호프",
+          "description_ko": "뜻밖의 상속으로 거부가 된 뒤 삶의 의미와 도덕적 방향을 찾는 인물."
+        },
+        {
+          "name": "안드레이 볼콘스키",
+          "description_ko": "명예와 삶의 의미를 찾아 전쟁에 참여하는 귀족 장교."
+        },
+        {
+          "name": "나타샤 로스토바",
+          "description_ko": "생기 넘치는 로스토프가의 딸로 사랑과 상실을 통해 성장한다."
+        },
+        {
+          "name": "니콜라이 로스토프",
+          "description_ko": "나타샤의 오빠이자 군인."
+        },
+        {
+          "name": "마리야 볼콘스카야 공작영애",
+          "description_ko": "안드레이의 신앙심 깊은 여동생."
+        }
+      ]
+    },
+    {
+      "title": "Jane Eyre",
+      "title_ko": "제인 에어",
+      "author": "Charlotte Brontë",
+      "author_ko": "샬럿 브론테",
+      "major_characters": [
+        {
+          "name": "제인 에어",
+          "description_ko": "고아로 혹독한 성장기를 거쳐 독립적인 성인으로 살아가는 화자이자 주인공."
+        },
+        {
+          "name": "에드워드 로체스터",
+          "description_ko": "손필드 저택의 주인으로 제인과 사랑에 빠진다."
+        },
+        {
+          "name": "버사 메이슨",
+          "description_ko": "로체스터의 비밀스러운 첫 아내."
+        },
+        {
+          "name": "세인트 존 리버스",
+          "description_ko": "목사로 제인에게 종교적 사명과 결혼을 제안한다."
+        },
+        {
+          "name": "헬렌 번스",
+          "description_ko": "로우드 학교에서 제인이 만난 친구로 깊은 정신적 영향을 준다."
+        }
+      ]
+    },
+    {
+      "title": "Pride and Prejudice",
+      "title_ko": "오만과 편견",
+      "author": "Jane Austen",
+      "author_ko": "제인 오스틴",
+      "major_characters": [
+        {
+          "name": "엘리자베스 베넷",
+          "description_ko": "총명하고 독립적인 베넷가의 둘째 딸."
+        },
+        {
+          "name": "피츠윌리엄 다아시",
+          "description_ko": "부유하고 자존심 강한 지주로 엘리자베스와 오해와 편견을 넘어 가까워진다."
+        },
+        {
+          "name": "제인 베넷",
+          "description_ko": "엘리자베스의 언니로 온화하고 낙천적인 성격."
+        },
+        {
+          "name": "찰스 빙리",
+          "description_ko": "다아시의 친구이자 제인의 연인."
+        },
+        {
+          "name": "조지 위컴",
+          "description_ko": "매력적인 장교지만 다아시와 관련된 어두운 과거를 숨긴다."
+        }
+      ]
+    },
+    {
+      "title": "Madame Bovary",
+      "title_ko": "마담 보바리",
+      "author": "Gustave Flaubert",
+      "author_ko": "귀스타브 플로베르",
+      "major_characters": [
+        {
+          "name": "엠마 보바리",
+          "description_ko": "낭만적 환상과 화려한 삶을 갈망하며 결혼 생활에 환멸을 느끼는 여성."
+        },
+        {
+          "name": "샤를 보바리",
+          "description_ko": "엠마의 성실하지만 평범한 의사 남편."
+        },
+        {
+          "name": "로돌프 불랑제",
+          "description_ko": "부유한 지주로 엠마와 불륜 관계를 맺는다."
+        },
+        {
+          "name": "레옹 뒤퓌",
+          "description_ko": "젊은 서기로 엠마와 정서적·연애 관계를 맺는다."
+        },
+        {
+          "name": "뢰뢰 씨",
+          "description_ko": "엠마의 소비 욕망을 이용해 빚을 늘리는 상인."
+        }
+      ]
+    },
+    {
+      "title": "The Great Gatsby",
+      "title_ko": "위대한 개츠비",
+      "author": "F. Scott Fitzgerald",
+      "author_ko": "F. 스콧 피츠제럴드",
+      "major_characters": [
+        {
+          "name": "제이 개츠비",
+          "description_ko": "막대한 부를 쌓아 과거의 사랑 데이지를 되찾으려는 수수께끼의 부호."
+        },
+        {
+          "name": "닉 캐러웨이",
+          "description_ko": "개츠비의 이웃이자 사건을 관찰하고 전하는 화자."
+        },
+        {
+          "name": "데이지 뷰캐넌",
+          "description_ko": "개츠비의 옛 연인이자 톰의 아내."
+        },
+        {
+          "name": "톰 뷰캐넌",
+          "description_ko": "데이지의 부유하고 오만한 남편."
+        },
+        {
+          "name": "조던 베이커",
+          "description_ko": "프로 골퍼로 닉과 가까워지며 상류사회의 냉소성을 보여준다."
+        }
+      ]
+    },
+    {
+      "title": "Bleak House",
+      "title_ko": "황폐한 집",
+      "author": "Charles Dickens",
+      "author_ko": "찰스 디킨스",
+      "major_characters": [
+        {
+          "name": "에스터 서머슨",
+          "description_ko": "고아로 성장해 자신의 출생 비밀을 알아가는 공동 화자."
+        },
+        {
+          "name": "레이디 데들록",
+          "description_ko": "귀족 여성으로 에스터의 과거와 깊이 연결된 비밀을 지닌다."
+        },
+        {
+          "name": "존 잔다이스",
+          "description_ko": "에스터와 다른 젊은이들의 후견인이 되는 선량한 지주."
+        },
+        {
+          "name": "리처드 카스톤",
+          "description_ko": "잔다이스 대 잔다이스 소송에 집착하며 삶이 무너지는 젊은 상속인."
+        },
+        {
+          "name": "털킹혼 씨",
+          "description_ko": "데들록 가문의 냉정한 변호사로 레이디 데들록의 비밀을 추적한다."
+        }
+      ]
+    },
+    {
+      "title": "Emma",
+      "title_ko": "엠마",
+      "author": "Jane Austen",
+      "author_ko": "제인 오스틴",
+      "major_characters": [
+        {
+          "name": "엠마 우드하우스",
+          "description_ko": "총명하고 부유하지만 자신의 판단을 과신하며 주변 사람들의 연애를 주선하는 젊은 여성."
+        },
+        {
+          "name": "조지 나이틀리",
+          "description_ko": "엠마의 오랜 친구이자 그녀의 행동을 솔직히 비판하는 지주."
+        },
+        {
+          "name": "해리엇 스미스",
+          "description_ko": "엠마가 보호하고 연애를 주선하려 드는 젊은 여성."
+        },
+        {
+          "name": "프랭크 처칠",
+          "description_ko": "매력적이고 사교적인 청년으로 비밀을 숨기고 있다."
+        },
+        {
+          "name": "제인 페어팩스",
+          "description_ko": "재능 있고 품위 있는 젊은 여성으로 엠마가 경쟁심을 느낀다."
+        }
+      ]
+    },
+    {
+      "title": "Mrs Dalloway",
+      "title_ko": "댈러웨이 부인",
+      "author": "Virginia Woolf",
+      "author_ko": "버지니아 울프",
+      "major_characters": [
+        {
+          "name": "클라리사 댈러웨이",
+          "description_ko": "런던에서 저녁 파티를 준비하며 삶과 과거를 회상하는 상류층 여성."
+        },
+        {
+          "name": "셉티머스 워런 스미스",
+          "description_ko": "제1차 세계대전 참전 후 심각한 정신적 고통을 겪는 젊은 남성."
+        },
+        {
+          "name": "피터 월시",
+          "description_ko": "클라리사의 옛 연인으로 인도에서 돌아와 그녀를 만난다."
+        },
+        {
+          "name": "리처드 댈러웨이",
+          "description_ko": "클라리사의 남편이자 국회의원."
+        },
+        {
+          "name": "샐리 시튼",
+          "description_ko": "클라리사의 젊은 시절 친구이자 강렬한 감정의 대상."
+        }
+      ]
+    },
+    {
+      "title": "Moby-Dick",
+      "title_ko": "모비 딕",
+      "author": "Herman Melville",
+      "author_ko": "허먼 멜빌",
+      "major_characters": [
+        {
+          "name": "이슈메일",
+          "description_ko": "포경선 피쿼드호에 승선해 이야기를 들려주는 화자."
+        },
+        {
+          "name": "에이해브 선장",
+          "description_ko": "자신의 다리를 앗아간 흰고래 모비딕에 복수하려는 선장."
+        },
+        {
+          "name": "퀴퀘그",
+          "description_ko": "이슈메일의 절친한 친구가 되는 남태평양 출신 작살잡이."
+        },
+        {
+          "name": "스타벅",
+          "description_ko": "피쿼드호의 일등항해사로 에이해브의 집착을 경계한다."
+        },
+        {
+          "name": "모비 딕",
+          "description_ko": "에이해브가 집요하게 추적하는 거대한 흰 향유고래."
+        }
+      ]
+    },
+    {
+      "title": "Nineteen Eighty-Four",
+      "title_ko": "1984",
+      "author": "George Orwell",
+      "author_ko": "조지 오웰",
+      "major_characters": [
+        {
+          "name": "윈스턴 스미스",
+          "description_ko": "오세아니아 진리부 직원. 당의 통제와 역사 조작에 의문을 품는다."
+        },
+        {
+          "name": "줄리아",
+          "description_ko": "윈스턴과 비밀 연애를 하며 사적인 자유를 추구하는 여성."
+        },
+        {
+          "name": "오브라이언",
+          "description_ko": "윈스턴이 저항 조직의 일원이라 믿게 되는 당 내부의 고위 인물."
+        },
+        {
+          "name": "빅 브라더",
+          "description_ko": "당의 절대 권력을 상징하는 지도자 이미지."
+        },
+        {
+          "name": "채링턴 씨",
+          "description_ko": "윈스턴에게 방을 빌려주는 골동품 가게 주인."
+        }
+      ]
+    },
+    {
+      "title": "One Hundred Years of Solitude",
+      "title_ko": "백년의 고독",
+      "author": "Gabriel García Márquez",
+      "author_ko": "가브리엘 가르시아 마르케스",
+      "major_characters": [
+        {
+          "name": "호세 아르카디오 부엔디아",
+          "description_ko": "마콘도를 세운 부엔디아 가문의 시조. 과학과 연금술에 매혹된다."
+        },
+        {
+          "name": "우르술라 이과란",
+          "description_ko": "호세 아르카디오의 아내로 여러 세대에 걸쳐 가문을 지탱한다."
+        },
+        {
+          "name": "아우렐리아노 부엔디아 대령",
+          "description_ko": "부엔디아 가문의 아들로 수많은 내전에 참여하는 혁명 지도자."
+        },
+        {
+          "name": "아마란타",
+          "description_ko": "가문의 딸로 사랑과 후회, 고독 속에서 살아간다."
+        },
+        {
+          "name": "아우렐리아노 바빌로니아",
+          "description_ko": "가문의 마지막 세대에 속하며 멜키아데스의 예언을 해독한다."
+        }
+      ]
+    },
+    {
+      "title": "Persuasion",
+      "title_ko": "설득",
+      "author": "Jane Austen",
+      "author_ko": "제인 오스틴",
+      "major_characters": [
+        {
+          "name": "앤 엘리엇",
+          "description_ko": "과거 주변의 설득으로 사랑을 포기했던 뒤 성숙한 시선으로 다시 삶을 선택하는 여성."
+        },
+        {
+          "name": "프레더릭 웬트워스 대령",
+          "description_ko": "앤의 옛 연인. 해군에서 성공한 뒤 다시 그녀의 삶에 나타난다."
+        },
+        {
+          "name": "월터 엘리엇 경",
+          "description_ko": "앤의 허영심 많은 아버지."
+        },
+        {
+          "name": "러셀 부인",
+          "description_ko": "앤의 후견인 같은 친구로 과거 웬트워스와의 결혼을 만류했다."
+        },
+        {
+          "name": "윌리엄 엘리엇",
+          "description_ko": "엘리엇 가문의 상속 예정 친척으로 앤에게 접근한다."
+        }
+      ]
+    },
+    {
+      "title": "The Life and Opinions of Tristram Shandy, Gentleman",
+      "title_ko": "트리스트럼 샌디의 생애와 의견",
+      "author": "Laurence Sterne",
+      "author_ko": "로런스 스턴",
+      "major_characters": [
+        {
+          "name": "트리스트럼 샌디",
+          "description_ko": "자신의 생애를 쓰려 하지만 끊임없는 탈선과 digression으로 이야기를 지연시키는 화자."
+        },
+        {
+          "name": "월터 샌디",
+          "description_ko": "트리스트럼의 아버지로 기묘한 이론과 철학에 몰두한다."
+        },
+        {
+          "name": "토비 삼촌",
+          "description_ko": "트리스트럼의 온화한 삼촌으로 군사 요새 모형과 전쟁 재현에 집착한다."
+        },
+        {
+          "name": "트림 상병",
+          "description_ko": "토비 삼촌의 충직한 전우이자 하인."
+        },
+        {
+          "name": "슬롭 박사",
+          "description_ko": "트리스트럼의 출산에 관여하는 의사."
+        }
+      ]
+    },
+    {
+      "title": "Wuthering Heights",
+      "title_ko": "폭풍의 언덕",
+      "author": "Emily Brontë",
+      "author_ko": "에밀리 브론테",
+      "major_characters": [
+        {
+          "name": "히스클리프",
+          "description_ko": "워더링 하이츠에 입양된 고아로 캐서린에 대한 사랑과 복수심에 사로잡힌다."
+        },
+        {
+          "name": "캐서린 언쇼",
+          "description_ko": "히스클리프와 강렬한 유대를 나누지만 에드거 린턴과 결혼한다."
+        },
+        {
+          "name": "에드거 린턴",
+          "description_ko": "스러시크로스 그레인지의 신사로 캐서린의 남편."
+        },
+        {
+          "name": "캐서린 린턴",
+          "description_ko": "캐서린 언쇼와 에드거의 딸."
+        },
+        {
+          "name": "넬리 딘",
+          "description_ko": "두 가문의 역사를 록우드에게 들려주는 가정부이자 주요 화자."
+        }
+      ]
+    },
+    {
+      "title": "The Portrait of a Lady",
+      "title_ko": "여인의 초상",
+      "author": "Henry James",
+      "author_ko": "헨리 제임스",
+      "major_characters": [
+        {
+          "name": "이사벨 아처",
+          "description_ko": "자유롭고 독립적인 삶을 꿈꾸며 유럽으로 건너가는 젊은 미국 여성."
+        },
+        {
+          "name": "길버트 오즈먼드",
+          "description_ko": "세련된 취향을 지녔지만 통제적인 미국인 미술 애호가로 이사벨과 결혼한다."
+        },
+        {
+          "name": "마담 멀",
+          "description_ko": "사교적이고 세련된 여성으로 이사벨의 결혼에 깊이 관여한다."
+        },
+        {
+          "name": "랠프 터칫",
+          "description_ko": "이사벨의 사촌으로 그녀의 자유와 가능성을 응원한다."
+        },
+        {
+          "name": "캐스퍼 굿우드",
+          "description_ko": "이사벨에게 꾸준히 구애하는 미국인 사업가."
+        }
+      ]
+    },
+    {
+      "title": "Things Fall Apart",
+      "title_ko": "모든 것이 산산이 부서지다",
+      "author": "Chinua Achebe",
+      "author_ko": "치누아 아체베",
+      "major_characters": [
+        {
+          "name": "오콩코",
+          "description_ko": "움오피아에서 명성을 쌓은 전사이자 농부. 약함에 대한 두려움이 삶을 지배한다."
+        },
+        {
+          "name": "느워예",
+          "description_ko": "오콩코의 아들. 아버지의 가치관과 갈등하며 기독교에 끌린다."
+        },
+        {
+          "name": "에크웨피",
+          "description_ko": "오콩코의 두 번째 아내."
+        },
+        {
+          "name": "에진마",
+          "description_ko": "에크웨피의 딸로 오콩코가 특히 아끼는 총명한 아이."
+        },
+        {
+          "name": "오비에리카",
+          "description_ko": "오콩코의 친구로 전통과 변화에 대해 보다 성찰적인 태도를 보인다."
+        }
+      ]
+    },
+    {
+      "title": "Midnight's Children",
+      "title_ko": "한밤의 아이들",
+      "author": "Salman Rushdie",
+      "author_ko": "살만 루슈디",
+      "major_characters": [
+        {
+          "name": "살림 시나이",
+          "description_ko": "인도 독립의 순간에 태어나 초능력을 얻은 화자."
+        },
+        {
+          "name": "시바",
+          "description_ko": "살림과 같은 순간에 태어난 강력한 능력의 소유자로 그의 대립항이 된다."
+        },
+        {
+          "name": "파드마",
+          "description_ko": "살림의 이야기를 듣고 반응하는 현실적인 동반자."
+        },
+        {
+          "name": "아미나 시나이",
+          "description_ko": "살림의 어머니."
+        },
+        {
+          "name": "메리 페레이라",
+          "description_ko": "병원 간호사로 출생 직후 두 아기의 운명을 바꾸는 선택을 한다."
+        }
+      ]
+    },
+    {
+      "title": "The Remains of the Day",
+      "title_ko": "남아 있는 나날",
+      "author": "Kazuo Ishiguro",
+      "author_ko": "가즈오 이시구로",
+      "major_characters": [
+        {
+          "name": "스티븐스",
+          "description_ko": "영국 대저택 달링턴 홀에 평생을 바친 집사이자 화자."
+        },
+        {
+          "name": "켄턴 양",
+          "description_ko": "달링턴 홀의 전직 가정부 책임자로 스티븐스와 깊은 감정적 유대를 나눈다."
+        },
+        {
+          "name": "달링턴 경",
+          "description_ko": "스티븐스가 충성을 바친 귀족 주인."
+        },
+        {
+          "name": "패러데이 씨",
+          "description_ko": "전후 달링턴 홀을 구입한 미국인 신임 주인."
+        }
+      ]
+    },
+    {
+      "title": "Lolita",
+      "title_ko": "롤리타",
+      "author": "Vladimir Nabokov",
+      "author_ko": "블라디미르 나보코프",
+      "major_characters": [
+        {
+          "name": "험버트 험버트",
+          "description_ko": "자신의 범죄적 집착을 미화하고 합리화하며 이야기를 서술하는 신뢰하기 어려운 화자."
+        },
+        {
+          "name": "돌로레스 ‘롤리타’ 헤이즈",
+          "description_ko": "험버트의 집착과 학대 대상이 되는 소녀."
+        },
+        {
+          "name": "샬럿 헤이즈",
+          "description_ko": "돌로레스의 어머니로 험버트와 결혼한다."
+        },
+        {
+          "name": "클레어 퀼티",
+          "description_ko": "극작가로 험버트와 돌로레스의 관계에 뒤얽힌 인물."
+        }
+      ]
+    },
+    {
+      "title": "Don Quixote",
+      "title_ko": "돈키호테",
+      "author": "Miguel de Cervantes",
+      "author_ko": "미겔 데 세르반테스",
+      "major_characters": [
+        {
+          "name": "돈키호테",
+          "description_ko": "기사도 소설에 심취해 스스로 편력기사가 되어 모험을 떠나는 라만차의 시골 신사."
+        },
+        {
+          "name": "산초 판사",
+          "description_ko": "돈키호테의 현실적인 종자이자 동행자."
+        },
+        {
+          "name": "둘시네아 델 토보소",
+          "description_ko": "돈키호테가 이상화된 귀부인으로 섬기는 여성."
+        },
+        {
+          "name": "로시난테",
+          "description_ko": "돈키호테의 야윈 말."
+        },
+        {
+          "name": "삼손 카라스코",
+          "description_ko": "돈키호테를 고향으로 돌려보내려 여러 계략을 쓰는 학사."
+        }
+      ]
+    },
+    {
+      "title": "The Trial",
+      "title_ko": "소송",
+      "author": "Franz Kafka",
+      "author_ko": "프란츠 카프카",
+      "major_characters": [
+        {
+          "name": "요제프 K.",
+          "description_ko": "이유를 알 수 없는 채 체포되어 끝없는 사법 절차에 휘말리는 은행원."
+        },
+        {
+          "name": "훌트 변호사",
+          "description_ko": "요제프 K.가 고용하는 병약한 변호사."
+        },
+        {
+          "name": "레니",
+          "description_ko": "훌트의 간호인으로 요제프 K.에게 접근한다."
+        },
+        {
+          "name": "화가 티토렐리",
+          "description_ko": "법원과 연결된 화가로 재판 체계의 기묘한 논리를 설명한다."
+        },
+        {
+          "name": "신부",
+          "description_ko": "대성당에서 요제프 K.에게 '법 앞에서' 우화를 들려주는 사제."
+        }
+      ]
+    },
+    {
+      "title": "The Brothers Karamazov",
+      "title_ko": "카라마조프가의 형제들",
+      "author": "Fyodor Dostoevsky",
+      "author_ko": "표도르 도스토옙스키",
+      "major_characters": [
+        {
+          "name": "표도르 파블로비치 카라마조프",
+          "description_ko": "방탕하고 탐욕스러운 카라마조프 형제들의 아버지."
+        },
+        {
+          "name": "드미트리 카라마조프",
+          "description_ko": "장남. 격정적 성격으로 아버지와 돈·여성 문제를 두고 충돌한다."
+        },
+        {
+          "name": "이반 카라마조프",
+          "description_ko": "이성적이고 회의적인 둘째 아들."
+        },
+        {
+          "name": "알료샤 카라마조프",
+          "description_ko": "신앙심 깊고 온화한 막내아들."
+        },
+        {
+          "name": "스메르자코프",
+          "description_ko": "카라마조프 집안의 하인으로 가족 비극에서 핵심 역할을 한다."
+        }
+      ]
+    },
+    {
+      "title": "Pale Fire",
+      "title_ko": "창백한 불꽃",
+      "author": "Vladimir Nabokov",
+      "author_ko": "블라디미르 나보코프",
+      "major_characters": [
+        {
+          "name": "존 셰이드",
+          "description_ko": "999행의 시 'Pale Fire'를 쓴 가상의 미국 시인."
+        },
+        {
+          "name": "찰스 킨보트",
+          "description_ko": "셰이드의 이웃이자 시의 주석자. 자신을 젬블라 왕국의 망명 군주라고 암시한다."
+        },
+        {
+          "name": "그라두스",
+          "description_ko": "킨보트의 서술 속에서 젬블라의 왕을 추적하는 암살자."
+        },
+        {
+          "name": "시빌 셰이드",
+          "description_ko": "존 셰이드의 아내."
+        }
+      ]
+    },
+    {
+      "title": "Frankenstein",
+      "title_ko": "프랑켄슈타인",
+      "author": "Mary Shelley",
+      "author_ko": "메리 셸리",
+      "major_characters": [
+        {
+          "name": "빅터 프랑켄슈타인",
+          "description_ko": "생명의 비밀을 연구해 인공 생명체를 창조하는 젊은 과학자."
+        },
+        {
+          "name": "괴물",
+          "description_ko": "빅터가 만든 존재. 지성과 감정을 갖지만 사회의 거부로 분노와 복수심을 키운다."
+        },
+        {
+          "name": "로버트 월턴",
+          "description_ko": "북극 탐험가이자 빅터의 이야기를 편지로 전하는 액자 화자."
+        },
+        {
+          "name": "엘리자베스 라벤자",
+          "description_ko": "빅터의 약혼자이자 가족의 중심 인물."
+        },
+        {
+          "name": "헨리 클레르발",
+          "description_ko": "빅터의 절친한 친구."
+        }
+      ]
+    },
+    {
+      "title": "The Prime of Miss Jean Brodie",
+      "title_ko": "진 브로디 선생의 전성기",
+      "author": "Muriel Spark",
+      "author_ko": "뮤리얼 스파크",
+      "major_characters": [
+        {
+          "name": "진 브로디",
+          "description_ko": "에든버러 여학교의 카리스마 넘치는 교사로 자신이 선택한 학생들을 강하게 영향권에 둔다."
+        },
+        {
+          "name": "샌디 스트레인저",
+          "description_ko": "브로디의 제자 중 가장 통찰력이 뛰어나며 결국 교사의 운명에 결정적 영향을 준다."
+        },
+        {
+          "name": "로즈 스탠리",
+          "description_ko": "브로디가 성적 매력이 있다고 평가하는 학생."
+        },
+        {
+          "name": "테디 로이드",
+          "description_ko": "미술 교사로 브로디와 복잡한 관계를 맺는다."
+        },
+        {
+          "name": "고든 로더",
+          "description_ko": "음악 교사로 브로디와 연애 관계를 맺는다."
+        }
+      ]
+    },
+    {
+      "title": "The God of Small Things",
+      "title_ko": "작은 것들의 신",
+      "author": "Arundhati Roy",
+      "author_ko": "아룬다티 로이",
+      "major_characters": [
+        {
+          "name": "에스타",
+          "description_ko": "쌍둥이 중 남동생. 어린 시절의 비극으로 깊은 상처를 입는다."
+        },
+        {
+          "name": "라헬",
+          "description_ko": "에스타의 쌍둥이 누나이자 주요 시점 인물."
+        },
+        {
+          "name": "암무",
+          "description_ko": "쌍둥이의 어머니. 사회적 금기를 넘어 벨루타와 사랑에 빠진다."
+        },
+        {
+          "name": "벨루타",
+          "description_ko": "달리트 출신의 숙련된 목수로 암무와 금지된 관계를 맺는다."
+        },
+        {
+          "name": "소피 몰",
+          "description_ko": "쌍둥이의 영국계 사촌으로 가족의 비극적 사건 중심에 놓인다."
+        }
+      ]
+    },
+    {
+      "title": "David Copperfield",
+      "title_ko": "데이비드 코퍼필드",
+      "author": "Charles Dickens",
+      "author_ko": "찰스 디킨스",
+      "major_characters": [
+        {
+          "name": "데이비드 코퍼필드",
+          "description_ko": "고난 많은 유년기를 거쳐 작가로 성장하는 화자이자 주인공."
+        },
+        {
+          "name": "벳시 트로트우드",
+          "description_ko": "데이비드의 독특하지만 헌신적인 고모."
+        },
+        {
+          "name": "클라라 페고티",
+          "description_ko": "데이비드를 어릴 때부터 돌보는 충직한 가정부."
+        },
+        {
+          "name": "유라이어 힙",
+          "description_ko": "겸손을 가장하며 권력을 탐하는 서기."
+        },
+        {
+          "name": "애그니스 윅필드",
+          "description_ko": "데이비드의 오랜 친구이자 정신적 버팀목."
+        }
+      ]
+    },
+    {
+      "title": "Wolf Hall",
+      "title_ko": "울프 홀",
+      "author": "Hilary Mantel",
+      "author_ko": "힐러리 맨틀",
+      "major_characters": [
+        {
+          "name": "토머스 크롬웰",
+          "description_ko": "헨리 8세 시대에 권력의 중심으로 떠오르는 정치가이자 작품의 중심 인물."
+        },
+        {
+          "name": "헨리 8세",
+          "description_ko": "잉글랜드 국왕. 왕위 계승과 혼인 문제로 종교·정치 질서를 뒤흔든다."
+        },
+        {
+          "name": "앤 불린",
+          "description_ko": "헨리 8세의 두 번째 왕비가 되는 여성."
+        },
+        {
+          "name": "토머스 모어",
+          "description_ko": "법률가·인문주의자·정치가로 크롬웰과 종교·정치 문제에서 대립한다."
+        },
+        {
+          "name": "울지 추기경",
+          "description_ko": "크롬웰의 초기 후원자이자 한때 국왕의 최고 권력자."
+        }
+      ]
+    },
+    {
+      "title": "Great Expectations",
+      "title_ko": "위대한 유산",
+      "author": "Charles Dickens",
+      "author_ko": "찰스 디킨스",
+      "major_characters": [
+        {
+          "name": "핍",
+          "description_ko": "가난한 고아 소년으로 뜻밖의 재산을 통해 신사가 되기를 꿈꾼다."
+        },
+        {
+          "name": "에스텔라",
+          "description_ko": "미스 해비셤에게 양육되어 남성의 마음을 상처 입히도록 길러진 여성."
+        },
+        {
+          "name": "미스 해비셤",
+          "description_ko": "결혼식 날 버림받은 뒤 과거에 갇혀 살아가는 부유한 여성."
+        },
+        {
+          "name": "에이블 매그위치",
+          "description_ko": "피프가 어린 시절 도운 탈옥수로 그의 인생을 바꾸는 인물."
+        },
+        {
+          "name": "조 가저리",
+          "description_ko": "피프의 매형이자 대장장이. 변함없는 선의와 애정을 보여준다."
+        }
+      ]
+    },
+    {
+      "title": "The Handmaid's Tale",
+      "title_ko": "시녀 이야기",
+      "author": "Margaret Atwood",
+      "author_ko": "마거릿 애트우드",
+      "major_characters": [
+        {
+          "name": "오브프레드",
+          "description_ko": "길리어드 체제에서 지휘관 가정의 '시녀'로 배정된 화자."
+        },
+        {
+          "name": "사령관",
+          "description_ko": "오브프레드가 배정된 집의 남성 권력자."
+        },
+        {
+          "name": "세리나 조이",
+          "description_ko": "지휘관의 아내로 체제의 여성 규범을 지지했지만 그 안에서 불만을 품는다."
+        },
+        {
+          "name": "닉",
+          "description_ko": "지휘관 집의 운전기사로 오브프레드와 위험한 관계를 맺는다."
+        },
+        {
+          "name": "모이라",
+          "description_ko": "오브프레드의 친구로 길리어드 체제에 적극적으로 저항한다."
+        }
+      ]
+    },
+    {
+      "title": "Invisible Man",
+      "title_ko": "보이지 않는 인간",
+      "author": "Ralph Ellison",
+      "author_ko": "랠프 엘리슨",
+      "major_characters": [
+        {
+          "name": "화자",
+          "description_ko": "이름이 밝혀지지 않는 흑인 화자. 미국 사회에서 자신의 정체성과 가시성을 찾아간다."
+        },
+        {
+          "name": "블레드소 박사",
+          "description_ko": "화자가 다니는 흑인 대학의 총장으로 권력 유지를 우선시한다."
+        },
+        {
+          "name": "브러더 잭",
+          "description_ko": "화자를 정치 조직 '브러더후드'로 끌어들이는 지도자."
+        },
+        {
+          "name": "토드 클리프턴",
+          "description_ko": "브러더후드의 젊은 흑인 활동가."
+        },
+        {
+          "name": "라스 디 익소터",
+          "description_ko": "흑인 민족주의를 내세우며 브러더후드와 대립하는 인물."
+        }
+      ]
+    },
+    {
+      "title": "The Age of Innocence",
+      "title_ko": "순수의 시대",
+      "author": "Edith Wharton",
+      "author_ko": "이디스 워튼",
+      "major_characters": [
+        {
+          "name": "뉴랜드 아처",
+          "description_ko": "뉴욕 상류사회 관습과 개인적 욕망 사이에서 갈등하는 변호사."
+        },
+        {
+          "name": "엘런 올렌스카",
+          "description_ko": "유럽에서 불행한 결혼 생활을 마치고 돌아온 독립적인 백작부인."
+        },
+        {
+          "name": "메이 웰랜드",
+          "description_ko": "뉴랜드의 약혼자이자 아내로 사회 규범을 충실히 따른다."
+        },
+        {
+          "name": "맨슨 밍엇 부인",
+          "description_ko": "엘런과 메이의 강한 개성을 지닌 할머니."
+        }
+      ]
+    },
+    {
+      "title": "Their Eyes Were Watching God",
+      "title_ko": "그들의 눈은 신을 보고 있었다",
+      "author": "Zora Neale Hurston",
+      "author_ko": "조라 닐 허스턴",
+      "major_characters": [
+        {
+          "name": "제이니 크로퍼드",
+          "description_ko": "사랑과 자립, 자기 목소리를 찾아가는 흑인 여성 주인공."
+        },
+        {
+          "name": "내니 크로퍼드",
+          "description_ko": "제이니의 할머니로 안전과 사회적 지위를 중시한다."
+        },
+        {
+          "name": "로건 킬릭스",
+          "description_ko": "제이니의 첫 남편."
+        },
+        {
+          "name": "조 ‘조디’ 스타크스",
+          "description_ko": "제이니의 두 번째 남편이자 이튼빌의 권력자가 된다."
+        },
+        {
+          "name": "버지블 ‘티 케이크’ 우즈",
+          "description_ko": "제이니의 세 번째 남편으로 그녀에게 자유롭고 새로운 삶을 경험하게 한다."
+        }
+      ]
+    },
+    {
+      "title": "Song of Solomon",
+      "title_ko": "솔로몬의 노래",
+      "author": "Toni Morrison",
+      "author_ko": "토니 모리슨",
+      "major_characters": [
+        {
+          "name": "메이컨 ‘밀크맨’ 데드 3세",
+          "description_ko": "가족의 역사와 자신의 뿌리를 찾아 여행하는 주인공."
+        },
+        {
+          "name": "필라트 데드",
+          "description_ko": "밀크맨의 고모. 독립적이고 영적인 삶을 사는 인물."
+        },
+        {
+          "name": "메이컨 데드 2세",
+          "description_ko": "밀크맨의 아버지로 재산과 소유에 집착한다."
+        },
+        {
+          "name": "루스 포스터 데드",
+          "description_ko": "밀크맨의 어머니."
+        },
+        {
+          "name": "기타 베인스",
+          "description_ko": "밀크맨의 친구로 인종폭력에 대한 비밀 조직의 보복 활동에 참여한다."
+        }
+      ]
+    },
+    {
+      "title": "Heart of Darkness",
+      "title_ko": "어둠의 심연",
+      "author": "Joseph Conrad",
+      "author_ko": "조지프 콘래드",
+      "major_characters": [
+        {
+          "name": "찰스 말로",
+          "description_ko": "콩고강을 따라 내륙으로 들어가며 제국주의의 폭력과 인간의 어둠을 목격하는 선원."
+        },
+        {
+          "name": "커츠",
+          "description_ko": "상아 채취지의 전설적 관리인으로 극단적 권력과 광기의 상징."
+        },
+        {
+          "name": "약혼녀",
+          "description_ko": "유럽에 남아 있는 쿠르츠의 약혼녀."
+        },
+        {
+          "name": "지배인",
+          "description_ko": "중앙기지의 책임자로 쿠르츠를 경계한다."
+        }
+      ]
+    },
+    {
+      "title": "The Magic Mountain",
+      "title_ko": "마의 산",
+      "author": "Thomas Mann",
+      "author_ko": "토마스 만",
+      "major_characters": [
+        {
+          "name": "한스 카스토르프",
+          "description_ko": "사촌을 문병하러 알프스 요양원에 갔다가 수년간 머무르게 되는 청년."
+        },
+        {
+          "name": "요아힘 침센",
+          "description_ko": "한스의 사촌이자 군인이 되기를 원하는 결핵 환자."
+        },
+        {
+          "name": "로도비코 세템브리니",
+          "description_ko": "인문주의와 계몽주의를 옹호하며 한스에게 영향을 주는 이탈리아 지식인."
+        },
+        {
+          "name": "레오 나프타",
+          "description_ko": "급진적이고 권위주의적인 사상을 펼치며 세템브리니와 논쟁하는 인물."
+        },
+        {
+          "name": "클라브디아 쇼샤",
+          "description_ko": "한스가 매혹되는 러시아 여성 환자."
+        }
+      ]
+    },
+    {
+      "title": "Housekeeping",
+      "title_ko": "하우스키핑",
+      "author": "Marilynne Robinson",
+      "author_ko": "메릴린 로빈슨",
+      "major_characters": [
+        {
+          "name": "루스 스톤",
+          "description_ko": "화자. 가족의 상실과 불안정한 양육 속에서 성장한다."
+        },
+        {
+          "name": "루실 스톤",
+          "description_ko": "루스의 여동생으로 보다 안정되고 정상적인 삶을 원한다."
+        },
+        {
+          "name": "실비 피셔",
+          "description_ko": "루스와 루실의 이모. 방랑자 같은 삶의 방식을 지닌다."
+        },
+        {
+          "name": "헬렌 스톤",
+          "description_ko": "두 자매의 어머니."
+        }
+      ]
+    },
+    {
+      "title": "Giovanni's Room",
+      "title_ko": "조반니의 방",
+      "author": "James Baldwin",
+      "author_ko": "제임스 볼드윈",
+      "major_characters": [
+        {
+          "name": "데이비드",
+          "description_ko": "파리에 머무는 미국인 남성으로 자신의 성적 정체성과 욕망을 부정하려 한다."
+        },
+        {
+          "name": "조반니",
+          "description_ko": "이탈리아 출신 바텐더로 데이비드와 깊은 관계를 맺는다."
+        },
+        {
+          "name": "헬라",
+          "description_ko": "데이비드의 약혼녀."
+        },
+        {
+          "name": "자크",
+          "description_ko": "데이비드가 파리의 게이 사회와 연결되는 데 영향을 주는 나이 든 남성."
+        }
+      ]
+    },
+    {
+      "title": "The Golden Notebook",
+      "title_ko": "황금 노트북",
+      "author": "Doris Lessing",
+      "author_ko": "도리스 레싱",
+      "major_characters": [
+        {
+          "name": "애나 울프",
+          "description_ko": "작가이자 주인공. 삶의 여러 영역을 색깔별 노트에 분리해 기록한다."
+        },
+        {
+          "name": "몰리 제이컵스",
+          "description_ko": "안나의 가까운 친구이자 배우."
+        },
+        {
+          "name": "토미",
+          "description_ko": "몰리의 아들로 기성세대의 정치와 가치관에 갈등한다."
+        },
+        {
+          "name": "마이클",
+          "description_ko": "안나의 과거 연인."
+        },
+        {
+          "name": "솔 그린",
+          "description_ko": "안나와 격렬하고 불안정한 관계를 맺는 미국인 작가."
+        }
+      ]
+    },
+    {
+      "title": "The Leopard",
+      "title_ko": "표범",
+      "author": "Giuseppe Tomasi di Lampedusa",
+      "author_ko": "주세페 토마시 디 람페두사",
+      "major_characters": [
+        {
+          "name": "파브리치오 살리나 공작",
+          "description_ko": "시칠리아 귀족으로 통일운동과 사회 변화 속에서 자신의 계급 쇠퇴를 바라본다."
+        },
+        {
+          "name": "탄크레디 팔코네리",
+          "description_ko": "파브리치오의 조카. 새로운 시대에 빠르게 적응하는 야심찬 청년."
+        },
+        {
+          "name": "안젤리카 세다라",
+          "description_ko": "신흥 부유층 집안의 아름다운 딸로 탄크레디와 약혼한다."
+        },
+        {
+          "name": "콘체타 살리나",
+          "description_ko": "파브리치오의 딸로 탄크레디를 사랑한다."
+        },
+        {
+          "name": "돈 칼로제로 세다라",
+          "description_ko": "안젤리카의 아버지로 신흥 부르주아 권력을 상징한다."
+        }
+      ]
+    },
+    {
+      "title": "Vanity Fair",
+      "title_ko": "허영의 시장",
+      "author": "William Makepeace Thackeray",
+      "author_ko": "윌리엄 메이크피스 새커리",
+      "major_characters": [
+        {
+          "name": "베키 샤프",
+          "description_ko": "가난한 출신이지만 지성과 매력을 이용해 상류사회 진입을 꾀하는 야심가."
+        },
+        {
+          "name": "아멜리아 세들리",
+          "description_ko": "베키의 친구로 온화하고 헌신적이지만 이상화된 사랑에 집착한다."
+        },
+        {
+          "name": "로든 크롤리",
+          "description_ko": "베키와 결혼하는 군인."
+        },
+        {
+          "name": "조지 오즈번",
+          "description_ko": "아멜리아의 남편으로 허영심이 강하다."
+        },
+        {
+          "name": "윌리엄 도빈",
+          "description_ko": "아멜리아를 오랫동안 사랑하며 헌신하는 장교."
+        }
+      ]
+    },
+    {
+      "title": "The Metamorphosis",
+      "title_ko": "변신",
+      "author": "Franz Kafka",
+      "author_ko": "프란츠 카프카",
+      "major_characters": [
+        {
+          "name": "그레고르 잠자",
+          "description_ko": "어느 날 거대한 벌레 같은 존재로 변한 외판원."
+        },
+        {
+          "name": "그레테 잠자",
+          "description_ko": "그레고르의 여동생. 처음에는 오빠를 돌보지만 점차 태도가 바뀐다."
+        },
+        {
+          "name": "잠자 씨",
+          "description_ko": "그레고르의 아버지."
+        },
+        {
+          "name": "잠자 부인",
+          "description_ko": "그레고르의 어머니."
+        }
+      ]
+    },
+    {
+      "title": "A Fine Balance",
+      "title_ko": "적절한 균형",
+      "author": "Rohinton Mistry",
+      "author_ko": "로힌턴 미스트리",
+      "major_characters": [
+        {
+          "name": "디나 달랄",
+          "description_ko": "남편과 사별한 뒤 독립을 지키려 재봉 일을 하는 여성."
+        },
+        {
+          "name": "이슈바르 다르지",
+          "description_ko": "카스트 폭력을 피해 도시로 온 재단사."
+        },
+        {
+          "name": "옴프라카시 ‘옴’ 다르지",
+          "description_ko": "이슈바르의 조카이자 함께 일하는 젊은 재단사."
+        },
+        {
+          "name": "마넥 콜라",
+          "description_ko": "대학 진학을 위해 도시로 와 디나의 집에 하숙하는 청년."
+        }
+      ]
+    },
+    {
+      "title": "Wide Sargasso Sea",
+      "title_ko": "광막한 사르가소 바다",
+      "author": "Jean Rhys",
+      "author_ko": "진 리스",
+      "major_characters": [
+        {
+          "name": "앙투아네트 코즈웨이",
+          "description_ko": "자메이카 크리올 여성으로 훗날 '버사 메이슨'이라 불리게 되는 주인공."
+        },
+        {
+          "name": "영국인 남편",
+          "description_ko": "안투아네트와 결혼한 영국인 남성. 작품에서 이름이 명시되지 않지만 『제인 에어』의 로체스터와 연결된다."
+        },
+        {
+          "name": "크리스토핀",
+          "description_ko": "마르티니크 출신 여성으로 안투아네트를 돌보고 보호한다."
+        },
+        {
+          "name": "아네트 코즈웨이",
+          "description_ko": "안투아네트의 어머니."
+        },
+        {
+          "name": "대니얼 코즈웨이",
+          "description_ko": "안투아네트의 가문과 출생에 대한 의혹을 남편에게 전달하는 인물."
+        }
+      ]
+    },
+    {
+      "title": "My Brilliant Friend",
+      "title_ko": "나의 눈부신 친구",
+      "author": "Elena Ferrante",
+      "author_ko": "엘레나 페란테",
+      "major_characters": [
+        {
+          "name": "엘레나 ‘레누’ 그레코",
+          "description_ko": "화자. 나폴리의 가난한 동네에서 성장하며 교육을 통해 다른 삶을 꿈꾼다."
+        },
+        {
+          "name": "라파엘라 ‘릴라’ 체룰로",
+          "description_ko": "레누의 친구이자 경쟁자. 비범한 지성과 강한 성격을 지닌다."
+        },
+        {
+          "name": "스테파노 카라치",
+          "description_ko": "지역 식료품점 집안의 아들로 릴라와 결혼한다."
+        },
+        {
+          "name": "마르첼로 솔라라",
+          "description_ko": "지역의 폭력적이고 영향력 있는 솔라라 가문 인물."
+        },
+        {
+          "name": "니노 사라토레",
+          "description_ko": "레누와 릴라 모두에게 중요한 영향을 미치는 지적이고 매력적인 청년."
+        }
+      ]
+    },
+    {
+      "title": "The Golden Bowl",
+      "title_ko": "황금 주발",
+      "author": "Henry James",
+      "author_ko": "헨리 제임스",
+      "major_characters": [
+        {
+          "name": "매기 버버",
+          "description_ko": "부유한 미국인 상속녀로 이탈리아 귀족 아메리고와 결혼한다."
+        },
+        {
+          "name": "아메리고 공작",
+          "description_ko": "몰락한 이탈리아 귀족으로 매기와 결혼하지만 샬럿과 과거 관계가 있다."
+        },
+        {
+          "name": "애덤 버버",
+          "description_ko": "매기의 아버지이자 막대한 부를 지닌 미술 수집가."
+        },
+        {
+          "name": "샬럿 스탠트",
+          "description_ko": "매기의 친구이자 아메리고의 옛 연인. 이후 애덤과 결혼한다."
+        }
+      ]
+    },
+    {
+      "title": "The Transit of Venus",
+      "title_ko": "금성의 통과",
+      "author": "Shirley Hazzard",
+      "author_ko": "셜리 해저드",
+      "major_characters": [
+        {
+          "name": "캐럴라인 벨",
+          "description_ko": "호주에서 영국으로 건너온 벨 자매 중 언니로 복잡한 사랑과 선택을 겪는다."
+        },
+        {
+          "name": "그레이스 벨",
+          "description_ko": "캐럴라인의 여동생으로 비교적 전통적인 삶을 선택한다."
+        },
+        {
+          "name": "테드 타이스",
+          "description_ko": "천문학자로 캐럴라인을 오랫동안 사랑한다."
+        },
+        {
+          "name": "폴 아이버리",
+          "description_ko": "매력적이고 자기중심적인 남성으로 캐럴라인과 깊은 관계를 맺는다."
+        }
+      ]
+    },
+    {
+      "title": "Orlando",
+      "title_ko": "올랜도",
+      "author": "Virginia Woolf",
+      "author_ko": "버지니아 울프",
+      "major_characters": [
+        {
+          "name": "올랜도",
+          "description_ko": "수백 년을 살아가며 어느 순간 남성에서 여성으로 성별이 변화하는 귀족이자 작가."
+        },
+        {
+          "name": "엘리자베스 1세",
+          "description_ko": "젊은 올랜도를 총애하는 영국 여왕."
+        },
+        {
+          "name": "사샤",
+          "description_ko": "러시아 공주로 올랜도의 첫 강렬한 사랑."
+        },
+        {
+          "name": "해리엇 대공비 / 해리 대공",
+          "description_ko": "올랜도를 집요하게 구애하는 인물."
+        },
+        {
+          "name": "마머듀크 본스럽 셸머딘",
+          "description_ko": "여성이 된 올랜도가 만나 결혼하는 모험가."
+        }
+      ]
+    },
+    {
+      "title": "The Waves",
+      "title_ko": "파도",
+      "author": "Virginia Woolf",
+      "author_ko": "버지니아 울프",
+      "major_characters": [
+        {
+          "name": "버나드",
+          "description_ko": "언어와 이야기 만들기에 집착하는 인물."
+        },
+        {
+          "name": "수전",
+          "description_ko": "자연과 가정생활에 강한 애착을 느끼는 여성."
+        },
+        {
+          "name": "로다",
+          "description_ko": "고립감과 불안에 시달리는 내향적 인물."
+        },
+        {
+          "name": "네빌",
+          "description_ko": "지적이고 예술적인 성향을 지닌 남성."
+        },
+        {
+          "name": "지니",
+          "description_ko": "육체성과 사회적 매력을 중시하는 여성."
+        },
+        {
+          "name": "루이스",
+          "description_ko": "호주 출신으로 계급적 열등감과 성공 욕망을 품는다."
+        },
+        {
+          "name": "퍼시벌",
+          "description_ko": "직접 독백하지 않지만 여섯 인물의 삶과 기억을 묶는 중심적 존재."
+        }
+      ]
+    },
+    {
+      "title": "Mansfield Park",
+      "title_ko": "맨스필드 파크",
+      "author": "Jane Austen",
+      "author_ko": "제인 오스틴",
+      "major_characters": [
+        {
+          "name": "패니 프라이스",
+          "description_ko": "가난한 집안에서 맨스필드 파크의 부유한 친척 집으로 보내져 성장하는 주인공."
+        },
+        {
+          "name": "에드먼드 버트럼",
+          "description_ko": "패니를 이해하고 배려하는 사촌."
+        },
+        {
+          "name": "토머스 버트럼 경",
+          "description_ko": "맨스필드 파크의 가장."
+        },
+        {
+          "name": "메리 크로퍼드",
+          "description_ko": "매력적이고 세련됐지만 가치관이 패니와 충돌하는 여성."
+        },
+        {
+          "name": "헨리 크로퍼드",
+          "description_ko": "메리의 오빠로 패니에게 구애한다."
+        }
+      ]
+    },
+    {
+      "title": "The Sound and the Fury",
+      "title_ko": "소리와 분노",
+      "author": "William Faulkner",
+      "author_ko": "윌리엄 포크너",
+      "major_characters": [
+        {
+          "name": "벤지 콤프슨",
+          "description_ko": "콤프슨가의 막내아들. 시간의 구분 없이 감각과 기억을 경험한다."
+        },
+        {
+          "name": "퀜틴 콤프슨",
+          "description_ko": "가문의 쇠퇴와 누이 캐디에 집착하는 장남."
+        },
+        {
+          "name": "제이슨 콤프슨 4세",
+          "description_ko": "냉소적이고 탐욕적인 셋째 아들."
+        },
+        {
+          "name": "캐디 콤프슨",
+          "description_ko": "세 형제의 기억과 집착의 중심에 놓인 누이."
+        },
+        {
+          "name": "딜시 깁슨",
+          "description_ko": "콤프슨가를 오랫동안 돌보는 흑인 하인으로 도덕적 중심을 이룬다."
+        }
+      ]
+    },
+    {
+      "title": "Disgrace",
+      "title_ko": "추락",
+      "author": "J. M. Coetzee",
+      "author_ko": "J. M. 쿳시",
+      "major_characters": [
+        {
+          "name": "데이비드 루리",
+          "description_ko": "성적 스캔들로 대학을 떠난 중년의 교수."
+        },
+        {
+          "name": "루시 루리",
+          "description_ko": "데이비드의 딸. 남아프리카 농장에서 독립적으로 살아간다."
+        },
+        {
+          "name": "페트루스",
+          "description_ko": "루시의 이웃이자 농장 노동자에서 토지 소유자로 세력을 넓히는 인물."
+        },
+        {
+          "name": "멜러니 아이작스",
+          "description_ko": "데이비드와 부적절한 관계에 놓이는 그의 학생."
+        }
+      ]
+    },
+    {
+      "title": "Never Let Me Go",
+      "title_ko": "나를 보내지 마",
+      "author": "Kazuo Ishiguro",
+      "author_ko": "가즈오 이시구로",
+      "major_characters": [
+        {
+          "name": "캐시 H.",
+          "description_ko": "화자. 헤일셤에서 성장한 뒤 간병인이 되어 과거를 회상한다."
+        },
+        {
+          "name": "토미 D.",
+          "description_ko": "캐시의 친구이자 중요한 연인."
+        },
+        {
+          "name": "루스",
+          "description_ko": "캐시의 친구이자 한때 토미와 연애하는 인물."
+        },
+        {
+          "name": "루시 선생님",
+          "description_ko": "학생들에게 그들의 운명에 대한 진실을 암시하는 교사."
+        },
+        {
+          "name": "마담",
+          "description_ko": "헤일셤 학생들의 미술 작품을 수집하며 학교의 비밀과 연결된 인물."
+        }
+      ]
+    },
+    {
+      "title": "Howards End",
+      "title_ko": "하워즈 엔드",
+      "author": "E. M. Forster",
+      "author_ko": "E. M. 포스터",
+      "major_characters": [
+        {
+          "name": "마거릿 슐레겔",
+          "description_ko": "지적이고 독립적인 슐레겔 자매의 언니."
+        },
+        {
+          "name": "헬렌 슐레겔",
+          "description_ko": "충동적이고 이상주의적인 마거릿의 여동생."
+        },
+        {
+          "name": "헨리 윌콕스",
+          "description_ko": "실용적이고 보수적인 사업가."
+        },
+        {
+          "name": "루스 윌콕스",
+          "description_ko": "헨리의 첫 아내로 하워즈 엔드 저택과 깊은 유대를 가진다."
+        },
+        {
+          "name": "레너드 바스트",
+          "description_ko": "교양과 계층 상승을 꿈꾸는 가난한 사무원."
+        }
+      ]
+    },
+    {
+      "title": "The Rings of Saturn",
+      "title_ko": "토성의 고리",
+      "author": "W. G. Sebald",
+      "author_ko": "W. G. 제발트",
+      "major_characters": [
+        {
+          "name": "화자",
+          "description_ko": "영국 동부 해안을 도보 여행하며 역사, 기억, 파괴를 사유하는 화자."
+        },
+        {
+          "name": "토머스 브라운",
+          "description_ko": "화자의 사유 속에서 반복적으로 등장하는 17세기 영국 작가이자 의사."
+        },
+        {
+          "name": "조지프 콘래드",
+          "description_ko": "작품 속 전기적·역사적 탐구의 중요한 대상이 되는 작가."
+        }
+      ]
+    },
+    {
+      "title": "Half of a Yellow Sun",
+      "title_ko": "태양은 노랗게 타오른다",
+      "author": "Chimamanda Ngozi Adichie",
+      "author_ko": "치마만다 응고지 아디치에",
+      "major_characters": [
+        {
+          "name": "우구",
+          "description_ko": "오데니그보의 집에서 일하기 시작하며 전쟁과 성장을 겪는 소년."
+        },
+        {
+          "name": "올란나",
+          "description_ko": "부유한 집안 출신의 지식인 여성으로 오데니그보와 함께 비아프라 전쟁을 겪는다."
+        },
+        {
+          "name": "오데니그보",
+          "description_ko": "대학 교수이자 비아프라 독립을 지지하는 지식인."
+        },
+        {
+          "name": "카이네네",
+          "description_ko": "올란나의 쌍둥이 자매. 현실적이고 독립적인 사업가."
+        },
+        {
+          "name": "리처드 처칠",
+          "description_ko": "나이지리아 문화에 매료된 영국인 작가로 카이네네와 연인이 된다."
+        }
+      ]
+    },
+    {
+      "title": "White Teeth",
+      "title_ko": "하얀 이빨",
+      "author": "Zadie Smith",
+      "author_ko": "제이디 스미스",
+      "major_characters": [
+        {
+          "name": "아치 존스",
+          "description_ko": "제2차 세계대전 참전 경험을 지닌 영국인으로 자메이카계 클라라와 결혼한다."
+        },
+        {
+          "name": "사마드 이크발",
+          "description_ko": "아치의 방글라데시계 친구. 이민 생활과 전통적 정체성 사이에서 갈등한다."
+        },
+        {
+          "name": "클라라 보든",
+          "description_ko": "아치의 아내. 여호와의 증인 집안에서 벗어난 자메이카계 영국인."
+        },
+        {
+          "name": "아이리 존스",
+          "description_ko": "아치와 클라라의 딸로 혼합 문화 속에서 자기 정체성을 찾는다."
+        },
+        {
+          "name": "밀라트 이크발",
+          "description_ko": "사마드의 쌍둥이 아들 중 한 명으로 급진적 종교 운동에 끌린다."
+        }
+      ]
+    },
+    {
+      "title": "The Good Soldier",
+      "title_ko": "훌륭한 군인",
+      "author": "Ford Madox Ford",
+      "author_ko": "포드 매덕스 포드",
+      "major_characters": [
+        {
+          "name": "존 다월",
+          "description_ko": "이야기의 화자. 두 부부의 관계와 배신을 뒤늦게 이해해간다."
+        },
+        {
+          "name": "플로렌스 다월",
+          "description_ko": "존의 아내로 비밀스러운 관계와 욕망을 숨긴다."
+        },
+        {
+          "name": "에드워드 애시버넘",
+          "description_ko": "겉보기에는 모범적인 영국 신사이지만 여러 연애 관계를 맺는다."
+        },
+        {
+          "name": "리어노라 애시버넘",
+          "description_ko": "에드워드의 아내로 남편의 행동을 통제하고 가정을 지키려 한다."
+        },
+        {
+          "name": "낸시 러퍼드",
+          "description_ko": "애시버넘 부부가 보호하는 젊은 여성."
+        }
+      ]
+    },
+    {
+      "title": "The Color Purple",
+      "title_ko": "컬러 퍼플",
+      "author": "Alice Walker",
+      "author_ko": "앨리스 워커",
+      "major_characters": [
+        {
+          "name": "실리",
+          "description_ko": "폭력과 억압을 견디며 자기 목소리와 독립성을 찾아가는 흑인 여성."
+        },
+        {
+          "name": "네티",
+          "description_ko": "셀리의 여동생. 아프리카에서 선교 활동을 하며 편지를 보낸다."
+        },
+        {
+          "name": "셔그 에이버리",
+          "description_ko": "가수이자 셀리의 삶과 자아 형성에 큰 영향을 주는 여성."
+        },
+        {
+          "name": "앨버트 ‘미스터’",
+          "description_ko": "셀리의 남편으로 오랫동안 그녀를 억압한다."
+        },
+        {
+          "name": "소피아",
+          "description_ko": "하포의 강인한 아내로 인종차별과 가부장제에 맞선다."
+        }
+      ]
+    },
+    {
+      "title": "The Master and Margarita",
+      "title_ko": "거장과 마르가리타",
+      "author": "Mikhail Bulgakov",
+      "author_ko": "미하일 불가코프",
+      "major_characters": [
+        {
+          "name": "볼란드",
+          "description_ko": "모스크바에 나타나 도시의 위선과 탐욕을 폭로하는 악마적 존재."
+        },
+        {
+          "name": "거장",
+          "description_ko": "본디오 빌라도에 관한 소설을 쓴 뒤 절망에 빠진 작가."
+        },
+        {
+          "name": "마르가리타",
+          "description_ko": "마스터를 사랑하며 그를 구하기 위해 초자연적 세계에 뛰어드는 여성."
+        },
+        {
+          "name": "이반 베즈돔니",
+          "description_ko": "시인으로 월란드 일행과의 사건을 겪으며 정신과 세계관이 변한다."
+        },
+        {
+          "name": "본디오 빌라도",
+          "description_ko": "마스터의 소설 속 인물로 예슈아의 재판을 맡는 로마 총독."
+        }
+      ]
+    },
+    {
+      "title": "The Man Without Qualities",
+      "title_ko": "특성 없는 남자",
+      "author": "Robert Musil",
+      "author_ko": "로베르트 무질",
+      "major_characters": [
+        {
+          "name": "울리히",
+          "description_ko": "뚜렷한 정체성과 목표 없이 가능성의 감각을 추구하는 지식인."
+        },
+        {
+          "name": "아가테",
+          "description_ko": "울리히의 여동생으로 그와 강한 정신적 유대를 형성한다."
+        },
+        {
+          "name": "디오티마",
+          "description_ko": "제국 기념 사업인 '평행운동'의 사교적 중심 인물."
+        },
+        {
+          "name": "아른하임",
+          "description_ko": "부유한 독일 사업가이자 지식인으로 디오티마와 가까워진다."
+        },
+        {
+          "name": "무스브루거",
+          "description_ko": "살인 혐의로 재판받는 인물로 작품의 법·도덕·정신 문제를 드러낸다."
+        }
+      ]
+    },
+    {
+      "title": "Blood Meridian",
+      "title_ko": "핏빛 자오선",
+      "author": "Cormac McCarthy",
+      "author_ko": "코맥 매카시",
+      "major_characters": [
+        {
+          "name": "키드",
+          "description_ko": "폭력적인 국경지대에서 글랜턴 일당에 합류하는 이름 없는 소년."
+        },
+        {
+          "name": "홀든 판사",
+          "description_ko": "박식하고 거대한 체구를 지닌 수수께끼의 인물. 폭력과 전쟁의 철학을 설파한다."
+        },
+        {
+          "name": "존 조엘 글랜턴",
+          "description_ko": "원주민 두피 사냥단을 이끄는 실존 인물 기반의 잔혹한 지도자."
+        },
+        {
+          "name": "토빈",
+          "description_ko": "전직 신학생으로 판사 홀든을 경계하며 키드와 가까워진다."
+        }
+      ]
+    },
+    {
+      "title": "Crime and Punishment",
+      "title_ko": "죄와 벌",
+      "author": "Fyodor Dostoevsky",
+      "author_ko": "표도르 도스토옙스키",
+      "major_characters": [
+        {
+          "name": "로지온 라스콜니코프",
+          "description_ko": "가난한 전직 대학생. 자신의 이론을 시험하려 살인을 저지르고 죄책감에 시달린다."
+        },
+        {
+          "name": "소피야 ‘소냐’ 마르멜라도바",
+          "description_ko": "가족을 부양하기 위해 희생하는 여성으로 라스콜니코프에게 도덕적·영적 버팀목이 된다."
+        },
+        {
+          "name": "포르피리 페트로비치",
+          "description_ko": "살인 사건을 수사하며 심리적으로 라스콜니코프를 압박하는 수사관."
+        },
+        {
+          "name": "아브도티야 ‘두냐’ 로마노브나",
+          "description_ko": "라스콜니코프의 여동생."
+        },
+        {
+          "name": "아르카디 스비드리가일로프",
+          "description_ko": "두냐에게 집착하는 위험하고 모순적인 인물."
+        }
+      ]
+    },
+    {
+      "title": "Jude the Obscure",
+      "title_ko": "이름 없는 주드",
+      "author": "Thomas Hardy",
+      "author_ko": "토머스 하디",
+      "major_characters": [
+        {
+          "name": "주드 폴리",
+          "description_ko": "학문과 대학 진학을 꿈꾸지만 계급과 제도에 가로막히는 노동자."
+        },
+        {
+          "name": "수 브라이드헤드",
+          "description_ko": "주드의 사촌이자 지적·정서적 동반자."
+        },
+        {
+          "name": "아라벨라 돈",
+          "description_ko": "주드의 첫 아내. 현실적이고 육체적인 삶의 힘을 대표한다."
+        },
+        {
+          "name": "리처드 필럿슨",
+          "description_ko": "교사로 수의 남편이 된다."
+        },
+        {
+          "name": "리틀 파더 타임",
+          "description_ko": "주드의 아들로 작품의 비극성을 극대화하는 인물."
+        }
+      ]
+    },
+    {
+      "title": "The Outsider",
+      "title_ko": "이방인",
+      "author": "Albert Camus",
+      "author_ko": "알베르 카뮈",
+      "major_characters": [
+        {
+          "name": "뫼르소",
+          "description_ko": "감정 표현과 사회적 규범에서 벗어난 태도를 보이는 알제의 프랑스계 사무원."
+        },
+        {
+          "name": "마리 카르도나",
+          "description_ko": "뫼르소와 연애 관계를 맺는 여성."
+        },
+        {
+          "name": "레몽 생테스",
+          "description_ko": "뫼르소의 이웃으로 폭력적인 갈등에 그를 끌어들인다."
+        },
+        {
+          "name": "아랍인",
+          "description_ko": "레이몽과의 갈등 과정에서 뫼르소와 맞닥뜨리는 이름 없는 인물."
+        },
+        {
+          "name": "사제",
+          "description_ko": "사형을 앞둔 뫼르소에게 종교적 위안을 권하는 사제."
+        }
+      ]
+    },
+    {
+      "title": "Kindred",
+      "title_ko": "킨",
+      "author": "Octavia E. Butler",
+      "author_ko": "옥타비아 E. 버틀러",
+      "major_characters": [
+        {
+          "name": "다나 프랭클린",
+          "description_ko": "1976년의 흑인 여성 작가로 반복해서 노예제 시대 메릴랜드로 시간 이동한다."
+        },
+        {
+          "name": "케빈 프랭클린",
+          "description_ko": "다나의 백인 남편. 한 차례 과거로 함께 이동한다."
+        },
+        {
+          "name": "루퍼스 웨일린",
+          "description_ko": "노예 소유주 집안의 백인 소년으로 다나의 조상 계보와 얽혀 있다."
+        },
+        {
+          "name": "앨리스 그린우드",
+          "description_ko": "자유 흑인 여성으로 루퍼스와 비극적으로 얽힌다."
+        },
+        {
+          "name": "톰 웨일린",
+          "description_ko": "루퍼스의 아버지이자 잔혹한 농장주."
+        }
+      ]
+    },
+    {
+      "title": "Our Mutual Friend",
+      "title_ko": "우리 서로의 친구",
+      "author": "Charles Dickens",
+      "author_ko": "찰스 디킨스",
+      "major_characters": [
+        {
+          "name": "존 하먼",
+          "description_ko": "막대한 유산의 상속자로 지목된 뒤 신분을 숨기고 살아가는 청년."
+        },
+        {
+          "name": "벨라 윌퍼",
+          "description_ko": "유산 조건 때문에 존 하먼과 결혼할 예정이었던 젊은 여성."
+        },
+        {
+          "name": "노디 보핀",
+          "description_ko": "하먼 가문의 충직한 옛 하인으로 뜻밖의 재산을 상속받는다."
+        },
+        {
+          "name": "리지 헥섬",
+          "description_ko": "템스강 시체 인양업자의 딸로 여러 인물의 관심을 받는다."
+        },
+        {
+          "name": "유진 레이번",
+          "description_ko": "변호사로 리지에게 끌리며 계급과 감정 사이에서 갈등한다."
+        }
+      ]
+    },
+    {
+      "title": "Austerlitz",
+      "title_ko": "아우스터리츠",
+      "author": "W. G. Sebald",
+      "author_ko": "W. G. 제발트",
+      "major_characters": [
+        {
+          "name": "자크 아우스터리츠",
+          "description_ko": "어린 시절 킨더트란스포트로 영국에 보내진 뒤 자신의 잃어버린 과거를 추적하는 인물."
+        },
+        {
+          "name": "화자",
+          "description_ko": "여행 중 오랜 세월에 걸쳐 아우스터리츠를 만나 그의 이야기를 듣는 이름 없는 화자."
+        },
+        {
+          "name": "베라 리샤노바",
+          "description_ko": "프라하에서 아우스터리츠의 어린 시절과 가족에 대한 기억을 전해주는 인물."
+        },
+        {
+          "name": "아가타 아우스터리츠",
+          "description_ko": "아우스터리츠의 어머니. 나치 점령 아래에서 박해받는다."
+        }
+      ]
+    },
+    {
+      "title": "Nervous Conditions",
+      "title_ko": "불안한 조건들",
+      "author": "Tsitsi Dangarembga",
+      "author_ko": "치치 단가렘바",
+      "major_characters": [
+        {
+          "name": "탐부자이 시가우케",
+          "description_ko": "교육을 통해 가난과 성차별을 벗어나려는 짐바브웨 소녀이자 화자."
+        },
+        {
+          "name": "냐샤",
+          "description_ko": "영국에서 성장한 탬부의 사촌. 식민주의와 가부장제의 압력에 저항한다."
+        },
+        {
+          "name": "바바무쿠루",
+          "description_ko": "탬부의 삼촌이자 교육받은 가문의 권위자."
+        },
+        {
+          "name": "마이구루",
+          "description_ko": "바바무쿠루의 아내. 고등교육을 받았지만 가부장적 질서에 묶여 있다."
+        },
+        {
+          "name": "나모",
+          "description_ko": "탬부의 오빠. 가족의 교육 기회를 우선적으로 받는다."
+        }
+      ]
+    },
+    {
+      "title": "The Bluest Eye",
+      "title_ko": "가장 푸른 눈",
+      "author": "Toni Morrison",
+      "author_ko": "토니 모리슨",
+      "major_characters": [
+        {
+          "name": "피콜라 브리드러브",
+          "description_ko": "백인의 미적 기준을 내면화해 파란 눈을 갈망하는 흑인 소녀."
+        },
+        {
+          "name": "클로디아 맥티어",
+          "description_ko": "페콜라의 또래이자 주요 화자 중 한 명."
+        },
+        {
+          "name": "프리다 맥티어",
+          "description_ko": "클로디아의 언니."
+        },
+        {
+          "name": "폴린 브리드러브",
+          "description_ko": "페콜라의 어머니로 백인 중심의 미적 이상에 매료된다."
+        },
+        {
+          "name": "촐리 브리드러브",
+          "description_ko": "페콜라의 아버지. 자신의 상처와 폭력을 가족에게 되풀이한다."
+        }
+      ]
+    },
+    {
+      "title": "Dracula",
+      "title_ko": "드라큘라",
+      "author": "Bram Stoker",
+      "author_ko": "브램 스토커",
+      "major_characters": [
+        {
+          "name": "드라큘라 백작",
+          "description_ko": "트란실바니아의 흡혈귀 백작."
+        },
+        {
+          "name": "조너선 하커",
+          "description_ko": "부동산 업무로 드라큘라의 성을 방문하는 젊은 변호사."
+        },
+        {
+          "name": "미나 하커",
+          "description_ko": "조너선의 약혼자이자 이후 아내로, 드라큘라와의 싸움에서 핵심 역할을 한다."
+        },
+        {
+          "name": "루시 웨스턴라",
+          "description_ko": "미나의 친구로 드라큘라의 희생자가 된다."
+        },
+        {
+          "name": "아브라함 반 헬싱",
+          "description_ko": "흡혈귀의 정체와 약점을 이해하고 일행을 이끄는 학자이자 의사."
+        }
+      ]
+    },
+    {
+      "title": "My Ántonia",
+      "title_ko": "나의 안토니아",
+      "author": "Willa Cather",
+      "author_ko": "윌라 캐더",
+      "major_characters": [
+        {
+          "name": "짐 버든",
+          "description_ko": "화자. 어린 시절 네브래스카에서 안토니아와 성장한 기억을 회상한다."
+        },
+        {
+          "name": "안토니아 시머다",
+          "description_ko": "보헤미아계 이민자 소녀로 강인하게 개척지의 삶을 살아간다."
+        },
+        {
+          "name": "시머다 씨",
+          "description_ko": "안토니아의 아버지. 새로운 환경에 적응하지 못해 깊은 우울에 빠진다."
+        },
+        {
+          "name": "레나 링가드",
+          "description_ko": "안토니아와 함께 성장한 이민자 출신 여성으로 도시에서 독립한다."
+        }
+      ]
+    },
+    {
+      "title": "The Rainbow",
+      "title_ko": "무지개",
+      "author": "D. H. Lawrence",
+      "author_ko": "D. H. 로런스",
+      "major_characters": [
+        {
+          "name": "톰 브랭귄",
+          "description_ko": "브랭귄 가문의 첫 세대를 대표하는 농부."
+        },
+        {
+          "name": "리디아 렌스키",
+          "description_ko": "폴란드 출신 과부로 톰과 결혼한다."
+        },
+        {
+          "name": "애나 브랭귄",
+          "description_ko": "리디아의 딸로 브랭귄 가족의 다음 세대를 잇는다."
+        },
+        {
+          "name": "윌 브랭귄",
+          "description_ko": "안나의 남편."
+        },
+        {
+          "name": "어슐라 브랭귄",
+          "description_ko": "안나와 윌의 딸로 독립과 자아를 추구하는 핵심 인물."
+        }
+      ]
+    },
+    {
+      "title": "A House for Mr Biswas",
+      "title_ko": "비스와스 씨를 위한 집",
+      "author": "V. S. Naipaul",
+      "author_ko": "V. S. 나이폴",
+      "major_characters": [
+        {
+          "name": "모훈 비스와스",
+          "description_ko": "자기 집과 독립된 삶을 얻기 위해 평생 분투하는 인도계 트리니다드인."
+        },
+        {
+          "name": "샤마",
+          "description_ko": "비스와스의 아내이자 툴시 가문의 딸."
+        },
+        {
+          "name": "툴시 부인",
+          "description_ko": "대가족을 지배하는 툴시 가문의 중심 인물."
+        },
+        {
+          "name": "세스",
+          "description_ko": "툴시 집안의 실무와 권력을 쥔 인물."
+        },
+        {
+          "name": "아난드",
+          "description_ko": "비스와스의 아들로 아버지와 복잡한 유대를 형성한다."
+        }
+      ]
+    },
+    {
+      "title": "Go Tell It on the Mountain",
+      "title_ko": "산에 올라 고하여라",
+      "author": "James Baldwin",
+      "author_ko": "제임스 볼드윈",
+      "major_characters": [
+        {
+          "name": "존 그라임스",
+          "description_ko": "할렘에서 성장하며 종교, 가족, 정체성과 씨름하는 14세 소년."
+        },
+        {
+          "name": "가브리엘 그라임스",
+          "description_ko": "존의 엄격한 양아버지이자 설교자."
+        },
+        {
+          "name": "엘리자베스 그라임스",
+          "description_ko": "존의 어머니."
+        },
+        {
+          "name": "플로렌스",
+          "description_ko": "가브리엘의 누나로 가족의 과거를 알고 있다."
+        },
+        {
+          "name": "로이 그라임스",
+          "description_ko": "존의 이복동생으로 반항적인 성격을 지닌다."
+        }
+      ]
+    },
+    {
+      "title": "Rebecca",
+      "title_ko": "레베카",
+      "author": "Daphne du Maurier",
+      "author_ko": "대프니 듀 모리에",
+      "major_characters": [
+        {
+          "name": "두 번째 드 윈터 부인",
+          "description_ko": "이름이 밝혀지지 않는 화자. 맨덜리에서 전처 레베카의 그림자에 눌린다."
+        },
+        {
+          "name": "맥심 드 윈터",
+          "description_ko": "맨덜리의 주인이자 화자의 남편."
+        },
+        {
+          "name": "레베카 드 윈터",
+          "description_ko": "이미 죽었지만 저택과 사람들의 기억을 지배하는 맥심의 첫 번째 아내."
+        },
+        {
+          "name": "댄버스 부인",
+          "description_ko": "레베카를 숭배하며 새 안주인을 적대하는 가정부."
+        },
+        {
+          "name": "잭 파벨",
+          "description_ko": "레베카의 사촌이자 과거 관계의 핵심 인물."
+        }
+      ]
+    },
+    {
+      "title": "Buddenbrooks",
+      "title_ko": "부덴브로크가의 사람들",
+      "author": "Thomas Mann",
+      "author_ko": "토마스 만",
+      "major_characters": [
+        {
+          "name": "토마스 부덴브로크",
+          "description_ko": "가문의 사업과 명예를 짊어지는 후계자."
+        },
+        {
+          "name": "토니 부덴브로크",
+          "description_ko": "가문의 기대와 불행한 결혼을 반복해서 겪는 딸."
+        },
+        {
+          "name": "크리스티안 부덴브로크",
+          "description_ko": "토마스의 동생으로 가업에 적응하지 못한다."
+        },
+        {
+          "name": "한노 부덴브로크",
+          "description_ko": "토마스의 아들. 사업보다 음악과 예술에 끌리는 연약한 후계자."
+        },
+        {
+          "name": "요한 부덴브로크 2세",
+          "description_ko": "토마스·토니·크리스티안의 아버지로 가업을 이어가는 상인."
+        }
+      ]
+    },
+    {
+      "title": "The End of the Affair",
+      "title_ko": "사랑의 종말",
+      "author": "Graham Greene",
+      "author_ko": "그레이엄 그린",
+      "major_characters": [
+        {
+          "name": "모리스 벤드릭스",
+          "description_ko": "작가이자 화자. 과거 연인 사라에 대한 질투와 집착에 사로잡힌다."
+        },
+        {
+          "name": "세라 마일스",
+          "description_ko": "모리스와 불륜 관계였던 여성. 사랑과 종교적 약속 사이에서 갈등한다."
+        },
+        {
+          "name": "헨리 마일스",
+          "description_ko": "사라의 남편이자 공무원."
+        },
+        {
+          "name": "파키스 씨",
+          "description_ko": "벤드릭스가 고용한 사립탐정."
+        }
+      ]
+    },
+    {
+      "title": "A Farewell to Arms",
+      "title_ko": "무기여 잘 있거라",
+      "author": "Ernest Hemingway",
+      "author_ko": "어니스트 헤밍웨이",
+      "major_characters": [
+        {
+          "name": "프레더릭 헨리",
+          "description_ko": "제1차 세계대전 이탈리아 전선에서 복무하는 미국인 구급차 장교."
+        },
+        {
+          "name": "캐서린 바클리",
+          "description_ko": "영국인 간호사로 프레더릭과 사랑에 빠진다."
+        },
+        {
+          "name": "리날디",
+          "description_ko": "프레더릭의 친구이자 군의관."
+        },
+        {
+          "name": "신부",
+          "description_ko": "프레더릭과 전쟁·신앙·삶에 대해 대화하는 군종 신부."
+        }
+      ]
+    },
+    {
+      "title": "The Talented Mr Ripley",
+      "title_ko": "재능 있는 리플리 씨",
+      "author": "Patricia Highsmith",
+      "author_ko": "퍼트리샤 하이스미스",
+      "major_characters": [
+        {
+          "name": "톰 리플리",
+          "description_ko": "가난한 청년으로 타인의 삶과 신분을 욕망하며 범죄에 빠져든다."
+        },
+        {
+          "name": "디키 그린리프",
+          "description_ko": "이탈리아에서 자유롭게 사는 부유한 미국 청년."
+        },
+        {
+          "name": "마지 셔우드",
+          "description_ko": "디키의 연인으로 톰을 의심한다."
+        },
+        {
+          "name": "허버트 그린리프",
+          "description_ko": "디키의 아버지. 톰에게 아들을 미국으로 데려오라고 부탁한다."
+        }
+      ]
+    },
+    {
+      "title": "The Vegetarian",
+      "title_ko": "채식주의자",
+      "author": "Han Kang",
+      "author_ko": "한강",
+      "major_characters": [
+        {
+          "name": "영혜",
+          "description_ko": "폭력적인 꿈을 계기로 육식을 거부하고 점차 사회적 규범에서 이탈하는 여성."
+        },
+        {
+          "name": "정 씨",
+          "description_ko": "영혜의 남편. 아내의 변화를 이해하지 못하고 체면 중심으로 반응한다."
+        },
+        {
+          "name": "인혜",
+          "description_ko": "영혜의 언니. 가족을 돌보면서 자신의 삶과 억압을 성찰한다."
+        },
+        {
+          "name": "인혜의 남편",
+          "description_ko": "비디오 아티스트로 영혜에게 예술적·성적 집착을 보인다."
+        },
+        {
+          "name": "영혜의 아버지",
+          "description_ko": "권위적이고 폭력적인 아버지."
+        }
+      ]
+    },
+    {
+      "title": "The Turn of the Screw",
+      "title_ko": "나사의 회전",
+      "author": "Henry James",
+      "author_ko": "헨리 제임스",
+      "major_characters": [
+        {
+          "name": "가정교사",
+          "description_ko": "블라이 저택에서 두 아이를 돌보며 유령의 존재를 확신하게 되는 이름 없는 가정교사."
+        },
+        {
+          "name": "마일스",
+          "description_ko": "기숙학교에서 갑자기 퇴학당한 소년."
+        },
+        {
+          "name": "플로라",
+          "description_ko": "마일스의 여동생."
+        },
+        {
+          "name": "그로스 부인",
+          "description_ko": "저택의 가정부로 가정교사의 이야기를 듣고 돕는다."
+        },
+        {
+          "name": "피터 퀸트",
+          "description_ko": "죽은 전 하인으로 가정교사가 목격한다고 주장하는 존재."
+        }
+      ]
+    },
+    {
+      "title": "The Line of Beauty",
+      "title_ko": "아름다움의 선",
+      "author": "Alan Hollinghurst",
+      "author_ko": "앨런 홀링허스트",
+      "major_characters": [
+        {
+          "name": "닉 게스트",
+          "description_ko": "1980년대 런던의 상류층 세계에 들어가는 젊은 게이 대학원생."
+        },
+        {
+          "name": "제럴드 페든",
+          "description_ko": "보수당 하원의원이자 닉이 머무는 페든 가문의 가장."
+        },
+        {
+          "name": "레이철 페든",
+          "description_ko": "제럴드의 아내."
+        },
+        {
+          "name": "캐서린 페든",
+          "description_ko": "페든 부부의 딸로 정신적 불안과 예민함을 지닌다."
+        },
+        {
+          "name": "와니 우라디",
+          "description_ko": "부유한 레바논계 사업가 집안 출신으로 닉과 비밀 관계를 맺는다."
+        }
+      ]
+    },
+    {
+      "title": "Ragtime",
+      "title_ko": "래그타임",
+      "author": "E. L. Doctorow",
+      "author_ko": "E. L. 닥터로",
+      "major_characters": [
+        {
+          "name": "콜하우스 워커 주니어",
+          "description_ko": "재능 있는 흑인 피아니스트. 인종차별적 폭력에 맞서 급진적으로 저항한다."
+        },
+        {
+          "name": "세라",
+          "description_ko": "콜하우스의 연인이자 그의 아이의 어머니."
+        },
+        {
+          "name": "어머니",
+          "description_ko": "이름 없는 중산층 가정의 어머니로 사회 변화 속에서 독립성을 키운다."
+        },
+        {
+          "name": "아버지",
+          "description_ko": "전통적 가치에 기대는 가정의 가장."
+        },
+        {
+          "name": "타테",
+          "description_ko": "유대계 이민자 예술가로 가난을 벗어나 새로운 삶을 개척한다."
+        }
+      ]
+    },
+    {
+      "title": "The Left Hand of Darkness",
+      "title_ko": "어둠의 왼손",
+      "author": "Ursula K. Le Guin",
+      "author_ko": "어슐러 K. 르 귄",
+      "major_characters": [
+        {
+          "name": "겐리 아이",
+          "description_ko": "게센 행성에 파견된 에큐멘의 사절."
+        },
+        {
+          "name": "테렘 하르스 렘 이르 에스트라벤",
+          "description_ko": "카르히데의 정치가. 겐리의 임무를 이해하고 돕는 핵심 인물."
+        },
+        {
+          "name": "아르가벤 15세",
+          "description_ko": "카르히데의 군주로 겐리의 제안을 불신한다."
+        },
+        {
+          "name": "티베",
+          "description_ko": "에스트라벤의 정치적 경쟁자이자 민족주의적 권력자."
+        }
+      ]
+    },
+    {
+      "title": "Jacob's Room",
+      "title_ko": "제이콥의 방",
+      "author": "Virginia Woolf",
+      "author_ko": "버지니아 울프",
+      "major_characters": [
+        {
+          "name": "제이컵 플랜더스",
+          "description_ko": "주변 사람들의 기억과 관찰을 통해 간접적으로 그려지는 젊은 영국인."
+        },
+        {
+          "name": "베티 플랜더스",
+          "description_ko": "제이컵의 어머니."
+        },
+        {
+          "name": "클라라 듀런트",
+          "description_ko": "제이컵에게 호감을 품는 젊은 여성."
+        },
+        {
+          "name": "플로린다",
+          "description_ko": "제이컵과 연애 관계를 맺는 여성."
+        }
+      ]
+    },
+    {
+      "title": "Life and Fate",
+      "title_ko": "삶과 운명",
+      "author": "Vasily Grossman",
+      "author_ko": "바실리 그로스만",
+      "major_characters": [
+        {
+          "name": "빅토르 슈트룸",
+          "description_ko": "유대계 핵물리학자. 과학적 양심과 스탈린 체제의 압력 사이에서 갈등한다."
+        },
+        {
+          "name": "류드밀라 슈트룸",
+          "description_ko": "빅토르의 아내. 전쟁 속 가족의 상실과 긴장을 견딘다."
+        },
+        {
+          "name": "알렉산드라 블라디미로브나",
+          "description_ko": "슈트룸 가문의 중심이 되는 어머니 세대 인물."
+        },
+        {
+          "name": "예브게니야 샤포시니코바",
+          "description_ko": "류드밀라의 여동생. 전쟁 속에서 인간관계와 생존의 선택을 겪는다."
+        },
+        {
+          "name": "니콜라이 크리모프",
+          "description_ko": "혁명가 출신의 정치위원으로 체제의 폭력에 휘말린다."
+        }
+      ]
+    },
+    {
+      "title": "Sentimental Education",
+      "title_ko": "감정 교육",
+      "author": "Gustave Flaubert",
+      "author_ko": "귀스타브 플로베르",
+      "major_characters": [
+        {
+          "name": "프레데릭 모로",
+          "description_ko": "야망과 사랑 사이에서 방황하는 젊은 주인공."
+        },
+        {
+          "name": "아르누 부인",
+          "description_ko": "프레데릭이 오랫동안 이상화하고 사랑하는 기혼 여성."
+        },
+        {
+          "name": "자크 아르누",
+          "description_ko": "마담 아르누의 남편이자 사업가."
+        },
+        {
+          "name": "샤를 데로리에",
+          "description_ko": "프레데릭의 오랜 친구로 정치적·사회적 야망을 품는다."
+        },
+        {
+          "name": "로자네트",
+          "description_ko": "프레데릭과 관계를 맺는 사교계 여성."
+        }
+      ]
+    },
+    {
+      "title": "Invisible Cities",
+      "title_ko": "보이지 않는 도시들",
+      "author": "Italo Calvino",
+      "author_ko": "이탈로 칼비노",
+      "major_characters": [
+        {
+          "name": "마르코 폴로",
+          "description_ko": "쿠빌라이 칸에게 자신이 여행한 수많은 도시를 이야기하는 베네치아 여행자."
+        },
+        {
+          "name": "쿠빌라이 칸",
+          "description_ko": "광대한 제국의 황제. 마르코 폴로의 도시 이야기를 통해 제국의 의미를 성찰한다."
+        }
+      ]
+    },
+    {
+      "title": "The Known World",
+      "title_ko": "알려진 세계",
+      "author": "Edward P. Jones",
+      "author_ko": "에드워드 P. 존스",
+      "major_characters": [
+        {
+          "name": "헨리 타운센드",
+          "description_ko": "노예 신분에서 해방된 뒤 스스로 노예를 소유하게 되는 흑인 지주."
+        },
+        {
+          "name": "칼도니아 타운센드",
+          "description_ko": "헨리의 아내. 남편 사후 농장과 노예들을 물려받는다."
+        },
+        {
+          "name": "모지스",
+          "description_ko": "타운센드 농장의 노예 감독관으로 권력과 자유를 갈망한다."
+        },
+        {
+          "name": "윌리엄 로빈스",
+          "description_ko": "백인 대농장주이자 헨리의 후견인 역할을 하는 인물."
+        },
+        {
+          "name": "오거스터스 타운센드",
+          "description_ko": "헨리의 아버지. 자유 흑인 목수로 노예제에 강하게 반대한다."
+        }
+      ]
+    },
+    {
+      "title": "The Return of the Native",
+      "title_ko": "귀향",
+      "author": "Thomas Hardy",
+      "author_ko": "토머스 하디",
+      "major_characters": [
+        {
+          "name": "클림 여브라이트",
+          "description_ko": "파리 생활을 접고 고향 에그던 히스로 돌아오는 청년."
+        },
+        {
+          "name": "유스타시아 바이",
+          "description_ko": "에그던 히스를 답답해하며 더 넓은 세계를 갈망하는 여성."
+        },
+        {
+          "name": "데이먼 와일드이브",
+          "description_ko": "유스타시아의 옛 연인이자 토머신과 결혼하는 인물."
+        },
+        {
+          "name": "토머신 여브라이트",
+          "description_ko": "클림의 사촌으로 와일드브와 결혼한다."
+        },
+        {
+          "name": "디고리 벤",
+          "description_ko": "토머신을 오래 사랑하며 주변 인물들을 돕는 붉은 염료 상인."
+        }
+      ]
+    },
+    {
+      "title": "Pedro Páramo",
+      "title_ko": "페드로 파라모",
+      "author": "Juan Rulfo",
+      "author_ko": "후안 룰포",
+      "major_characters": [
+        {
+          "name": "후안 프레시아도",
+          "description_ko": "죽어가는 어머니의 부탁으로 아버지 페드로 파라모를 찾아 코말라로 간다."
+        },
+        {
+          "name": "페드로 파라모",
+          "description_ko": "코말라를 지배하는 대지주이자 후안의 아버지."
+        },
+        {
+          "name": "수사나 산후안",
+          "description_ko": "페드로가 평생 집착하는 사랑의 대상."
+        },
+        {
+          "name": "돌로레스 프레시아도",
+          "description_ko": "후안의 어머니. 아들에게 코말라와 페드로 파라모를 찾아가라고 부탁한다."
+        },
+        {
+          "name": "아분디오 마르티네스",
+          "description_ko": "페드로의 사생아 중 한 명으로 후안을 코말라로 안내한다."
+        }
+      ]
+    },
+    {
+      "title": "Catch-22",
+      "title_ko": "캐치-22",
+      "author": "Joseph Heller",
+      "author_ko": "조지프 헬러",
+      "major_characters": [
+        {
+          "name": "요사리안",
+          "description_ko": "미 육군항공대 폭격수. 살아남기 위해 비행 임무에서 벗어나려 한다."
+        },
+        {
+          "name": "마일로 마인더바인더",
+          "description_ko": "기지의 급양장교이자 거대한 암시장 사업을 운영하는 인물."
+        },
+        {
+          "name": "캐스카트 대령",
+          "description_ko": "승진 욕심 때문에 부하들의 임무 횟수를 계속 늘리는 지휘관."
+        },
+        {
+          "name": "메이저 메이저 메이저 메이저",
+          "description_ko": "우연과 관료주의의 희생양이 되는 비행대 지휘관."
+        },
+        {
+          "name": "오어",
+          "description_ko": "요사리안의 동료 조종사. 반복되는 불시착 뒤에 숨은 계획을 가진다."
+        }
+      ]
+    },
+    {
+      "title": "The Road",
+      "title_ko": "로드",
+      "author": "Cormac McCarthy",
+      "author_ko": "코맥 매카시",
+      "major_characters": [
+        {
+          "name": "남자",
+          "description_ko": "소년의 아버지. 폐허가 된 세계에서 아들을 지키며 남쪽으로 향한다."
+        },
+        {
+          "name": "소년",
+          "description_ko": "남자의 어린 아들. 타인에 대한 연민과 도덕성을 붙잡으려 한다."
+        },
+        {
+          "name": "여자",
+          "description_ko": "소년의 어머니. 회상 속에서 가족의 과거와 절망을 보여준다."
+        },
+        {
+          "name": "일라이",
+          "description_ko": "길에서 만나는 노인으로, 종말 이후 인간 존재에 대한 냉소적 시각을 드러낸다."
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 export type RelationshipType =
   | "친구"
   | "부부"
+  | "커플"
   | "자식"
   | "사업"
   | "기타";

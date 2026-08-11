@@ -15,7 +15,7 @@ const featureCards = [
     title: "소설 인물 관계도",
     description:
       "중심 인물을 만들고 친구, 부부, 자식, 사업, 기타 관계로 연결해 가며 사건 메모를 남기는 읽기용 마인드맵입니다.",
-    accent: "from-orange-300 to-amber-200",
+    accent: "from-slate-100 to-white",
   },
   {
     href: "/timeline",
@@ -24,73 +24,66 @@ const featureCards = [
     title: "지역별 역사 연표",
     description:
       "서유럽, 동유럽, 아시아, 미국, 남미, 기타 지역으로 나눈 카드형 타임라인 보드입니다. 연도 카드 추가와 이동이 가능합니다.",
-    accent: "from-sky-300 to-cyan-200",
+    accent: "from-slate-100 to-white",
   },
 ];
 
 export default function Home() {
   return (
-    <main
-      className="min-h-screen overflow-hidden bg-slate-50 text-slate-900"
-    >
-      <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <section
-          className="relative overflow-hidden rounded-[36px] border border-white/40 bg-white/72 px-6 py-8 shadow-[0_30px_90px_rgba(15,23,42,0.08)] backdrop-blur sm:px-8 sm:py-10 lg:px-12 lg:py-14"
-          style={{
-            backgroundImage:
-              "linear-gradient(180deg, rgba(255,255,255,0.74) 0%, rgba(255,255,255,0.74) 100%), url('/assets/bgTop.jpeg')",
-            backgroundPosition: "center top",
-            backgroundRepeat: "no-repeat",
-            backgroundSize: "cover",
-          }}
-        >
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_380px] lg:items-end">
+    <main className="min-h-screen overflow-hidden bg-[#f5f5f3] text-slate-900">
+      <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-4 py-8 sm:px-6 lg:px-8">
+        <section className="relative overflow-hidden rounded-[32px] border border-slate-300/70 bg-white px-6 py-8 shadow-[0_20px_60px_rgba(0,0,0,0.05)] sm:px-8 sm:py-10 lg:px-12 lg:py-14">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(0,0,0,0.04),_transparent_32%)]" />
+          <div className="relative grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_320px] lg:items-end">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-600">
+              <div className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-slate-50 px-3.5 py-2 text-sm font-medium text-slate-600">
                 <FontAwesomeIcon icon={faBookOpenReader} />
                 독서용 기록 웹앱
               </div>
 
-              <h1 className="mt-6 max-w-4xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
-                책 읽는데
-                <span className="block text-orange-500">도움을 주는 워크스페이스</span>
+              <h1 className="mt-6 max-w-4xl text-4xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-5xl lg:text-6xl">
+                책 읽는 흐름을
+                <span className="mt-2 block text-slate-700">더 선명하게 정리합니다</span>
               </h1>
+
+              <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
+                인물 관계와 역사 맥락을 한곳에 모아, 읽는 과정이 더 자연스럽고 명료해지도록 설계된 워크스페이스입니다.
+              </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href="/characters"
-                  className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  className="inline-flex items-center gap-2 rounded-full bg-black px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800"
                 >
                   관계도 시작
                   <FontAwesomeIcon icon={faArrowRight} />
                 </Link>
                 <Link
                   href="/timeline"
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-sky-300 hover:text-sky-600"
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-400 hover:text-slate-950"
                 >
                   연표 보드 열기
                   <FontAwesomeIcon icon={faArrowRight} />
                 </Link>
               </div>
             </div>
-
           </div>
         </section>
 
-        <section className="relative mt-8 grid gap-6 lg:grid-cols-2">
+        <section className="relative mt-8 grid gap-5 lg:grid-cols-2">
           {featureCards.map((card) => (
             <Link
               key={card.href}
               href={card.href}
-              className="group overflow-hidden rounded-[32px] border border-white/50 bg-white/75 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur transition hover:-translate-y-1"
+              className="group overflow-hidden rounded-[28px] border border-slate-300/80 bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.04)] transition duration-300 hover:-translate-y-1 hover:border-slate-400 hover:shadow-[0_16px_42px_rgba(0,0,0,0.06)]"
             >
-              <div className={`inline-flex rounded-3xl bg-gradient-to-br ${card.accent} p-4 text-slate-950`}>
+              <div className={`inline-flex rounded-[20px] bg-gradient-to-br ${card.accent} p-4 text-slate-950`}>
                 <FontAwesomeIcon icon={card.icon} size="lg" />
               </div>
-              <p className="mt-6 text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">{card.eyebrow}</p>
-              <h2 className="mt-2 text-3xl font-semibold text-slate-950">{card.title}</h2>
+              <p className="mt-6 text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{card.eyebrow}</p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-[-0.02em] text-slate-950">{card.title}</h2>
               <p className="mt-4 text-base leading-7 text-slate-600">{card.description}</p>
-              <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-900 transition group-hover:text-orange-500">
+              <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-900 transition group-hover:text-slate-600">
                 열어보기
                 <FontAwesomeIcon icon={faArrowRight} />
               </div>
