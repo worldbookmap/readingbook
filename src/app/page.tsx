@@ -6,7 +6,6 @@ import {
   faCodeBranch,
   faGlobe,
   faNoteSticky,
-  faRocket,
 } from "@fortawesome/free-solid-svg-icons";
 
 const featureCards = [
@@ -22,15 +21,13 @@ const featureCards = [
   {
     href: "/timeline",
     icon: faGlobe,
-    eyebrow: "History Board",
+    eyebrow: "History Atlas",
     title: "지역별 역사 연표",
     description:
       "서유럽, 동유럽, 아시아, 미국, 남미, 기타 지역으로 나눈 카드형 타임라인 보드입니다. 연도 카드 추가와 이동이 가능합니다.",
     accent: "from-sky-300 to-cyan-200",
   },
 ];
-
-const stack = ["Next.js App Router", "Tailwind CSS", "Font Awesome", "JSON Seed Data", "GitHub", "Vercel"];
 
 export default function Home() {
   return (
@@ -74,30 +71,6 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="rounded-[30px] bg-slate-950 p-6 text-white shadow-[0_26px_60px_rgba(15,23,42,0.18)]">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-orange-300">
-                  <FontAwesomeIcon icon={faRocket} />
-                </div>
-                <div>
-                  <p className="text-sm text-slate-300">배포 구상</p>
-                  <h2 className="text-xl font-semibold">GitHub + Vercel 흐름</h2>
-                </div>
-              </div>
-              <p className="mt-4 text-sm leading-7 text-slate-300">
-                로컬에서 작성한 시드 데이터와 UI를 GitHub 저장소로 푸시하고, Vercel이 main 브랜치를 자동 빌드하도록 설정하는 구조를 전제로 만들었습니다.
-              </p>
-              <div className="mt-5 flex flex-wrap gap-2">
-                {stack.map((item) => (
-                  <span
-                    key={item}
-                    className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-200"
-                  >
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
           </div>
         </section>
 
@@ -128,27 +101,27 @@ export default function Home() {
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-orange-500">
                 <FontAwesomeIcon icon={faNoteSticky} />
               </div>
-              <h3 className="mt-4 text-xl font-semibold">JSON 기반 시드 데이터</h3>
+              <h3 className="mt-4 text-xl font-semibold">읽으며 바로 적는 메모</h3>
               <p className="mt-3 text-sm leading-7 text-slate-600">
-                기본 인물과 역사 카드는 JSON 파일에서 불러오고, 사용자가 수정한 내용은 브라우저에 저장해 Vercel 환경에서도 가볍게 유지합니다.
+                인물 관계와 역사 사실을 한 화면에서 정리해서, 읽던 흐름을 끊지 않고 바로 이어 적을 수 있습니다.
               </p>
             </div>
             <div>
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-100 text-sky-600">
                 <FontAwesomeIcon icon={faCodeBranch} />
               </div>
-              <h3 className="mt-4 text-xl font-semibold">독서 흐름에 맞춘 편집기</h3>
+              <h3 className="mt-4 text-xl font-semibold">관계와 사건을 함께 보기</h3>
               <p className="mt-3 text-sm leading-7 text-slate-600">
-                인물 관계는 시각적으로, 역사 사실은 카드 보드로 정리해서 책을 읽는 중에도 바로 추가하고 다시 배치할 수 있습니다.
+                인물은 관계망으로, 사건은 연표로 정리해 책 속 인물과 시대 배경을 함께 잡아둘 수 있습니다.
               </p>
             </div>
             <div>
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
-                <FontAwesomeIcon icon={faRocket} />
+                <FontAwesomeIcon icon={faGlobe} />
               </div>
-              <h3 className="mt-4 text-xl font-semibold">즉시 배포 가능한 구조</h3>
+              <h3 className="mt-4 text-xl font-semibold">책마다 새로 열어 쓰기</h3>
               <p className="mt-3 text-sm leading-7 text-slate-600">
-                Next.js App Router 기본 구조를 유지해 GitHub에 올린 뒤 Vercel 프로젝트로 연결하면 바로 배포할 수 있습니다.
+                작품마다 다른 인물과 시대를 따로 정리하면서 필요한 순간에만 다시 꺼내 보기 좋습니다.
               </p>
             </div>
           </div>

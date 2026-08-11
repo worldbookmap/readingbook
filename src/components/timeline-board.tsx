@@ -11,16 +11,27 @@ import {
   faGlobe,
   faPlus,
   faRotateLeft,
+  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { TimelineCard, TimelineRegion } from "@/lib/types";
 
-const regions: TimelineRegion[] = ["서유럽", "동유럽", "아시아", "미국", "남미", "기타"];
+const defaultRegions: TimelineRegion[] = ["서유럽", "동유럽", "아시아", "미국", "남미", "기타"];
 const storageKey = "readingbook-timeline";
 const eraOptions = ["전체", "고대", "중세", "근대", "현대"] as const;
 
-function compareCards(left: TimelineCard, right: TimelineCard) {
+function buildRegionOrder(cards: TimelineCard[]) {
+  const regionSet = new Set<TimelineRegion>(defaultRegions);
+
+  cards.forEach((card) => {
+    regionSet.add(card.region);
+  });
+
+  return Array.from(regionSet);
+}
+
+function compareCards(left: TimelineCard, right: TimelineCard, regionOrder: TimelineRegion[]) {
   if (left.region !== right.region) {
-    return regions.indexOf(left.region) - regions.indexOf(right.region);
+    return regionOrder.indexOf(left.region) - regionOrder.indexOf(right.region);
   }
 
   const leftOrder = left.order ?? Number.MAX_SAFE_INTEGER;
@@ -36,8 +47,8 @@ function compareCards(left: TimelineCard, right: TimelineCard) {
   return left.title.localeCompare(right.title, "ko");
 }
 
-function normalizeCards(cards: TimelineCard[]) {
-  return regions.flatMap((region) => {
+function normalizeCards(cards: TimelineCard[], regionOrder: TimelineRegion[]) {
+  return regionOrder.flatMap((region) => {
     const regionCards = cards
       .filter((card) => card.region === region)
       .sort((left, right) => {
@@ -62,6 +73,7 @@ function reorderCards(
   cards: TimelineCard[],
   draggedId: string,
   targetRegion: TimelineRegion,
+  regionOrder: TimelineRegion[],
   targetId?: string,
 ) {
   const draggedCard = cards.find((card) => card.id === draggedId);
@@ -84,7 +96,7 @@ function reorderCards(
   });
 
   const otherCards = remainingCards.filter((card) => card.region !== targetRegion);
-  return normalizeCards([...otherCards, ...nextTargetCards]);
+  return normalizeCards([...otherCards, ...nextTargetCards], regionOrder);
 }
 
 type DraftCard = {
@@ -98,7 +110,7 @@ type DraftCard = {
 const defaultDraft: DraftCard = {
   title: "",
   yearLabel: "",
-  region: "서유럽",
+  region: defaultRegions[0],
   description: "",
   tags: "",
 };
@@ -110,11 +122,14 @@ type Props = {
 type SaveState = "idle" | "saving" | "saved" | "error";
 
 export function TimelineBoard({ initialCards }: Props) {
-  const normalizedInitialCards = normalizeCards(initialCards);
+  const initialRegionOrder = buildRegionOrder(initialCards);
+  const normalizedInitialCards = normalizeCards(initialCards, initialRegionOrder);
   const [cards, setCards] = useState<TimelineCard[]>(normalizedInitialCards);
+  const [regionNames, setRegionNames] = useState<TimelineRegion[]>(initialRegionOrder);
   const [activeId, setActiveId] = useState<string>(normalizedInitialCards[0]?.id ?? "");
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<DraftCard>(defaultDraft);
+  const [newRegionName, setNewRegionName] = useState("");
   const [summarySearch, setSummarySearch] = useState("");
   const [eraFilter, setEraFilter] = useState<(typeof eraOptions)[number]>("전체");
   const [saveState, setSaveState] = useState<SaveState>("idle");
@@ -143,9 +158,11 @@ export function TimelineBoard({ initialCards }: Props) {
           return;
         }
 
-        const parsed = normalizeCards(payload.data.cards);
+        const parsedRegionOrder = buildRegionOrder(payload.data.cards);
+        const parsed = normalizeCards(payload.data.cards, parsedRegionOrder);
         startTransition(() => {
           setCards(parsed);
+          setRegionNames(parsedRegionOrder);
           setActiveId(parsed[0]?.id ?? "");
           setRemoteEnabled(payload.remoteEnabled);
           setRemoteSha(payload.sha);
@@ -161,9 +178,12 @@ export function TimelineBoard({ initialCards }: Props) {
           return;
         }
 
-        const parsed = normalizeCards(JSON.parse(saved) as TimelineCard[]);
+        const savedCards = JSON.parse(saved) as TimelineCard[];
+        const parsedRegionOrder = buildRegionOrder(savedCards);
+        const parsed = normalizeCards(savedCards, parsedRegionOrder);
         startTransition(() => {
           setCards(parsed);
+          setRegionNames(parsedRegionOrder);
           setActiveId(parsed[0]?.id ?? "");
           setSaveMessage("API 연결 실패: 브라우저 로컬 저장 데이터 복원됨");
         });
@@ -206,6 +226,10 @@ export function TimelineBoard({ initialCards }: Props) {
       return;
     }
 
+    setRegionNames((current) =>
+      current.includes(draft.region) ? current : [...current, draft.region],
+    );
+
     const nextCard: TimelineCard = {
       id: crypto.randomUUID(),
       title: draft.title.trim(),
@@ -220,14 +244,17 @@ export function TimelineBoard({ initialCards }: Props) {
       order: cards.filter((card) => card.region === draft.region).length,
     };
 
-    const nextCards = normalizeCards([...cards, nextCard]);
+    const nextRegionOrder = regionNames.includes(draft.region)
+      ? regionNames
+      : [...regionNames, draft.region];
+    const nextCards = normalizeCards([...cards, nextCard], nextRegionOrder);
     setCards(nextCards);
     setActiveId(nextCard.id);
     setDraft(defaultDraft);
   }
 
   function moveCard(cardId: string, region: TimelineRegion, targetId?: string) {
-    setCards((current) => reorderCards(current, cardId, region, targetId));
+    setCards((current) => reorderCards(current, cardId, region, regionNames, targetId));
   }
 
   function patchActiveCard(field: "yearLabel" | "title" | "description" | "tags", value: string) {
@@ -262,8 +289,30 @@ export function TimelineBoard({ initialCards }: Props) {
 
   function resetCards() {
     setCards(normalizedInitialCards);
+    setRegionNames(initialRegionOrder);
     setActiveId(normalizedInitialCards[0]?.id ?? "");
     window.localStorage.removeItem(storageKey);
+  }
+
+  function deleteActiveCard() {
+    if (!activeCard) {
+      return;
+    }
+
+    const nextCards = normalizeCards(cards.filter((card) => card.id !== activeCard.id));
+    setCards(nextCards);
+    setActiveId(nextCards[0]?.id ?? "");
+  }
+
+  function createRegion() {
+    const trimmedRegion = newRegionName.trim();
+    if (!trimmedRegion || regionNames.includes(trimmedRegion)) {
+      return;
+    }
+
+    setRegionNames((current) => [...current, trimmedRegion]);
+    setDraft((current) => ({ ...current, region: trimmedRegion }));
+    setNewRegionName("");
   }
 
   function matchesEra(card: TimelineCard) {
@@ -284,6 +333,23 @@ export function TimelineBoard({ initialCards }: Props) {
     }
 
     return card.year >= 1901;
+  }
+
+  function getRegionAccent(region: TimelineRegion) {
+    switch (region) {
+      case "서유럽":
+        return "from-sky-100 to-cyan-50 text-sky-700 border-sky-200";
+      case "동유럽":
+        return "from-violet-100 to-fuchsia-50 text-violet-700 border-violet-200";
+      case "아시아":
+        return "from-amber-100 to-orange-50 text-amber-700 border-amber-200";
+      case "미국":
+        return "from-emerald-100 to-teal-50 text-emerald-700 border-emerald-200";
+      case "남미":
+        return "from-rose-100 to-pink-50 text-rose-700 border-rose-200";
+      case "기타":
+        return "from-slate-100 to-slate-50 text-slate-700 border-slate-200";
+    }
   }
 
   const normalizedSearch = summarySearch.trim().toLowerCase();
@@ -370,12 +436,28 @@ export function TimelineBoard({ initialCards }: Props) {
               }
               className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
             >
-              {regions.map((region) => (
+              {regionNames.map((region) => (
                 <option key={region} value={region}>
                   {region}
                 </option>
               ))}
             </select>
+            <div className="space-y-2">
+              <input
+                value={newRegionName}
+                onChange={(event) => setNewRegionName(event.target.value)}
+                placeholder="새 카테고리 이름"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+              />
+              <button
+                type="button"
+                onClick={createRegion}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm font-semibold text-sky-700 transition hover:border-sky-400 hover:bg-sky-50"
+              >
+                <FontAwesomeIcon icon={faPlus} />
+                카테고리 추가
+              </button>
+            </div>
             <textarea
               value={draft.description}
               onChange={(event) =>
@@ -457,6 +539,15 @@ export function TimelineBoard({ initialCards }: Props) {
               onChange={(event) => patchActiveCard("tags", event.target.value)}
               className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none focus:border-sky-300"
             />
+            <button
+              type="button"
+              onClick={deleteActiveCard}
+              disabled={!activeCard}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-300/40 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-200 transition hover:border-rose-300 hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <FontAwesomeIcon icon={faTrash} />
+              삭제
+            </button>
           </div>
         </section>
       </aside>
@@ -467,17 +558,103 @@ export function TimelineBoard({ initialCards }: Props) {
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-500">Timeline Board</p>
             <h2 className="mt-1 text-2xl font-semibold text-slate-900">지역별 역사 연표</h2>
           </div>
-          <div className="flex items-center gap-3 rounded-full bg-slate-100 px-4 py-2 text-sm text-slate-600">
+          <div className="hidden items-center gap-3 rounded-full bg-slate-100 px-4 py-2 text-sm text-slate-600 lg:flex">
             <FontAwesomeIcon icon={faArrowsLeftRight} className="text-sky-500" />
             카드를 드래그해서 다른 지역으로 이동하거나 순서를 바꾸세요.
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
-          {regions.map((region) => {
+        <div className="mt-4 lg:hidden">
+          <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-slate-700">모바일 연표</p>
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-500 shadow-sm">
+                {cards.length}개 카드
+              </span>
+            </div>
+            <p className="mt-2 text-xs leading-5 text-slate-500">
+              모바일에서는 지역별로 세로로 읽고, 카드를 눌러 아래 편집 패널에서 수정합니다.
+            </p>
+
+            <div className="mt-4 space-y-4">
+              {regionNames.map((region) => {
+                const regionCards = cards
+                  .filter((card) => card.region === region)
+                  .sort((left, right) => compareCards(left, right, regionNames));
+                const accent = getRegionAccent(region);
+
+                return (
+                  <section key={region} className={`rounded-[24px] border bg-gradient-to-br ${accent} p-4`}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-base font-semibold">{region}</h3>
+                        <p className="text-xs opacity-80">{regionCards.length}개의 카드</p>
+                      </div>
+                      <FontAwesomeIcon icon={faGlobe} className="text-sm opacity-70" />
+                    </div>
+
+                    <div className="mt-3 space-y-2">
+                      {regionCards.length > 0 ? (
+                        regionCards.map((card) => {
+                          const isActive = card.id === activeCard?.id;
+
+                          return (
+                            <button
+                              key={card.id}
+                              type="button"
+                              onClick={() => setActiveId(card.id)}
+                              className="block w-full rounded-[20px] border bg-white p-4 text-left shadow-sm transition active:scale-[0.99]"
+                              style={{
+                                borderColor: isActive ? "#38bdf8" : "rgba(226,232,240,1)",
+                                boxShadow: isActive
+                                  ? "0 14px 30px rgba(56,189,248,0.18)"
+                                  : "0 8px 20px rgba(15,23,42,0.05)",
+                              }}
+                            >
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
+                                  {card.yearLabel}
+                                </span>
+                                <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+                                  <FontAwesomeIcon icon={faGripVertical} />
+                                  탭
+                                </span>
+                              </div>
+                              <h4 className="mt-3 text-sm font-semibold text-slate-900">{card.title}</h4>
+                              <p className="mt-2 text-xs leading-5 text-slate-600 line-clamp-3">
+                                {card.description}
+                              </p>
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                {card.tags.slice(0, 3).map((tag) => (
+                                  <span
+                                    key={tag}
+                                    className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] text-slate-500"
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            </button>
+                          );
+                        })
+                      ) : (
+                        <div className="rounded-[20px] border border-dashed border-white/60 bg-white/60 px-4 py-5 text-sm text-slate-500">
+                          이 지역에 카드가 없습니다.
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 hidden gap-4 lg:grid lg:grid-cols-2 2xl:grid-cols-3">
+          {regionNames.map((region) => {
             const regionCards = cards
               .filter((card) => card.region === region)
-              .sort(compareCards);
+              .sort((left, right) => compareCards(left, right, regionNames));
 
             return (
               <div
@@ -575,7 +752,7 @@ export function TimelineBoard({ initialCards }: Props) {
                 value={summarySearch}
                 onChange={(event) => setSummarySearch(event.target.value)}
                 placeholder="제목 또는 연도 검색"
-                className="w-full max-w-56 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none transition focus:border-sky-300"
+                className="w-full max-w-56 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none transition focus:border-sky-300 max-sm:max-w-none"
               />
               <select
                 value={eraFilter}
@@ -591,11 +768,11 @@ export function TimelineBoard({ initialCards }: Props) {
             </div>
           </div>
 
-          <div className="mt-4 overflow-x-auto">
+          <div className="mt-4 hidden overflow-x-auto lg:block">
             <div className="min-w-[920px]">
               <div className="grid grid-cols-[140px_repeat(6,minmax(120px,1fr))] gap-px rounded-3xl bg-slate-200 p-px">
                 <div className="bg-slate-950 px-4 py-3 text-sm font-semibold text-white">연도</div>
-                {regions.map((region) => (
+                {regionNames.map((region) => (
                   <div key={region} className="bg-slate-950 px-4 py-3 text-sm font-semibold text-white">
                     {region}
                   </div>
@@ -608,10 +785,10 @@ export function TimelineBoard({ initialCards }: Props) {
                     >
                       {row.yearLabel}
                     </div>
-                    {regions.map((region) => {
+                    {regionNames.map((region) => {
                       const matchingCards = summaryCards
                         .filter((card) => card.region === region && card.year === row.year)
-                        .sort(compareCards);
+                        .sort((left, right) => compareCards(left, right, regionNames));
 
                       return (
                         <div key={`${row.year}-${region}`} className="bg-white px-4 py-4 text-sm text-slate-600">
@@ -638,6 +815,50 @@ export function TimelineBoard({ initialCards }: Props) {
                 ))}
               </div>
             </div>
+          </div>
+          <div className="mt-4 space-y-3 lg:hidden">
+            {yearRows.length > 0 ? (
+              yearRows.map((row) => {
+                const rowCards = summaryCards.filter((card) => card.year === row.year);
+
+                return (
+                  <div key={`${row.year}-${row.yearLabel}`} className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-semibold text-slate-900">{row.yearLabel}</p>
+                      <span className="text-xs text-slate-500">{rowCards.length}개</span>
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      {rowCards.length > 0 ? (
+                        rowCards.map((card) => (
+                          <button
+                            key={card.id}
+                            type="button"
+                            onClick={() => setActiveId(card.id)}
+                            className="flex w-full items-center justify-between gap-3 rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-left shadow-sm"
+                          >
+                            <div>
+                              <p className="text-sm font-semibold text-slate-900">{card.title}</p>
+                              <p className="text-xs text-slate-500">{card.region}</p>
+                            </div>
+                            <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
+                              {card.yearLabel}
+                            </span>
+                          </button>
+                        ))
+                      ) : (
+                        <div className="rounded-[18px] border border-dashed border-slate-200 bg-white px-4 py-3 text-sm text-slate-400">
+                          해당 연도에 카드가 없습니다.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="rounded-2xl bg-slate-50 px-4 py-5 text-sm text-slate-500">
+                현재 검색어나 시대 필터에 맞는 연표 항목이 없습니다.
+              </div>
+            )}
           </div>
           {yearRows.length === 0 ? (
             <div className="mt-4 rounded-2xl bg-slate-50 px-4 py-5 text-sm text-slate-500">

@@ -38,6 +38,7 @@ type DraftState = {
   majorActions: string;
   relationshipType: RelationshipType;
   customRelationship: string;
+  linkedToSelected: boolean;
 };
 
 const defaultDraft: DraftState = {
@@ -47,6 +48,7 @@ const defaultDraft: DraftState = {
   majorActions: "",
   relationshipType: "친구",
   customRelationship: "",
+  linkedToSelected: true,
 };
 
 type Props = {
@@ -66,7 +68,6 @@ export function CharacterMapClient({ seed }: Props) {
   const [remoteEnabled, setRemoteEnabled] = useState(false);
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
   const didMountRef = useRef(false);
-  const boardRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{
     id: string;
     offsetX: number;
@@ -143,6 +144,8 @@ export function CharacterMapClient({ seed }: Props) {
   const minimapHeight = boardHeight * minimapScale;
   const viewportWidth = Math.min(boardWidth, 920 / zoom);
   const viewportHeight = Math.min(boardHeight, 760 / zoom);
+  const mobileBoardScale = 0.6;
+  const mobileTotalScale = mobileBoardScale * zoom;
 
   const connectedRelationships = relationships.filter(
     (relationship) =>
@@ -152,15 +155,20 @@ export function CharacterMapClient({ seed }: Props) {
   function handleCreateCharacter(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!selectedNode || !draft.name.trim()) {
+    if (!draft.name.trim()) {
       return;
     }
 
-    const siblingCount = relationships.filter(
-      (relationship) => relationship.fromId === selectedNode.id || relationship.toId === selectedNode.id,
-    ).length;
+    const shouldLinkToSelected = draft.linkedToSelected && Boolean(selectedNode);
+    const siblingCount = shouldLinkToSelected && selectedNode
+      ? relationships.filter(
+          (relationship) => relationship.fromId === selectedNode.id || relationship.toId === selectedNode.id,
+        ).length
+      : nodes.length;
     const angle = siblingCount * 0.85 + Math.PI / 4;
     const distance = 220;
+    const baseX = shouldLinkToSelected && selectedNode ? selectedNode.x : boardWidth * 0.55;
+    const baseY = shouldLinkToSelected && selectedNode ? selectedNode.y : boardHeight * 0.42;
     const nextNode: CharacterNode = {
       id: crypto.randomUUID(),
       name: draft.name.trim(),
@@ -170,24 +178,34 @@ export function CharacterMapClient({ seed }: Props) {
         .split("\n")
         .map((item) => item.trim())
         .filter(Boolean),
-      x: Math.max(40, selectedNode.x + Math.round(Math.cos(angle) * distance)),
-      y: Math.max(40, selectedNode.y + Math.round(Math.sin(angle) * distance)),
+      x: Math.min(
+        boardWidth - nodeWidth - 40,
+        Math.max(40, baseX + Math.round(Math.cos(angle) * distance)),
+      ),
+      y: Math.min(
+        boardHeight - nodeHeight - 40,
+        Math.max(40, baseY + Math.round(Math.sin(angle) * distance)),
+      ),
       color: ["#f97316", "#0f766e", "#2563eb", "#7c3aed", "#dc2626"][siblingCount % 5],
     };
 
-    const nextRelationship: CharacterRelationship = {
-      id: crypto.randomUUID(),
-      fromId: selectedNode.id,
-      toId: nextNode.id,
-      type: draft.relationshipType,
-      label:
-        draft.relationshipType === "기타"
-          ? draft.customRelationship.trim() || "직접 입력 관계"
-          : undefined,
-    };
+    const nextRelationship = shouldLinkToSelected && selectedNode
+      ? {
+          id: crypto.randomUUID(),
+          fromId: selectedNode.id,
+          toId: nextNode.id,
+          type: draft.relationshipType,
+          label:
+            draft.relationshipType === "기타"
+              ? draft.customRelationship.trim() || "직접 입력 관계"
+              : undefined,
+        }
+      : null;
 
     setNodes((current) => [...current, nextNode]);
-    setRelationships((current) => [...current, nextRelationship]);
+    if (nextRelationship) {
+      setRelationships((current) => [...current, nextRelationship]);
+    }
     setSelectedId(nextNode.id);
     setDraft(defaultDraft);
   }
@@ -239,8 +257,9 @@ export function CharacterMapClient({ seed }: Props) {
     );
   }
 
-  function handlePointerDown(event: React.PointerEvent<HTMLDivElement>, nodeId: string) {
-    const boardBounds = boardRef.current?.getBoundingClientRect();
+  function handlePointerDown(event: React.PointerEvent<HTMLDivElement>, nodeId: string, displayScale = zoom) {
+    const boardElement = event.currentTarget.closest("[data-character-board]") as HTMLDivElement | null;
+    const boardBounds = boardElement?.getBoundingClientRect();
     const bounds = event.currentTarget.getBoundingClientRect();
     if (!boardBounds) {
       return;
@@ -249,8 +268,8 @@ export function CharacterMapClient({ seed }: Props) {
     setSelectedId(nodeId);
     dragRef.current = {
       id: nodeId,
-      offsetX: (event.clientX - bounds.left) / zoom,
-      offsetY: (event.clientY - bounds.top) / zoom,
+      offsetX: (event.clientX - bounds.left) / displayScale,
+      offsetY: (event.clientY - bounds.top) / displayScale,
       moved: false,
     };
 
@@ -264,8 +283,8 @@ export function CharacterMapClient({ seed }: Props) {
       dragRef.current.moved = true;
       updateNodePosition(
         nodeId,
-        (moveEvent.clientX - boardBounds.left) / zoom - dragRef.current.offsetX,
-        (moveEvent.clientY - boardBounds.top) / zoom - dragRef.current.offsetY,
+        (moveEvent.clientX - boardBounds.left) / displayScale - dragRef.current.offsetX,
+        (moveEvent.clientY - boardBounds.top) / displayScale - dragRef.current.offsetY,
       );
     };
 
@@ -341,12 +360,12 @@ export function CharacterMapClient({ seed }: Props) {
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_380px]">
       <section className="overflow-hidden rounded-[32px] border border-white/50 bg-white/75 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
-        <div className="flex items-center justify-between border-b border-slate-200/70 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-slate-200/70 px-4 py-4 sm:px-6">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-orange-500">Character Map</p>
             <h2 className="mt-1 text-2xl font-semibold text-slate-900">인물 관계도</h2>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="hidden flex-wrap items-center justify-end gap-2 sm:flex">
             <button
               type="button"
               onClick={() => updateZoom(zoom - 0.1)}
@@ -374,17 +393,149 @@ export function CharacterMapClient({ seed }: Props) {
           </div>
         </div>
 
-        <div
-          className="relative h-[760px] overflow-auto bg-[radial-gradient(circle_at_top,_rgba(251,146,60,0.14),_transparent_34%),linear-gradient(180deg,_rgba(255,255,255,0.8),_rgba(248,250,252,0.96))]"
-          onWheel={handleWheelZoom}
-        >
+        <div className="border-b border-slate-200/70 px-4 py-4 sm:px-6 lg:hidden">
+          <div className="rounded-[24px] border border-slate-200 bg-[radial-gradient(circle_at_top,_rgba(251,146,60,0.18),_transparent_42%),linear-gradient(180deg,_#fff,_#f8fafc)] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-slate-700">모바일 마인드맵</p>
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-500 shadow-sm">
+                {Math.round(zoom * 100)}%
+              </span>
+            </div>
+
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => updateZoom(zoom - 0.1)}
+                className="flex-1 rounded-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm transition hover:border-orange-300 hover:text-orange-600"
+                aria-label="모바일 축소"
+              >
+                <FontAwesomeIcon icon={faMagnifyingGlassMinus} />
+              </button>
+              <button
+                type="button"
+                onClick={() => updateZoom(zoom + 0.1)}
+                className="flex-1 rounded-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm transition hover:border-orange-300 hover:text-orange-600"
+                aria-label="모바일 확대"
+              >
+                <FontAwesomeIcon icon={faMagnifyingGlassPlus} />
+              </button>
+              <button
+                type="button"
+                onClick={resetSeed}
+                className="flex-1 rounded-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm transition hover:border-orange-300 hover:text-orange-600"
+              >
+                초기화
+              </button>
+            </div>
+
+            <div className="mt-4 overflow-auto rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+              <div className="relative h-[420px] min-w-[390px]">
+                <div
+                  className="relative"
+                  data-character-board
+                  style={{
+                    height: boardHeight,
+                    width: boardWidth,
+                    transform: `scale(${mobileTotalScale})`,
+                    transformOrigin: "top left",
+                  }}
+                >
+                  <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">
+                    {relationships.map((relationship) => {
+                      const from = nodes.find((node) => node.id === relationship.fromId);
+                      const to = nodes.find((node) => node.id === relationship.toId);
+
+                      if (!from || !to) {
+                        return null;
+                      }
+
+                      const curve = buildCurvePath(from, to);
+
+                      return (
+                        <g key={`mobile-${relationship.id}`}>
+                          <path
+                            d={curve.path}
+                            stroke="rgba(148,163,184,0.72)"
+                            strokeWidth="2.5"
+                            fill="none"
+                          />
+                          <text
+                            x={curve.labelX}
+                            y={curve.labelY + 5}
+                            textAnchor="middle"
+                            fontSize="11"
+                            fill="#475569"
+                          >
+                            {relationship.label ?? relationship.type}
+                          </text>
+                        </g>
+                      );
+                    })}
+                  </svg>
+
+                  {nodes.map((node) => {
+                    const isSelected = node.id === selectedNode?.id;
+
+                    return (
+                      <button
+                        key={`mobile-${node.id}`}
+                        type="button"
+                        onPointerDown={(event) => handlePointerDown(event, node.id, mobileTotalScale)}
+                        onClick={() => setSelectedId(node.id)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            setSelectedId(node.id);
+                          }
+                        }}
+                        className="absolute w-40 cursor-grab rounded-[28px] border bg-white p-4 text-left shadow-lg transition active:cursor-grabbing touch-none"
+                        style={{
+                          left: node.x,
+                          top: node.y,
+                          borderColor: isSelected ? node.color : "rgba(226,232,240,0.92)",
+                          boxShadow: isSelected
+                            ? `0 20px 40px ${node.color}33`
+                            : "0 18px 35px rgba(15,23,42,0.08)",
+                        }}
+                      >
+                        <div
+                          className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-2xl text-white"
+                          style={{ backgroundColor: node.color }}
+                        >
+                          <FontAwesomeIcon icon={faUserGroup} />
+                        </div>
+                        <p className="text-base font-semibold text-slate-900">{node.name}</p>
+                        <p className="mt-1 text-sm text-slate-500">{node.title}</p>
+                        <div className="mt-3 inline-flex items-center gap-2 text-xs font-medium text-slate-400">
+                          <FontAwesomeIcon icon={faArrowsUpDownLeftRight} />
+                          drag
+                        </div>
+                      </button>
+                    );
+                  })}
+
+                </div>
+              </div>
+
+              <p className="px-4 py-3 text-xs leading-5 text-slate-500">
+                카드를 손가락으로 끌어서 옮길 수 있고, 빈 공간은 손가락으로 밀어 캔버스를 움직일 수 있습니다.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="hidden lg:block">
           <div
-            className="relative min-w-fit"
-            style={{ height: boardHeight * zoom, width: boardWidth * zoom }}
+            className="relative h-[760px] overflow-auto bg-[radial-gradient(circle_at_top,_rgba(251,146,60,0.14),_transparent_34%),linear-gradient(180deg,_rgba(255,255,255,0.8),_rgba(248,250,252,0.96))]"
+            onWheel={handleWheelZoom}
           >
             <div
-              ref={boardRef}
+              className="relative min-w-fit"
+              style={{ height: boardHeight * zoom, width: boardWidth * zoom }}
+            >
+            <div
               className="relative"
+              data-character-board
               style={{
                 height: boardHeight,
                 width: boardWidth,
@@ -473,6 +624,7 @@ export function CharacterMapClient({ seed }: Props) {
                 </div>
               );
             })}
+            </div>
             </div>
 
             <div className="pointer-events-none absolute bottom-4 right-4 rounded-[24px] border border-slate-200/80 bg-white/92 p-3 shadow-[0_16px_40px_rgba(15,23,42,0.14)] backdrop-blur">
@@ -599,8 +751,10 @@ export function CharacterMapClient({ seed }: Props) {
               <FontAwesomeIcon icon={faPlus} />
             </div>
             <div>
-              <p className="text-sm text-slate-300">연결 인물 추가</p>
-              <h3 className="text-xl font-semibold">{selectedNode?.name}와 이어 붙이기</h3>
+              <p className="text-sm text-slate-300">인물 추가</p>
+              <h3 className="text-xl font-semibold">
+                {draft.linkedToSelected && selectedNode ? `${selectedNode.name}와 이어 붙이기` : "독립 인물로 추가"}
+              </h3>
             </div>
           </div>
 
@@ -629,7 +783,19 @@ export function CharacterMapClient({ seed }: Props) {
               placeholder="주요 행동을 줄바꿈으로 입력"
               className="h-24 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-400 focus:border-orange-300"
             />
+            <label className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+              <input
+                type="checkbox"
+                checked={draft.linkedToSelected}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, linkedToSelected: event.target.checked }))
+                }
+                className="h-4 w-4 rounded border-white/30 bg-white/10 text-orange-400"
+              />
+              현재 인물과 연결하지 않고 독립 인물로 추가
+            </label>
             <select
+              disabled={!draft.linkedToSelected}
               value={draft.relationshipType}
               onChange={(event) =>
                 setDraft((current) => ({
@@ -637,7 +803,7 @@ export function CharacterMapClient({ seed }: Props) {
                   relationshipType: event.target.value as RelationshipType,
                 }))
               }
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none focus:border-orange-300"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50 focus:border-orange-300"
             >
               {relationOptions.map((option) => (
                 <option key={option} value={option} className="text-slate-900">
@@ -646,7 +812,7 @@ export function CharacterMapClient({ seed }: Props) {
               ))}
             </select>
 
-            {draft.relationshipType === "기타" ? (
+            {draft.linkedToSelected && draft.relationshipType === "기타" ? (
               <input
                 value={draft.customRelationship}
                 onChange={(event) =>

@@ -29,13 +29,7 @@ export type CharacterSeed = {
   relationships: CharacterRelationship[];
 };
 
-export type TimelineRegion =
-  | "서유럽"
-  | "동유럽"
-  | "아시아"
-  | "미국"
-  | "남미"
-  | "기타";
+export type TimelineRegion = string;
 
 export type TimelineCard = {
   id: string;
