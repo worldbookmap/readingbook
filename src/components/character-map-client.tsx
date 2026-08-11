@@ -64,6 +64,7 @@ export function CharacterMapClient({ seed }: Props) {
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [saveMessage, setSaveMessage] = useState("브라우저 로컬 저장 사용 중");
   const [remoteEnabled, setRemoteEnabled] = useState(false);
+  const [remoteSha, setRemoteSha] = useState<string | null>(null);
   const didMountRef = useRef(false);
   const boardRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{
@@ -86,6 +87,7 @@ export function CharacterMapClient({ seed }: Props) {
         const payload = (await response.json()) as {
           data: CharacterSeed;
           remoteEnabled: boolean;
+          sha: string | null;
         };
 
         if (cancelled) {
@@ -97,6 +99,7 @@ export function CharacterMapClient({ seed }: Props) {
           setRelationships(payload.data.relationships);
           setSelectedId(payload.data.nodes[0]?.id ?? "");
           setRemoteEnabled(payload.remoteEnabled);
+          setRemoteSha(payload.sha);
           setSaveMessage(
             payload.remoteEnabled
               ? "GitHub 저장소와 연결됨"
@@ -316,7 +319,7 @@ export function CharacterMapClient({ seed }: Props) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ nodes, relationships }),
+        body: JSON.stringify({ nodes, relationships, sha: remoteSha }),
       });
 
       if (!response.ok) {
@@ -324,7 +327,10 @@ export function CharacterMapClient({ seed }: Props) {
         throw new Error(payload.error ?? "GitHub save failed");
       }
 
+      const payload = (await response.json()) as { ok: true; sha: string };
+
       setSaveState("saved");
+      setRemoteSha(payload.sha);
       setSaveMessage("GitHub 저장소에 반영되었습니다.");
     } catch (error) {
       setSaveState("error");

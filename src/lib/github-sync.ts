@@ -10,6 +10,13 @@ type GithubContentResponse = {
   content: string;
 };
 
+export class GithubSyncConflictError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "GithubSyncConflictError";
+  }
+}
+
 export function isGithubSyncConfigured() {
   return Boolean(
     process.env.GITHUB_TOKEN && process.env.GITHUB_OWNER && process.env.GITHUB_REPO,
@@ -50,7 +57,7 @@ async function githubRequest(path: string, init?: RequestInit) {
   return response;
 }
 
-export async function fetchGithubJsonFile<T>(path: string): Promise<T> {
+export async function fetchGithubJsonFile<T>(path: string): Promise<{ data: T; sha: string }> {
   const config = getGithubConfig();
   const response = await githubRequest(
     `/repos/${config.owner}/${config.repo}/contents/${path}?ref=${config.branch}`,
@@ -58,18 +65,31 @@ export async function fetchGithubJsonFile<T>(path: string): Promise<T> {
   const payload = (await response.json()) as GithubContentResponse;
   const text = Buffer.from(payload.content, "base64").toString("utf8");
 
-  return JSON.parse(text) as T;
+  return {
+    data: JSON.parse(text) as T,
+    sha: payload.sha,
+  };
 }
 
-export async function updateGithubJsonFile<T>(path: string, data: T, message: string) {
+export async function updateGithubJsonFile<T>(
+  path: string,
+  data: T,
+  message: string,
+  expectedSha?: string,
+) {
   const config = getGithubConfig();
   const currentResponse = await githubRequest(
     `/repos/${config.owner}/${config.repo}/contents/${path}?ref=${config.branch}`,
   );
   const currentPayload = (await currentResponse.json()) as GithubContentResponse;
+
+  if (expectedSha && currentPayload.sha !== expectedSha) {
+    throw new GithubSyncConflictError("원격 데이터가 먼저 변경되었습니다. 새로고침 후 다시 저장하세요.");
+  }
+
   const content = Buffer.from(`${JSON.stringify(data, null, 2)}\n`, "utf8").toString("base64");
 
-  await githubRequest(`/repos/${config.owner}/${config.repo}/contents/${path}`, {
+  const updateResponse = await githubRequest(`/repos/${config.owner}/${config.repo}/contents/${path}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -81,4 +101,10 @@ export async function updateGithubJsonFile<T>(path: string, data: T, message: st
       branch: config.branch,
     }),
   });
+
+  const updatePayload = (await updateResponse.json()) as {
+    content: { sha: string };
+  };
+
+  return updatePayload.content.sha;
 }

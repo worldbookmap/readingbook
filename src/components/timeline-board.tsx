@@ -120,6 +120,7 @@ export function TimelineBoard({ initialCards }: Props) {
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [saveMessage, setSaveMessage] = useState("브라우저 로컬 저장 사용 중");
   const [remoteEnabled, setRemoteEnabled] = useState(false);
+  const [remoteSha, setRemoteSha] = useState<string | null>(null);
   const didMountRef = useRef(false);
 
   useEffect(() => {
@@ -135,6 +136,7 @@ export function TimelineBoard({ initialCards }: Props) {
         const payload = (await response.json()) as {
           data: { cards: TimelineCard[] };
           remoteEnabled: boolean;
+          sha: string | null;
         };
 
         if (cancelled) {
@@ -146,6 +148,7 @@ export function TimelineBoard({ initialCards }: Props) {
           setCards(parsed);
           setActiveId(parsed[0]?.id ?? "");
           setRemoteEnabled(payload.remoteEnabled);
+          setRemoteSha(payload.sha);
           setSaveMessage(
             payload.remoteEnabled
               ? "GitHub 저장소와 연결됨"
@@ -309,7 +312,7 @@ export function TimelineBoard({ initialCards }: Props) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ cards }),
+        body: JSON.stringify({ cards, sha: remoteSha }),
       });
 
       if (!response.ok) {
@@ -317,7 +320,10 @@ export function TimelineBoard({ initialCards }: Props) {
         throw new Error(payload.error ?? "GitHub save failed");
       }
 
+      const payload = (await response.json()) as { ok: true; sha: string };
+
       setSaveState("saved");
+      setRemoteSha(payload.sha);
       setSaveMessage("GitHub 저장소에 반영되었습니다.");
     } catch (error) {
       setSaveState("error");

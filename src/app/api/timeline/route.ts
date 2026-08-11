@@ -3,6 +3,7 @@ import localTimeline from "@/data/timeline.json";
 import { TimelineCard } from "@/lib/types";
 import {
   fetchGithubJsonFile,
+  GithubSyncConflictError,
   isGithubSyncConfigured,
   updateGithubJsonFile,
 } from "@/lib/github-sync";
@@ -11,15 +12,16 @@ const filePath = "src/data/timeline.json";
 
 type TimelinePayload = {
   cards: TimelineCard[];
+  sha?: string;
 };
 
 export async function GET() {
   try {
-    const data = isGithubSyncConfigured()
-      ? await fetchGithubJsonFile<TimelinePayload>(filePath)
-      : (localTimeline as TimelinePayload);
+    const remoteEnabled = isGithubSyncConfigured();
+    const remotePayload = remoteEnabled ? await fetchGithubJsonFile<{ cards: TimelineCard[] }>(filePath) : null;
+    const data = remotePayload?.data ?? (localTimeline as { cards: TimelineCard[] });
 
-    return NextResponse.json({ data, remoteEnabled: isGithubSyncConfigured() });
+    return NextResponse.json({ data, remoteEnabled, sha: remotePayload?.sha ?? null });
   } catch (error) {
     console.error(error);
     return NextResponse.json(
@@ -39,11 +41,22 @@ export async function PUT(request: Request) {
 
   try {
     const body = (await request.json()) as TimelinePayload;
-    await updateGithubJsonFile(filePath, body, "Update timeline data from readingbook");
+    const { sha, ...data } = body;
+    const nextSha = await updateGithubJsonFile(
+      filePath,
+      data,
+      "Update timeline data from readingbook",
+      sha,
+    );
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, sha: nextSha });
   } catch (error) {
     console.error(error);
+
+    if (error instanceof GithubSyncConflictError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+
     return NextResponse.json(
       { error: "연표 데이터를 GitHub에 저장하지 못했습니다." },
       { status: 500 },
