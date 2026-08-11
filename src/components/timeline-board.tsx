@@ -503,16 +503,16 @@ export function TimelineBoard({ initialCards }: Props) {
           </form>
         </section>
 
-        <section className="rounded-[28px] border border-slate-200 bg-slate-950 p-6 text-white shadow-[0_24px_70px_rgba(15,23,42,0.16)]">
+        <section className="rounded-[28px] border border-emerald-200 bg-emerald-50 p-6 text-slate-700 shadow-[0_24px_70px_rgba(16,185,129,0.08)]">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm text-slate-300">선택한 카드</p>
+              <p className="text-sm text-emerald-700">선택한 카드</p>
               <h3 className="text-xl font-semibold">{activeCard?.title}</h3>
             </div>
             <button
               type="button"
               onClick={resetCards}
-              className="rounded-full border border-white/10 px-3 py-2 text-sm text-slate-200 transition hover:border-sky-300 hover:text-sky-200"
+              className="rounded-full border border-emerald-200 px-3 py-2 text-sm text-emerald-700 transition hover:border-emerald-300 hover:text-emerald-800"
             >
               <FontAwesomeIcon icon={faRotateLeft} />
             </button>
@@ -522,28 +522,28 @@ export function TimelineBoard({ initialCards }: Props) {
             <input
               value={activeCard?.title ?? ""}
               onChange={(event) => patchActiveCard("title", event.target.value)}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none focus:border-sky-300"
+              className="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm outline-none placeholder:text-emerald-300 focus:border-emerald-300"
             />
             <input
               value={activeCard?.yearLabel ?? ""}
               onChange={(event) => patchActiveCard("yearLabel", event.target.value)}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none focus:border-sky-300"
+              className="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm outline-none placeholder:text-emerald-300 focus:border-emerald-300"
             />
             <textarea
               value={activeCard?.description ?? ""}
               onChange={(event) => patchActiveCard("description", event.target.value)}
-              className="h-24 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none focus:border-sky-300"
+              className="h-24 w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm outline-none placeholder:text-emerald-300 focus:border-emerald-300"
             />
             <input
               value={activeCard?.tags.join(", ") ?? ""}
               onChange={(event) => patchActiveCard("tags", event.target.value)}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none focus:border-sky-300"
+              className="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm outline-none placeholder:text-emerald-300 focus:border-emerald-300"
             />
             <button
               type="button"
               onClick={deleteActiveCard}
               disabled={!activeCard}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-300/40 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-200 transition hover:border-rose-300 hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <FontAwesomeIcon icon={faTrash} />
               삭제
@@ -770,10 +770,10 @@ export function TimelineBoard({ initialCards }: Props) {
 
           <div className="mt-4 hidden overflow-x-auto lg:block">
             <div className="min-w-[920px]">
-              <div className="grid grid-cols-[140px_repeat(6,minmax(120px,1fr))] gap-px rounded-3xl bg-slate-200 p-px">
-                <div className="bg-slate-950 px-4 py-3 text-sm font-semibold text-white">연도</div>
+                <div className="grid grid-cols-[140px_repeat(6,minmax(120px,1fr))] gap-px rounded-3xl bg-slate-200 p-px">
+                <div className="bg-emerald-100 px-4 py-3 text-sm font-semibold text-emerald-900">연도</div>
                 {regionNames.map((region) => (
-                  <div key={region} className="bg-slate-950 px-4 py-3 text-sm font-semibold text-white">
+                  <div key={region} className="bg-emerald-100 px-4 py-3 text-sm font-semibold text-emerald-900">
                     {region}
                   </div>
                 ))}

@@ -745,14 +745,14 @@ export function CharacterMapClient({ seed }: Props) {
           </div>
         </section>
 
-        <section className="rounded-[28px] border border-white/50 bg-slate-950 p-6 text-white shadow-[0_24px_70px_rgba(15,23,42,0.16)]">
+        <section className="rounded-[28px] border border-emerald-200/80 bg-[linear-gradient(180deg,_rgba(240,253,244,0.96)_0%,_rgba(236,253,245,0.9)_100%)] p-6 text-slate-800 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-orange-300">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
               <FontAwesomeIcon icon={faPlus} />
             </div>
             <div>
-              <p className="text-sm text-slate-300">인물 추가</p>
-              <h3 className="text-xl font-semibold">
+              <p className="text-sm font-medium text-emerald-700">인물 추가</p>
+              <h3 className="text-xl font-semibold text-slate-900">
                 {draft.linkedToSelected && selectedNode ? `${selectedNode.name}와 이어 붙이기` : "독립 인물로 추가"}
               </h3>
             </div>
@@ -763,34 +763,34 @@ export function CharacterMapClient({ seed }: Props) {
               value={draft.name}
               onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
               placeholder="인물 이름"
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-400 focus:border-orange-300"
+              className="w-full rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300"
             />
             <input
               value={draft.title}
               onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
               placeholder="역할 또는 호칭"
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-400 focus:border-orange-300"
+              className="w-full rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300"
             />
             <textarea
               value={draft.summary}
               onChange={(event) => setDraft((current) => ({ ...current, summary: event.target.value }))}
               placeholder="인물 소개"
-              className="h-24 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-400 focus:border-orange-300"
+              className="h-24 w-full rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300"
             />
             <textarea
               value={draft.majorActions}
               onChange={(event) => setDraft((current) => ({ ...current, majorActions: event.target.value }))}
               placeholder="주요 행동을 줄바꿈으로 입력"
-              className="h-24 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-400 focus:border-orange-300"
+              className="h-24 w-full rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300"
             />
-            <label className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+            <label className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-white/70 px-4 py-3 text-sm text-slate-700">
               <input
                 type="checkbox"
                 checked={draft.linkedToSelected}
                 onChange={(event) =>
                   setDraft((current) => ({ ...current, linkedToSelected: event.target.checked }))
                 }
-                className="h-4 w-4 rounded border-white/30 bg-white/10 text-orange-400"
+                className="h-4 w-4 rounded border-emerald-300 bg-white text-emerald-500"
               />
               현재 인물과 연결하지 않고 독립 인물로 추가
             </label>
@@ -803,7 +803,7 @@ export function CharacterMapClient({ seed }: Props) {
                   relationshipType: event.target.value as RelationshipType,
                 }))
               }
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50 focus:border-orange-300"
+              className="w-full rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none disabled:cursor-not-allowed disabled:opacity-50 focus:border-emerald-300"
             >
               {relationOptions.map((option) => (
                 <option key={option} value={option} className="text-slate-900">
@@ -819,13 +819,13 @@ export function CharacterMapClient({ seed }: Props) {
                   setDraft((current) => ({ ...current, customRelationship: event.target.value }))
                 }
                 placeholder="직접 입력 관계"
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-400 focus:border-orange-300"
+                className="w-full rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300"
               />
             ) : null}
 
             <button
               type="submit"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-orange-300"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-300 px-4 py-3 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-250"
             >
               <FontAwesomeIcon icon={faWandSparkles} />
               연결 인물 만들기
@@ -834,7 +834,7 @@ export function CharacterMapClient({ seed }: Props) {
             <button
               type="button"
               onClick={saveToGithub}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-orange-300 hover:text-orange-200"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300 hover:text-emerald-800"
             >
               <FontAwesomeIcon icon={faCloudArrowUp} />
               GitHub에 저장
