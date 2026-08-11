@@ -1,75 +1,14 @@
 {
-  "nodes": [
+  "works": [
     {
-      "id": "hero",
-      "name": "주인공",
-      "title": "관찰자",
-      "summary": "이야기의 중심에서 사건을 목격하고 연결점을 찾아가는 인물입니다.",
-      "majorActions": [
-        "첫 장면에서 의문의 편지를 받음",
-        "조력자와 함께 과거 사건을 조사함"
-      ],
-      "x": 380,
-      "y": 260,
-      "color": "#f97316"
-    },
-    {
-      "id": "ally",
-      "name": "조력자",
-      "title": "친구",
-      "summary": "필요한 정보를 모아 주고 위험한 장면에서 주인공을 도와줍니다.",
-      "majorActions": [
-        "비밀 장소 지도를 건넴"
-      ],
-      "x": 120,
-      "y": 180,
-      "color": "#0f766e"
-    },
-    {
-      "id": "rival",
-      "name": "경쟁자",
-      "title": "사업 파트너",
-      "summary": "주인공과 같은 목표를 노리지만 접근 방식이 다릅니다.",
-      "majorActions": [
-        "협력 제안을 했다가 갑자기 철회함"
-      ],
-      "x": 650,
-      "y": 160,
-      "color": "#7c3aed"
-    },
-    {
-      "id": "mentor",
-      "name": "멘토",
-      "title": "가족 친구",
-      "summary": "과거의 단서를 알고 있는 인물로 결정적인 조언을 제공합니다.",
-      "majorActions": [
-        "숨겨진 기록 보관소 위치를 알려줌"
-      ],
-      "x": 580,
-      "y": 420,
-      "color": "#1d4ed8"
-    }
-  ],
-  "relationships": [
-    {
-      "id": "rel-1",
-      "fromId": "hero",
-      "toId": "ally",
-      "type": "친구"
-    },
-    {
-      "id": "rel-2",
-      "fromId": "hero",
-      "toId": "rival",
-      "type": "사업",
-      "label": "공동 투자 후보"
-    },
-    {
-      "id": "rel-3",
-      "fromId": "mentor",
-      "toId": "hero",
-      "type": "기타",
-      "label": "과거의 증인"
+      "id": "default",
+      "title": "기본 인물관계도",
+      "titleKo": "기본 인물관계도",
+      "author": "Readingbook",
+      "seed": {
+        "nodes": [],
+        "relationships": []
+      }
     }
   ]
 }
