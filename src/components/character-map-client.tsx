@@ -257,7 +257,7 @@ export function CharacterMapClient({ seed }: Props) {
     );
   }
 
-  function handlePointerDown(event: React.PointerEvent<HTMLDivElement>, nodeId: string, displayScale = zoom) {
+  function handlePointerDown(event: React.PointerEvent<HTMLElement>, nodeId: string, displayScale = zoom) {
     const boardElement = event.currentTarget.closest("[data-character-board]") as HTMLDivElement | null;
     const boardBounds = boardElement?.getBoundingClientRect();
     const bounds = event.currentTarget.getBoundingClientRect();

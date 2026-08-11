@@ -299,7 +299,7 @@ export function TimelineBoard({ initialCards }: Props) {
       return;
     }
 
-    const nextCards = normalizeCards(cards.filter((card) => card.id !== activeCard.id));
+    const nextCards = normalizeCards(cards.filter((card) => card.id !== activeCard.id), regionNames);
     setCards(nextCards);
     setActiveId(nextCards[0]?.id ?? "");
   }
