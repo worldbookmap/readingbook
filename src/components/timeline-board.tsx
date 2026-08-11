@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowsLeftRight,
   faCalendarDays,
+  faCloudArrowUp,
   faGripVertical,
   faTable,
   faGlobe,
@@ -106,6 +107,8 @@ type Props = {
   initialCards: TimelineCard[];
 };
 
+type SaveState = "idle" | "saving" | "saved" | "error";
+
 export function TimelineBoard({ initialCards }: Props) {
   const normalizedInitialCards = normalizeCards(initialCards);
   const [cards, setCards] = useState<TimelineCard[]>(normalizedInitialCards);
@@ -114,17 +117,61 @@ export function TimelineBoard({ initialCards }: Props) {
   const [draft, setDraft] = useState<DraftCard>(defaultDraft);
   const [summarySearch, setSummarySearch] = useState("");
   const [eraFilter, setEraFilter] = useState<(typeof eraOptions)[number]>("전체");
+  const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [saveMessage, setSaveMessage] = useState("브라우저 로컬 저장 사용 중");
+  const [remoteEnabled, setRemoteEnabled] = useState(false);
   const didMountRef = useRef(false);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(storageKey);
-    if (saved) {
-      const parsed = normalizeCards(JSON.parse(saved) as TimelineCard[]);
-      startTransition(() => {
-        setCards(parsed);
-        setActiveId(parsed[0]?.id ?? "");
-      });
+    let cancelled = false;
+
+    async function loadTimeline() {
+      try {
+        const response = await fetch("/api/timeline", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("failed to load timeline");
+        }
+
+        const payload = (await response.json()) as {
+          data: { cards: TimelineCard[] };
+          remoteEnabled: boolean;
+        };
+
+        if (cancelled) {
+          return;
+        }
+
+        const parsed = normalizeCards(payload.data.cards);
+        startTransition(() => {
+          setCards(parsed);
+          setActiveId(parsed[0]?.id ?? "");
+          setRemoteEnabled(payload.remoteEnabled);
+          setSaveMessage(
+            payload.remoteEnabled
+              ? "GitHub 저장소와 연결됨"
+              : "환경변수 미설정: 브라우저 로컬 저장 사용 중",
+          );
+        });
+      } catch {
+        const saved = window.localStorage.getItem(storageKey);
+        if (!saved || cancelled) {
+          return;
+        }
+
+        const parsed = normalizeCards(JSON.parse(saved) as TimelineCard[]);
+        startTransition(() => {
+          setCards(parsed);
+          setActiveId(parsed[0]?.id ?? "");
+          setSaveMessage("API 연결 실패: 브라우저 로컬 저장 데이터 복원됨");
+        });
+      }
     }
+
+    loadTimeline();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -252,6 +299,32 @@ export function TimelineBoard({ initialCards }: Props) {
     })
     .sort((left, right) => left.year - right.year);
 
+  async function saveToGithub() {
+    setSaveState("saving");
+    setSaveMessage(remoteEnabled ? "GitHub 저장 중..." : "환경변수 확인 필요");
+
+    try {
+      const response = await fetch("/api/timeline", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ cards }),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string };
+        throw new Error(payload.error ?? "GitHub save failed");
+      }
+
+      setSaveState("saved");
+      setSaveMessage("GitHub 저장소에 반영되었습니다.");
+    } catch (error) {
+      setSaveState("error");
+      setSaveMessage(error instanceof Error ? error.message : "GitHub 저장에 실패했습니다.");
+    }
+  }
+
   return (
     <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
       <aside className="space-y-6">
@@ -318,6 +391,27 @@ export function TimelineBoard({ initialCards }: Props) {
               <FontAwesomeIcon icon={faPlus} />
               카드 추가
             </button>
+
+            <button
+              type="button"
+              onClick={saveToGithub}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm font-semibold text-sky-700 transition hover:border-sky-400 hover:bg-sky-50"
+            >
+              <FontAwesomeIcon icon={faCloudArrowUp} />
+              GitHub에 저장
+            </button>
+
+            <p
+              className={`text-xs leading-6 ${
+                saveState === "error"
+                  ? "text-rose-500"
+                  : saveState === "saved"
+                    ? "text-emerald-600"
+                    : "text-slate-500"
+              }`}
+            >
+              {saveMessage}
+            </p>
           </form>
         </section>
 

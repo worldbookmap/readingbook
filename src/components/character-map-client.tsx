@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowsUpDownLeftRight,
   faBookOpen,
+  faCloudArrowUp,
   faLink,
   faLocationCrosshairs,
   faMagnifyingGlassMinus,
@@ -52,12 +53,17 @@ type Props = {
   seed: CharacterSeed;
 };
 
+type SaveState = "idle" | "saving" | "saved" | "error";
+
 export function CharacterMapClient({ seed }: Props) {
   const [nodes, setNodes] = useState<CharacterNode[]>(seed.nodes);
   const [relationships, setRelationships] = useState<CharacterRelationship[]>(seed.relationships);
   const [selectedId, setSelectedId] = useState<string>(seed.nodes[0]?.id ?? "");
   const [draft, setDraft] = useState<DraftState>(defaultDraft);
   const [zoom, setZoom] = useState(1);
+  const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [saveMessage, setSaveMessage] = useState("브라우저 로컬 저장 사용 중");
+  const [remoteEnabled, setRemoteEnabled] = useState(false);
   const didMountRef = useRef(false);
   const boardRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{
@@ -68,15 +74,56 @@ export function CharacterMapClient({ seed }: Props) {
   } | null>(null);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(storageKey);
-    if (saved) {
-      const parsed = JSON.parse(saved) as CharacterSeed;
-      startTransition(() => {
-        setNodes(parsed.nodes);
-        setRelationships(parsed.relationships);
-        setSelectedId(parsed.nodes[0]?.id ?? "");
-      });
+    let cancelled = false;
+
+    async function loadCharacterMap() {
+      try {
+        const response = await fetch("/api/character-map", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("failed to load character map");
+        }
+
+        const payload = (await response.json()) as {
+          data: CharacterSeed;
+          remoteEnabled: boolean;
+        };
+
+        if (cancelled) {
+          return;
+        }
+
+        startTransition(() => {
+          setNodes(payload.data.nodes);
+          setRelationships(payload.data.relationships);
+          setSelectedId(payload.data.nodes[0]?.id ?? "");
+          setRemoteEnabled(payload.remoteEnabled);
+          setSaveMessage(
+            payload.remoteEnabled
+              ? "GitHub 저장소와 연결됨"
+              : "환경변수 미설정: 브라우저 로컬 저장 사용 중",
+          );
+        });
+      } catch {
+        const saved = window.localStorage.getItem(storageKey);
+        if (!saved || cancelled) {
+          return;
+        }
+
+        const parsed = JSON.parse(saved) as CharacterSeed;
+        startTransition(() => {
+          setNodes(parsed.nodes);
+          setRelationships(parsed.relationships);
+          setSelectedId(parsed.nodes[0]?.id ?? "");
+          setSaveMessage("API 연결 실패: 브라우저 로컬 저장 데이터 복원됨");
+        });
+      }
     }
+
+    loadCharacterMap();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -257,6 +304,32 @@ export function CharacterMapClient({ seed }: Props) {
     event.preventDefault();
     const delta = event.deltaY > 0 ? -0.08 : 0.08;
     updateZoom(zoom + delta);
+  }
+
+  async function saveToGithub() {
+    setSaveState("saving");
+    setSaveMessage(remoteEnabled ? "GitHub 저장 중..." : "환경변수 확인 필요");
+
+    try {
+      const response = await fetch("/api/character-map", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ nodes, relationships }),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string };
+        throw new Error(payload.error ?? "GitHub save failed");
+      }
+
+      setSaveState("saved");
+      setSaveMessage("GitHub 저장소에 반영되었습니다.");
+    } catch (error) {
+      setSaveState("error");
+      setSaveMessage(error instanceof Error ? error.message : "GitHub 저장에 실패했습니다.");
+    }
   }
 
   return (
@@ -585,6 +658,27 @@ export function CharacterMapClient({ seed }: Props) {
               <FontAwesomeIcon icon={faWandSparkles} />
               연결 인물 만들기
             </button>
+
+            <button
+              type="button"
+              onClick={saveToGithub}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-orange-300 hover:text-orange-200"
+            >
+              <FontAwesomeIcon icon={faCloudArrowUp} />
+              GitHub에 저장
+            </button>
+
+            <p
+              className={`text-xs leading-6 ${
+                saveState === "error"
+                  ? "text-rose-300"
+                  : saveState === "saved"
+                    ? "text-emerald-300"
+                    : "text-slate-300"
+              }`}
+            >
+              {saveMessage}
+            </p>
           </form>
         </section>
       </aside>
