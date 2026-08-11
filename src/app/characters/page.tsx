@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
-import characterSeed from "@/data/character-map.json";
+import characterMapLibrary from "@/data/character-map-library.json";
 import { CharacterMapClient } from "@/components/character-map-client";
-import { CharacterSeed } from "@/lib/types";
+import { CharacterMapLibrary } from "@/lib/types";
 
 export default function CharactersPage() {
   return (
@@ -36,7 +36,7 @@ export default function CharactersPage() {
           </div>
         </section>
 
-        <CharacterMapClient seed={characterSeed as CharacterSeed} />
+        <CharacterMapClient library={characterMapLibrary as CharacterMapLibrary} />
       </div>
     </main>
   );

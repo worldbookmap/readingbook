@@ -30,6 +30,18 @@ export type CharacterSeed = {
   relationships: CharacterRelationship[];
 };
 
+export type CharacterMapEntry = {
+  id: string;
+  title: string;
+  titleKo?: string;
+  author?: string;
+  seed: CharacterSeed;
+};
+
+export type CharacterMapLibrary = {
+  works: CharacterMapEntry[];
+};
+
 export type TimelineRegion = string;
 
 export type TimelineCard = {

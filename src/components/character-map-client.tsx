@@ -6,6 +6,8 @@ import {
   faArrowsUpDownLeftRight,
   faBookOpen,
   faCloudArrowUp,
+  faCompress,
+  faExpand,
   faLink,
   faLocationCrosshairs,
   faMagnifyingGlassMinus,
@@ -15,13 +17,13 @@ import {
   faWandSparkles,
 } from "@fortawesome/free-solid-svg-icons";
 import {
+  CharacterMapLibrary,
   CharacterNode,
   CharacterRelationship,
-  CharacterSeed,
   RelationshipType,
 } from "@/lib/types";
 
-const storageKey = "readingbook-character-map";
+const storageKey = "readingbook-character-map-library";
 const relationOptions: RelationshipType[] = ["친구", "부부", "커플", "자식", "사업", "기타"];
 const boardWidth = 920;
 const boardHeight = 920;
@@ -53,23 +55,29 @@ const defaultDraft: DraftState = {
 };
 
 type Props = {
-  seed: CharacterSeed;
+  library: CharacterMapLibrary;
 };
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
-export function CharacterMapClient({ seed }: Props) {
-  const [nodes, setNodes] = useState<CharacterNode[]>(seed.nodes);
-  const [relationships, setRelationships] = useState<CharacterRelationship[]>(seed.relationships);
-  const [selectedId, setSelectedId] = useState<string>(seed.nodes[0]?.id ?? "");
+export function CharacterMapClient({ library }: Props) {
+  const [works, setWorks] = useState<CharacterMapLibrary["works"]>(library.works);
+  const [selectedWorkId, setSelectedWorkId] = useState<string>(library.works[0]?.id ?? "");
+  const [nodes, setNodes] = useState<CharacterNode[]>(library.works[0]?.seed.nodes ?? []);
+  const [relationships, setRelationships] = useState<CharacterRelationship[]>(library.works[0]?.seed.relationships ?? []);
+  const [selectedId, setSelectedId] = useState<string>(library.works[0]?.seed.nodes[0]?.id ?? "");
+  const [selectedRelationshipId, setSelectedRelationshipId] = useState<string | null>(null);
   const [draft, setDraft] = useState<DraftState>(defaultDraft);
   const [zoom, setZoom] = useState(1);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [saveMessage, setSaveMessage] = useState("브라우저 로컬 저장 사용 중");
   const [remoteEnabled, setRemoteEnabled] = useState(false);
+  const [newWorkTitle, setNewWorkTitle] = useState("");
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
   const didMountRef = useRef(false);
+  const mapViewportRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{
     id: string;
     offsetX: number;
@@ -88,7 +96,7 @@ export function CharacterMapClient({ seed }: Props) {
         }
 
         const payload = (await response.json()) as {
-          data: CharacterSeed;
+          data: CharacterMapLibrary;
           remoteEnabled: boolean;
           sha: string | null;
         };
@@ -98,9 +106,12 @@ export function CharacterMapClient({ seed }: Props) {
         }
 
         startTransition(() => {
-          setNodes(payload.data.nodes);
-          setRelationships(payload.data.relationships);
-          setSelectedId(payload.data.nodes[0]?.id ?? "");
+          const nextWorks = payload.data.works;
+          setWorks(nextWorks);
+          setSelectedWorkId(nextWorks[0]?.id ?? "");
+          setSelectedId(nextWorks[0]?.seed.nodes[0]?.id ?? "");
+          setNodes(nextWorks[0]?.seed.nodes ?? []);
+          setRelationships(nextWorks[0]?.seed.relationships ?? []);
           setRemoteEnabled(payload.remoteEnabled);
           setRemoteSha(payload.sha);
           setSaveMessage(
@@ -115,11 +126,14 @@ export function CharacterMapClient({ seed }: Props) {
           return;
         }
 
-        const parsed = JSON.parse(saved) as CharacterSeed;
+        const parsed = JSON.parse(saved) as CharacterMapLibrary;
         startTransition(() => {
-          setNodes(parsed.nodes);
-          setRelationships(parsed.relationships);
-          setSelectedId(parsed.nodes[0]?.id ?? "");
+          const nextWorks = parsed.works;
+          setWorks(nextWorks);
+          setSelectedWorkId(nextWorks[0]?.id ?? "");
+          setSelectedId(nextWorks[0]?.seed.nodes[0]?.id ?? "");
+          setNodes(nextWorks[0]?.seed.nodes ?? []);
+          setRelationships(nextWorks[0]?.seed.relationships ?? []);
           setSaveMessage("API 연결 실패: 브라우저 로컬 저장 데이터 복원됨");
         });
       }
@@ -138,10 +152,42 @@ export function CharacterMapClient({ seed }: Props) {
       return;
     }
 
-    window.localStorage.setItem(storageKey, JSON.stringify({ nodes, relationships }));
-  }, [nodes, relationships]);
+    window.localStorage.setItem(storageKey, JSON.stringify({ works }));
+  }, [works]);
 
-  const selectedNode = nodes.find((node) => node.id === selectedId) ?? nodes[0];
+  useEffect(() => {
+    if (!selectedWorkId) {
+      return;
+    }
+
+    setWorks((current) =>
+      current.map((work) =>
+        work.id === selectedWorkId
+          ? {
+              ...work,
+              seed: {
+                nodes,
+                relationships,
+              },
+            }
+          : work,
+      ),
+    );
+  }, [nodes, relationships, selectedWorkId]);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  const selectedWork = works.find((work) => work.id === selectedWorkId) ?? null;
+  const selectedNode = nodes.find((node) => node.id === selectedId) ?? nodes[0] ?? null;
   const minimapWidth = boardWidth * minimapScale;
   const minimapHeight = boardHeight * minimapScale;
   const viewportWidth = Math.min(boardWidth, 920 / zoom);
@@ -153,6 +199,9 @@ export function CharacterMapClient({ seed }: Props) {
     (relationship) =>
       relationship.fromId === selectedNode?.id || relationship.toId === selectedNode?.id,
   );
+  const selectedRelationship = relationships.find(
+    (relationship) => relationship.id === selectedRelationshipId,
+  ) ?? null;
   const coupleRelationships = relationships.filter(
     (relationship) => relationship.type === "부부" || relationship.type === "커플",
   );
@@ -241,10 +290,89 @@ export function CharacterMapClient({ seed }: Props) {
     );
   }
 
+  function handleRelationshipSelect(relationshipId: string, nodeId?: string) {
+    setSelectedRelationshipId(relationshipId);
+    if (nodeId) {
+      setSelectedId(nodeId);
+    }
+  }
+
+  function handleRelationshipPatch(field: "type" | "label", value: RelationshipType | string) {
+    if (!selectedRelationship) {
+      return;
+    }
+
+    setRelationships((current) =>
+      current.map((relationship) =>
+        relationship.id === selectedRelationship.id
+          ? {
+              ...relationship,
+              [field]: value,
+            }
+          : relationship,
+      ),
+    );
+  }
+
+  function applyWorkSelection(workId: string, nextWorks: CharacterMapLibrary["works"]) {
+    const nextWork = nextWorks.find((work) => work.id === workId) ?? nextWorks[0] ?? null;
+
+    setSelectedWorkId(workId);
+    if (!nextWork) {
+      setNodes([]);
+      setRelationships([]);
+      setSelectedId("");
+      setSelectedRelationshipId(null);
+      setDraft(defaultDraft);
+      return;
+    }
+
+    setNodes(nextWork.seed.nodes);
+    setRelationships(nextWork.seed.relationships);
+    setSelectedId(nextWork.seed.nodes[0]?.id ?? "");
+    setSelectedRelationshipId(null);
+    setDraft(defaultDraft);
+  }
+
+  function handleWorkSelect(workId: string) {
+    const nextWorks = works;
+    applyWorkSelection(workId, nextWorks);
+  }
+
+  function handleCreateWork(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const title = newWorkTitle.trim();
+    if (!title) {
+      return;
+    }
+
+    const nextWork = {
+      id: crypto.randomUUID(),
+      title,
+      titleKo: title,
+      author: "새 작품",
+      seed: { nodes: [], relationships: [] },
+    };
+
+    const nextWorks = [...works, nextWork];
+    setWorks(nextWorks);
+    applyWorkSelection(nextWork.id, nextWorks);
+    setNewWorkTitle("");
+  }
+
   function resetSeed() {
-    setNodes(seed.nodes);
-    setRelationships(seed.relationships);
-    setSelectedId(seed.nodes[0]?.id ?? "");
+    const fallbackSeed = works.find((work) => work.id === selectedWorkId) ?? works[0];
+
+    if (!fallbackSeed) {
+      return;
+    }
+
+    setNodes(fallbackSeed.seed.nodes);
+    setRelationships(fallbackSeed.seed.relationships);
+    setSelectedId(fallbackSeed.seed.nodes[0]?.id ?? "");
+    setSelectedRelationshipId(null);
+    setDraft(defaultDraft);
     window.localStorage.removeItem(storageKey);
   }
 
@@ -357,6 +485,19 @@ export function CharacterMapClient({ seed }: Props) {
     updateZoom(zoom + delta);
   }
 
+  function toggleFullscreen() {
+    if (!mapViewportRef.current) {
+      return;
+    }
+
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+      return;
+    }
+
+    mapViewportRef.current.requestFullscreen();
+  }
+
   async function saveToGithub() {
     setSaveState("saving");
     setSaveMessage(remoteEnabled ? "GitHub 저장 중..." : "환경변수 확인 필요");
@@ -367,7 +508,7 @@ export function CharacterMapClient({ seed }: Props) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ nodes, relationships, sha: remoteSha }),
+        body: JSON.stringify({ library: { works }, sha: remoteSha }),
       });
 
       if (!response.ok) {
@@ -387,12 +528,15 @@ export function CharacterMapClient({ seed }: Props) {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_380px]">
+    <div ref={mapViewportRef} className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_380px]">
       <section className="overflow-hidden rounded-[32px] border border-slate-300/80 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.04)]">
         <div className="flex items-center justify-between border-b border-slate-200/80 px-4 py-4 sm:px-6">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">Character Map</p>
             <h2 className="mt-1 text-2xl font-semibold text-slate-950">인물 관계도</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              {selectedWork?.titleKo ?? selectedWork?.title ?? "작품 없음"}
+            </p>
           </div>
           <div className="hidden flex-wrap items-center justify-end gap-2 sm:flex">
             <button
@@ -414,11 +558,61 @@ export function CharacterMapClient({ seed }: Props) {
             </button>
             <button
               type="button"
+              onClick={toggleFullscreen}
+              className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-600 transition hover:border-slate-400 hover:text-slate-950"
+            >
+              <FontAwesomeIcon icon={isFullscreen ? faCompress : faExpand} className="mr-2" />
+              {isFullscreen ? "전체화면 종료" : "전체화면"}
+            </button>
+            <button
+              type="button"
               onClick={resetSeed}
               className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-600 transition hover:border-slate-400 hover:text-slate-950"
             >
               시드로 되돌리기
             </button>
+          </div>
+        </div>
+
+        <div className="border-b border-slate-200/80 bg-slate-50/70 px-4 py-4 sm:px-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex-1">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">작품 목록</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {works.map((work) => {
+                  const isActive = work.id === selectedWorkId;
+                  return (
+                    <button
+                      key={work.id}
+                      type="button"
+                      onClick={() => handleWorkSelect(work.id)}
+                      className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                        isActive
+                          ? "border-slate-900 bg-slate-900 text-white"
+                          : "border-slate-300 bg-white text-slate-600 hover:border-slate-400 hover:text-slate-950"
+                      }`}
+                    >
+                      {work.titleKo ?? work.title}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <form onSubmit={handleCreateWork} className="flex flex-col gap-2 sm:flex-row">
+              <input
+                value={newWorkTitle}
+                onChange={(event) => setNewWorkTitle(event.target.value)}
+                placeholder="새 작품 이름"
+                className="w-full rounded-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400 sm:min-w-[220px]"
+              />
+              <button
+                type="submit"
+                className="rounded-full bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
+              >
+                작품 추가
+              </button>
+            </form>
           </div>
         </div>
 
@@ -514,11 +708,23 @@ export function CharacterMapClient({ seed }: Props) {
                       const curve = buildCurvePath(from, to);
 
                       return (
-                        <g key={`mobile-${relationship.id}`}>
+                        <g
+                          key={`mobile-${relationship.id}`}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => handleRelationshipSelect(relationship.id, relationship.fromId)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              handleRelationshipSelect(relationship.id, relationship.fromId);
+                            }
+                          }}
+                          className="cursor-pointer"
+                        >
                           <path
                             d={curve.path}
-                            stroke="rgba(148,163,184,0.72)"
-                            strokeWidth="2.5"
+                            stroke={selectedRelationshipId === relationship.id ? "#111827" : "rgba(148,163,184,0.72)"}
+                            strokeWidth={selectedRelationshipId === relationship.id ? 3.2 : 2.5}
                             fill="none"
                           />
                           <text
@@ -526,7 +732,7 @@ export function CharacterMapClient({ seed }: Props) {
                             y={curve.labelY + 5}
                             textAnchor="middle"
                             fontSize="11"
-                            fill="#475569"
+                            fill={selectedRelationshipId === relationship.id ? "#111827" : "#475569"}
                           >
                             {relationship.label ?? relationship.type}
                           </text>
@@ -547,32 +753,40 @@ export function CharacterMapClient({ seed }: Props) {
                         {isPaired ? (
                           <div className="pointer-events-none absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-rose-200/90 bg-rose-50/50" />
                         ) : null}
-                        <button
-                          type="button"
-                          onPointerDown={(event) => handlePointerDown(event, node.id, mobileTotalScale)}
-                          onClick={() => setSelectedId(node.id)}
-                          onMouseEnter={() => setHoveredNodeId(node.id)}
-                          onMouseLeave={() => setHoveredNodeId(null)}
-                          onFocus={() => setHoveredNodeId(node.id)}
-                          onBlur={() => setHoveredNodeId(null)}
-                          onKeyDown={(event) => {
-                            if (event.key === "Enter" || event.key === " ") {
-                              event.preventDefault();
+                        <div className="flex flex-col items-center">
+                          <button
+                            type="button"
+                            onPointerDown={(event) => handlePointerDown(event, node.id, mobileTotalScale)}
+                            onClick={() => {
                               setSelectedId(node.id);
-                            }
-                          }}
-                          className="flex h-14 w-14 cursor-grab items-center justify-center rounded-full border bg-white text-white shadow-lg transition active:cursor-grabbing touch-none"
-                          style={{
-                            borderColor: isSelected ? node.color : "rgba(226,232,240,0.92)",
-                            boxShadow: isSelected
-                              ? `0 20px 40px ${node.color}33`
-                              : "0 18px 35px rgba(15,23,42,0.08)",
-                            backgroundColor: node.color,
-                          }}
-                          aria-label={node.name}
-                        >
-                          <FontAwesomeIcon icon={faUserGroup} />
-                        </button>
+                              setSelectedRelationshipId(null);
+                            }}
+                            onMouseEnter={() => setHoveredNodeId(node.id)}
+                            onMouseLeave={() => setHoveredNodeId(null)}
+                            onFocus={() => setHoveredNodeId(node.id)}
+                            onBlur={() => setHoveredNodeId(null)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                setSelectedId(node.id);
+                              }
+                            }}
+                            className="flex h-14 w-14 cursor-grab items-center justify-center rounded-full border bg-white text-white shadow-lg transition active:cursor-grabbing touch-none"
+                            style={{
+                              borderColor: isSelected ? node.color : "rgba(226,232,240,0.92)",
+                              boxShadow: isSelected
+                                ? `0 20px 40px ${node.color}33`
+                                : "0 18px 35px rgba(15,23,42,0.08)",
+                              backgroundColor: node.color,
+                            }}
+                            aria-label={node.name}
+                          >
+                            <FontAwesomeIcon icon={faUserGroup} />
+                          </button>
+                          <p className="mt-2 max-w-[88px] truncate rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-slate-700 shadow-sm">
+                            {node.name}
+                          </p>
+                        </div>
 
                         {showInfo ? (
                           <div className="pointer-events-none absolute left-1/2 top-0 z-20 w-52 -translate-x-1/2 -translate-y-full rounded-[20px] border border-slate-200 bg-white/95 p-3 text-left shadow-[0_16px_36px_rgba(15,23,42,0.16)] backdrop-blur">
@@ -659,11 +873,23 @@ export function CharacterMapClient({ seed }: Props) {
                 const curve = buildCurvePath(from, to);
 
                 return (
-                  <g key={relationship.id}>
+                  <g
+                    key={relationship.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleRelationshipSelect(relationship.id, relationship.fromId)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        handleRelationshipSelect(relationship.id, relationship.fromId);
+                      }
+                    }}
+                    className="cursor-pointer"
+                  >
                     <path
                       d={curve.path}
-                      stroke="rgba(148,163,184,0.8)"
-                      strokeWidth="2.5"
+                      stroke={selectedRelationshipId === relationship.id ? "#111827" : "rgba(148,163,184,0.8)"}
+                      strokeWidth={selectedRelationshipId === relationship.id ? 3.2 : 2.5}
                       fill="none"
                     />
                     <rect
@@ -672,14 +898,14 @@ export function CharacterMapClient({ seed }: Props) {
                       width="84"
                       height="24"
                       rx="12"
-                      fill="rgba(255,255,255,0.88)"
+                      fill={selectedRelationshipId === relationship.id ? "rgba(255,255,255,0.98)" : "rgba(255,255,255,0.88)"}
                     />
                     <text
                       x={curve.labelX}
                       y={curve.labelY + 5}
                       textAnchor="middle"
                       fontSize="11"
-                      fill="#475569"
+                      fill={selectedRelationshipId === relationship.id ? "#111827" : "#475569"}
                     >
                       {relationship.label ?? relationship.type}
                     </text>
@@ -700,31 +926,40 @@ export function CharacterMapClient({ seed }: Props) {
                   {isPaired ? (
                     <div className="pointer-events-none absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-rose-200/90 bg-rose-50/50" />
                   ) : null}
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onPointerDown={(event) => handlePointerDown(event, node.id)}
-                    onMouseEnter={() => setHoveredNodeId(node.id)}
-                    onMouseLeave={() => setHoveredNodeId(null)}
-                    onFocus={() => setHoveredNodeId(node.id)}
-                    onBlur={() => setHoveredNodeId(null)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
+                  <div className="flex flex-col items-center">
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onPointerDown={(event) => handlePointerDown(event, node.id)}
+                      onMouseEnter={() => setHoveredNodeId(node.id)}
+                      onMouseLeave={() => setHoveredNodeId(null)}
+                      onFocus={() => setHoveredNodeId(node.id)}
+                      onBlur={() => setHoveredNodeId(null)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setSelectedId(node.id);
+                          setSelectedRelationshipId(null);
+                        }
+                      }}
+                      onClick={() => {
                         setSelectedId(node.id);
-                      }
-                    }}
-                    onClick={() => setSelectedId(node.id)}
-                    className="flex h-14 w-14 cursor-grab items-center justify-center rounded-full border text-white shadow-lg transition hover:-translate-y-1 active:cursor-grabbing"
-                    style={{
-                      borderColor: isSelected ? node.color : "rgba(226,232,240,0.9)",
-                      boxShadow: isSelected
-                        ? `0 20px 40px ${node.color}33`
-                        : "0 18px 35px rgba(15,23,42,0.08)",
-                      backgroundColor: node.color,
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faUserGroup} />
+                        setSelectedRelationshipId(null);
+                      }}
+                      className="flex h-14 w-14 cursor-grab items-center justify-center rounded-full border text-white shadow-lg transition hover:-translate-y-1 active:cursor-grabbing"
+                      style={{
+                        borderColor: isSelected ? node.color : "rgba(226,232,240,0.9)",
+                        boxShadow: isSelected
+                          ? `0 20px 40px ${node.color}33`
+                          : "0 18px 35px rgba(15,23,42,0.08)",
+                        backgroundColor: node.color,
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faUserGroup} />
+                    </div>
+                    <p className="mt-2 max-w-[88px] truncate rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-slate-700 shadow-sm">
+                      {node.name}
+                    </p>
                   </div>
 
                   {showInfo ? (
@@ -873,13 +1108,57 @@ export function CharacterMapClient({ seed }: Props) {
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {connectedRelationships.map((relationship) => (
-                <span
+                <button
                   key={relationship.id}
-                  className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-600 shadow-sm"
+                  type="button"
+                  onClick={() => handleRelationshipSelect(relationship.id, selectedNode?.id)}
+                  className={`rounded-full px-3 py-1 text-xs font-medium shadow-sm transition ${
+                    selectedRelationship?.id === relationship.id
+                      ? "bg-slate-900 text-white"
+                      : "bg-white text-slate-600 hover:text-slate-950"
+                  }`}
                 >
                   {relationship.label ?? relationship.type}
-                </span>
+                </button>
               ))}
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-slate-200 bg-white/80 p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                관계 편집
+              </p>
+              {selectedRelationship ? (
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-600">관계 종류</label>
+                    <select
+                      value={selectedRelationship.type}
+                      onChange={(event) => handleRelationshipPatch("type", event.target.value as RelationshipType)}
+                      className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-slate-400"
+                    >
+                      {relationOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-600">커스텀 라벨</label>
+                    <input
+                      value={selectedRelationship.label ?? ""}
+                      onChange={(event) => handleRelationshipPatch("label", event.target.value)}
+                      placeholder={selectedRelationship.type === "기타" ? "관계를 직접 입력" : "선택 사항"}
+                      className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-slate-400"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-3 text-sm leading-6 text-slate-500">
+                  카드 또는 관계선 클릭 후 여기에서 관계 종류와 라벨을 수정할 수 있습니다.
+                </p>
+              )}
             </div>
           </div>
         </section>

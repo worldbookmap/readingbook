@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import localCharacterMap from "@/data/character-map.json";
-import { CharacterSeed } from "@/lib/types";
+import localCharacterMap from "@/data/character-map-library.json";
+import { CharacterMapLibrary, CharacterSeed } from "@/lib/types";
 import {
   fetchGithubJsonFile,
   GithubSyncConflictError,
@@ -10,15 +10,69 @@ import {
 
 const filePath = "src/data/character-map.json";
 
-type CharacterMapSavePayload = CharacterSeed & {
+type CharacterMapSavePayload = {
+  library?: CharacterMapLibrary;
+  works?: CharacterMapLibrary["works"];
+  data?: CharacterSeed;
+  nodes?: CharacterSeed["nodes"];
+  relationships?: CharacterSeed["relationships"];
   sha?: string;
 };
+
+function normalizeCharacterMapPayload(payload: CharacterMapSavePayload | CharacterMapLibrary | CharacterSeed | null | undefined): CharacterMapLibrary {
+  if (!payload) {
+    return {
+      works: [
+        {
+          id: "default",
+          title: "기본 인물관계도",
+          titleKo: "기본 인물관계도",
+          author: "Readingbook",
+          seed: { nodes: [], relationships: [] },
+        },
+      ],
+    };
+  }
+
+  if ("works" in payload && Array.isArray(payload.works)) {
+    return payload as CharacterMapLibrary;
+  }
+
+  if ("nodes" in payload && Array.isArray(payload.nodes)) {
+    return {
+      works: [
+        {
+          id: "default",
+          title: "기본 인물관계도",
+          titleKo: "기본 인물관계도",
+          author: "Readingbook",
+          seed: {
+            nodes: payload.nodes,
+            relationships: payload.relationships ?? [],
+          },
+        },
+      ],
+    };
+  }
+
+  return {
+    works: [
+      {
+        id: "default",
+        title: "기본 인물관계도",
+        titleKo: "기본 인물관계도",
+        author: "Readingbook",
+        seed: { nodes: [], relationships: [] },
+      },
+    ],
+  };
+}
 
 export async function GET() {
   try {
     const remoteEnabled = isGithubSyncConfigured();
-    const remotePayload = remoteEnabled ? await fetchGithubJsonFile<CharacterSeed>(filePath) : null;
-    const data = remotePayload?.data ?? (localCharacterMap as CharacterSeed);
+    const remotePayload = remoteEnabled ? await fetchGithubJsonFile<CharacterMapLibrary>(filePath) : null;
+    const data = normalizeCharacterMapPayload(remotePayload?.data ?? (localCharacterMap as CharacterMapLibrary));
 
     return NextResponse.json({ data, remoteEnabled, sha: remotePayload?.sha ?? null });
   } catch (error) {
@@ -40,7 +94,8 @@ export async function PUT(request: Request) {
 
   try {
     const body = (await request.json()) as CharacterMapSavePayload;
-    const { sha, ...data } = body;
+    const { sha, ...rawData } = body;
+    const data = normalizeCharacterMapPayload(rawData);
     const nextSha = await updateGithubJsonFile(
       filePath,
       data,
