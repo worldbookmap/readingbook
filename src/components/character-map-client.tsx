@@ -110,6 +110,7 @@ export function CharacterMapClient({ library }: Props) {
   const [newWorkTitle, setNewWorkTitle] = useState("");
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
   const [activePanelTab, setActivePanelTab] = useState<"add" | "info">("add");
+  const [selectedRecommendedBook, setSelectedRecommendedBook] = useState<NovelCharacterBook | null>(null);
   const [deleteModal, setDeleteModal] = useState<{
     kind: "work" | "node";
     label: string;
@@ -288,8 +289,9 @@ export function CharacterMapClient({ library }: Props) {
 
   const selectedWork = works.find((work) => work.id === selectedWorkId) ?? null;
   const selectedNode = nodes.find((node) => node.id === selectedId) ?? nodes[0] ?? null;
-  const matchedBook = findMatchingBook(newWorkTitle);
-  const selectedBookCharacters = matchedBook?.major_characters ?? [];
+  const matchedBooks = findMatchingBooks(newWorkTitle);
+  const matchedBook = matchedBooks[0] ?? null;
+  const selectedBookCharacters = selectedRecommendedBook?.major_characters ?? matchedBook?.major_characters ?? [];
   const recentWorks = works.slice(-3);
   const remainingWorks = works.filter((work) => !recentWorks.some((recent) => recent.id === work.id));
   const minimapWidth = boardWidth * minimapScale;
@@ -595,19 +597,21 @@ export function CharacterMapClient({ library }: Props) {
     }
   }
 
-  function findMatchingBook(title: string) {
+  function findMatchingBooks(title: string) {
     const trimmed = title.trim();
     if (!trimmed) {
-      return null;
+      return [] as NovelCharacterBook[];
     }
 
     const normalized = trimmed.toLowerCase();
-    return (
-      novelCharacterLibrary.books?.find((book) => {
-        const candidates = [book.title, book.title_ko ?? "", book.author ?? "", book.author_ko ?? ""];
-        return candidates.some((value) => value.toLowerCase().includes(normalized));
-      }) ?? null
-    );
+    return (novelCharacterLibrary.books ?? []).filter((book) => {
+      const candidates = [book.title, book.title_ko ?? "", book.author ?? "", book.author_ko ?? ""];
+      return candidates.some((value) => value.toLowerCase().includes(normalized));
+    }).slice(0, 4);
+  }
+
+  function findMatchingBook(title: string) {
+    return findMatchingBooks(title)[0] ?? null;
   }
 
   function handleCreateWork(event: FormEvent<HTMLFormElement>) {
@@ -1142,44 +1146,88 @@ export function CharacterMapClient({ library }: Props) {
                 </button>
               </div>
 
-              {matchedBook ? (
-                <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">추천 작품</p>
-                      <p className="mt-1 text-sm font-semibold text-slate-800">{matchedBook.title_ko ?? matchedBook.title}</p>
+              {matchedBooks.length > 0 ? (
+                <div className="mt-3 space-y-3">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">추천 작품</p>
+                    <div className="mt-2 space-y-2">
+                      {matchedBooks.map((book) => (
+                        <button
+                          key={`${book.title}-${book.author ?? "author"}`}
+                          type="button"
+                          onClick={() => {
+                            setNewWorkTitle(book.title_ko ?? book.title);
+                            setSelectedRecommendedBook(book);
+                          }}
+                          className={`group flex w-full items-center justify-between gap-3 rounded-2xl border px-3 py-3 text-left text-sm transition-all duration-200 ${
+                            selectedRecommendedBook?.title === book.title
+                              ? "border-slate-900 bg-slate-900 text-white shadow-[0_16px_30px_rgba(15,23,42,0.12)]"
+                              : "border-slate-200 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900 hover:shadow-[0_12px_24px_rgba(15,23,42,0.06)]"
+                          }`}
+                        >
+                          <span className="min-w-0">
+                            <span className="block truncate font-semibold">{book.title_ko ?? book.title}</span>
+                            <span className={`mt-0.5 block text-[10px] ${selectedRecommendedBook?.title === book.title ? "text-slate-200" : "text-slate-500"}`}>
+                              {book.author_ko ?? book.author ?? "작가 미상"}
+                            </span>
+                          </span>
+                          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${selectedRecommendedBook?.title === book.title ? "border-white/40 text-white" : "border-slate-300 bg-white text-slate-700 group-hover:border-slate-400"}`}>
+                            선택
+                          </span>
+                        </button>
+                      ))}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setNewWorkTitle(matchedBook.title)}
-                      className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-400"
-                    >
-                      선택
-                    </button>
                   </div>
 
-                  {selectedBookCharacters.length > 0 ? (
-                    <div className="mt-3">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">주요 등장인물</p>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {selectedBookCharacters.map((character) => (
-                          <button
-                            key={character.name}
-                            type="button"
-                            onClick={() => {
-                              setDraft((current) => ({
-                                ...current,
-                                name: character.name,
-                                summary: character.description_ko ?? current.summary,
-                              }));
-                              setActivePanelTab("add");
-                            }}
-                            className="rounded-full border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-500 hover:text-slate-900"
-                          >
-                            {character.name}
-                          </button>
-                        ))}
+                  {selectedRecommendedBook ? (
+                    <div className="rounded-2xl border border-slate-200 bg-white/90 p-3 shadow-[0_18px_35px_rgba(15,23,42,0.08)]">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">선택 작품</p>
+                          <p className="mt-1 text-sm font-semibold text-slate-800">
+                            {selectedRecommendedBook.title_ko ?? selectedRecommendedBook.title}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedRecommendedBook(null)}
+                          className="rounded-full border border-slate-300 bg-slate-50 px-2 py-1 text-[10px] font-medium text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
+                        >
+                          닫기
+                        </button>
                       </div>
+
+                      {selectedBookCharacters.length > 0 ? (
+                        <div className="mt-3">
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">주요 등장인물</p>
+                          <div className="mt-2 grid grid-cols-2 gap-2">
+                            {selectedBookCharacters.map((character) => (
+                              <button
+                                key={character.name}
+                                type="button"
+                                onClick={() => {
+                                  setDraft((current) => ({
+                                    ...current,
+                                    name: character.name,
+                                    summary: character.description_ko ?? current.summary,
+                                  }));
+                                  setActivePanelTab("add");
+                                  window.requestAnimationFrame(() => {
+                                    const input = document.querySelector<HTMLInputElement>("input[placeholder='인물 이름']");
+                                    input?.focus();
+                                    input?.select();
+                                  });
+                                }}
+                                className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-2 text-left transition hover:border-slate-400 hover:shadow-[0_8px_18px_rgba(15,23,42,0.06)]"
+                              >
+                                <span className="block text-[10px] font-semibold text-slate-700 leading-tight">
+                                  {character.name}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>
