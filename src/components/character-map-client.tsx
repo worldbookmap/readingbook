@@ -291,7 +291,9 @@ export function CharacterMapClient({ library }: Props) {
   const selectedNode = nodes.find((node) => node.id === selectedId) ?? nodes[0] ?? null;
   const matchedBooks = findMatchingBooks(newWorkTitle);
   const matchedBook = matchedBooks[0] ?? null;
-  const selectedBookCharacters = selectedRecommendedBook?.major_characters ?? matchedBook?.major_characters ?? [];
+  const selectedWorkKnownBook =
+    findMatchingBook(selectedWork?.titleKo ?? selectedWork?.title ?? "") ?? selectedRecommendedBook ?? null;
+  const selectedBookCharacters = selectedRecommendedBook?.major_characters ?? matchedBook?.major_characters ?? selectedWorkKnownBook?.major_characters ?? [];
   const recentWorks = works.slice(-3);
   const remainingWorks = works.filter((work) => !recentWorks.some((recent) => recent.id === work.id));
   const minimapWidth = boardWidth * minimapScale;
@@ -469,6 +471,11 @@ export function CharacterMapClient({ library }: Props) {
   function handleWorkSelect(workId: string) {
     const nextWorks = works;
     applyWorkSelection(workId, nextWorks);
+    const nextSelectedWork = nextWorks.find((work) => work.id === workId) ?? null;
+    const matched = nextSelectedWork
+      ? findMatchingBook(nextSelectedWork.titleKo ?? nextSelectedWork.title ?? "")
+      : null;
+    setSelectedRecommendedBook(matched ?? null);
   }
 
   function handleDeleteSelectedWork() {
@@ -1099,32 +1106,46 @@ export function CharacterMapClient({ library }: Props) {
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">작품 목록</p>
-              <div className="relative mt-2">
-                <select
-                  aria-label="작품 선택"
-                  value={selectedWorkId}
-                  onChange={(event) => handleWorkSelect(event.target.value)}
-                  className={`${selectClassName} shadow-[0_6px_20px_rgba(15,23,42,0.05)]`}
-                >
-                  {works.map((work) => (
-                    <option key={work.id} value={work.id}>
-                      {work.titleKo ?? work.title}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center">
-                  <span className="text-lg font-semibold text-slate-600">▾</span>
+              <div className="mt-2 flex items-center gap-2">
+                <div className="relative flex-1">
+                  <select
+                    aria-label="작품 선택"
+                    value={selectedWorkId}
+                    onChange={(event) => handleWorkSelect(event.target.value)}
+                    className={`${selectClassName} shadow-[0_6px_20px_rgba(15,23,42,0.05)]`}
+                  >
+                    {works.map((work) => (
+                      <option key={work.id} value={work.id}>
+                        {work.titleKo ?? work.title}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center">
+                    <span className="text-lg font-semibold text-slate-600">▾</span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="mt-3 flex justify-end">
                 <button
                   type="button"
-                  onClick={handleDeleteSelectedWork}
+                  onClick={() => {
+                    if (!selectedWorkId || works.length === 0) {
+                      return;
+                    }
+
+                    const targetWork = works.find((work) => work.id === selectedWorkId);
+                    if (targetWork) {
+                      setDeleteModal({
+                        kind: "work",
+                        label: targetWork.titleKo ?? targetWork.title ?? "현재 작품",
+                        workId: targetWork.id,
+                      });
+                    }
+                  }}
                   disabled={!selectedWorkId || works.length === 0}
-                  className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  aria-label="작품 삭제"
+                  className="flex h-11 w-11 items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 text-base font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  작품 삭제
+                  ×
                 </button>
               </div>
             </div>
@@ -1234,6 +1255,51 @@ export function CharacterMapClient({ library }: Props) {
               ) : null}
             </form>
           </div>
+
+          {selectedWork && selectedBookCharacters.length > 0 ? (
+            <div className="mt-4 rounded-[26px] border border-slate-200 bg-white/90 p-4 shadow-[0_18px_35px_rgba(15,23,42,0.04)]">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">현재 작품 인물 태그</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-900">
+                    {selectedWork.titleKo ?? selectedWork.title}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedRecommendedBook(selectedWorkKnownBook ?? null)}
+                  className="rounded-full border border-slate-300 bg-slate-50 px-2 py-1 text-[10px] font-medium text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
+                >
+                  추천 보기
+                </button>
+              </div>
+
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                {selectedBookCharacters.map((character) => (
+                  <button
+                    key={`${selectedWork.id}-${character.name}`}
+                    type="button"
+                    onClick={() => {
+                      setDraft((current) => ({
+                        ...current,
+                        name: character.name,
+                        summary: character.description_ko ?? current.summary,
+                      }));
+                      setActivePanelTab("add");
+                      window.requestAnimationFrame(() => {
+                        const input = document.querySelector<HTMLInputElement>("input[placeholder='인물 이름']");
+                        input?.focus();
+                        input?.select();
+                      });
+                    }}
+                    className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white px-3 py-2 text-left transition hover:border-slate-400 hover:shadow-[0_10px_20px_rgba(15,23,42,0.06)]"
+                  >
+                    <span className="block text-[10px] font-semibold text-slate-700 leading-tight">{character.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="border-b border-slate-200/80 px-4 py-4 sm:px-6 lg:hidden">
