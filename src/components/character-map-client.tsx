@@ -88,6 +88,7 @@ export function CharacterMapClient({ library }: Props) {
   const [activePanelTab, setActivePanelTab] = useState<"add" | "info">("add");
   const didMountRef = useRef(false);
   const mapViewportRef = useRef<HTMLDivElement | null>(null);
+  const boardViewportRef = useRef<HTMLDivElement | null>(null);
   const boardExportRef = useRef<HTMLDivElement | null>(null);
   const focusFrameRef = useRef<number | null>(null);
   const dragRef = useRef<{
@@ -642,7 +643,7 @@ export function CharacterMapClient({ library }: Props) {
   }
 
   useEffect(() => {
-    const viewport = mapViewportRef.current;
+    const viewport = boardViewportRef.current;
     if (!viewport || nodes.length === 0) {
       return;
     }
@@ -652,9 +653,8 @@ export function CharacterMapClient({ library }: Props) {
     }
 
     const targetNode = selectedNode ?? getFocusNode();
-    const viewportRect = viewport.getBoundingClientRect();
-    const viewportWidth = Math.max(viewportRect.width, 680);
-    const viewportHeight = Math.max(viewportRect.height, 520);
+    const viewportWidth = Math.max(viewport.clientWidth, 640);
+    const viewportHeight = Math.max(viewport.clientHeight, 520);
 
     const targetCenterX = targetNode ? targetNode.x + iconNodeSize / 2 : boardWidth / 2;
     const targetCenterY = targetNode ? targetNode.y + iconNodeSize / 2 : boardHeight / 2;
@@ -1191,7 +1191,10 @@ export function CharacterMapClient({ library }: Props) {
 
         <div className="hidden lg:block">
           <div
-            ref={boardExportRef}
+            ref={(node) => {
+              boardViewportRef.current = node;
+              boardExportRef.current = node;
+            }}
             className="relative h-[760px] overflow-auto bg-[linear-gradient(180deg,_#fcfcfb_0%,_#f4f4f3_100%)]"
             onWheel={handleWheelZoom}
             onDoubleClick={() => activateAddMode()}
