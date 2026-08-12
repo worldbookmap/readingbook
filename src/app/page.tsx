@@ -58,24 +58,24 @@ export default function Home() {
                 필요해서 만들어보았다
               </p>
 
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-8 flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 sm:gap-3 [&::-webkit-scrollbar]:hidden">
                 <Link
                   href="/characters"
-                  className="inline-flex items-center gap-2 rounded-full bg-black px-4 py-2.5 text-xs font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 sm:px-5 sm:py-3 sm:text-sm"
+                  className="inline-flex shrink-0 items-center gap-2 rounded-full bg-black px-4 py-2.5 text-[11px] font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 sm:px-5 sm:py-3 sm:text-sm"
                 >
                   관계도 시작
                   <FontAwesomeIcon icon={faArrowRight} />
                 </Link>
                 <Link
                   href="/timeline"
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-400 hover:text-slate-950 sm:px-5 sm:py-3 sm:text-sm"
+                  className="inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2.5 text-[11px] font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-400 hover:text-slate-950 sm:px-5 sm:py-3 sm:text-sm"
                 >
                   연표 보드 열기
                   <FontAwesomeIcon icon={faArrowRight} />
                 </Link>
                 <Link
                   href="/story-events"
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-amber-50 px-4 py-2.5 text-xs font-semibold text-slate-800 transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-100 sm:px-5 sm:py-3 sm:text-sm"
+                  className="inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-300 bg-amber-50 px-4 py-2.5 text-[11px] font-semibold text-slate-800 transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-100 sm:px-5 sm:py-3 sm:text-sm"
                 >
                   사건 타임라인
                   <FontAwesomeIcon icon={faArrowRight} />

@@ -391,8 +391,8 @@ export function StoryEventTimeline() {
     event.stopPropagation();
 
     const rect = board.getBoundingClientRect();
-    const pointerX = event.clientX - rect.left - boardPan.x;
-    const pointerY = event.clientY - rect.top - boardPan.y;
+    const pointerX = (event.clientX - rect.left - boardPan.x) / timelineZoom;
+    const pointerY = (event.clientY - rect.top - boardPan.y) / timelineZoom;
 
     dragRef.current = {
       id: cardId,
@@ -409,8 +409,8 @@ export function StoryEventTimeline() {
         return;
       }
 
-      const localX = moveEvent.clientX - rect.left - boardPan.x;
-      const localY = moveEvent.clientY - rect.top - boardPan.y;
+      const localX = (moveEvent.clientX - rect.left - boardPan.x) / timelineZoom;
+      const localY = (moveEvent.clientY - rect.top - boardPan.y) / timelineZoom;
       const nextX = clamp(
         dragRef.current.startCardX + (localX - dragRef.current.startPointerX),
         0,
@@ -525,7 +525,10 @@ export function StoryEventTimeline() {
   }
 
   function handleTimelineZoom(nextDelta: number) {
-    setTimelineZoom((current) => clamp(current + nextDelta, 0.7, 1.6));
+    setTimelineZoom((current) => {
+      const nextValue = Number((current + nextDelta).toFixed(2));
+      return clamp(nextValue, 0.7, 1.6);
+    });
   }
 
   const boardMetrics = {
@@ -574,38 +577,38 @@ export function StoryEventTimeline() {
               </select>
             </div>
 
-            <div className="flex flex-wrap items-center justify-end gap-2">
+            <div className="flex flex-row flex-nowrap items-center justify-start gap-2 overflow-x-auto pb-1 xl:justify-end [&::-webkit-scrollbar]:hidden">
               <button
                 type="button"
                 onClick={() => setActiveModal("event")}
-                className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900"
+                className="inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-medium text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900 sm:px-3.5 sm:py-2 sm:text-sm"
               >
-                <FontAwesomeIcon icon={faPlus} className="mr-2" />
-                사건 추가
+                <FontAwesomeIcon icon={faPlus} className="mr-1 sm:mr-2" />
+                추가
               </button>
               <button
                 type="button"
                 onClick={() => setActiveModal("edit")}
                 disabled={!selectedEvent}
-                className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm font-medium text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[10px] font-medium text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3.5 sm:py-2 sm:text-sm"
               >
-                <FontAwesomeIcon icon={faCalendarDays} className="mr-2" />
-                수정하기
+                <FontAwesomeIcon icon={faCalendarDays} className="mr-1 sm:mr-2" />
+                수정
               </button>
               <button
                 type="button"
                 onClick={saveToGithub}
-                className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm font-medium text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900"
+                className="inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[10px] font-medium text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900 sm:px-3.5 sm:py-2 sm:text-sm"
               >
-                <FontAwesomeIcon icon={faCloudArrowUp} className="mr-2" />
-                GitHub 저장
+                <FontAwesomeIcon icon={faCloudArrowUp} className="mr-1 sm:mr-2" />
+                저장
               </button>
               <button
                 type="button"
                 onClick={resetWorks}
-                className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900"
+                className="inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-medium text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900 sm:px-3 sm:py-2 sm:text-sm"
               >
-                <FontAwesomeIcon icon={faRotateLeft} className="mr-2" />
+                <FontAwesomeIcon icon={faRotateLeft} className="mr-1 sm:mr-2" />
                 초기화
               </button>
             </div>
@@ -657,19 +660,19 @@ export function StoryEventTimeline() {
             <div className="mb-3 flex items-center justify-end gap-2">
               <button
                 type="button"
-                onClick={() => handleTimelineZoom(-0.1)}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-sm text-slate-700 shadow-sm transition hover:border-slate-300"
+                onClick={() => handleTimelineZoom(-0.05)}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-sm text-slate-700 shadow-sm transition hover:border-slate-300 active:scale-95"
                 aria-label="타임라인 축소"
               >
                 −
               </button>
-              <span className="min-w-12 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+              <span className="min-w-12 text-center text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                 {Math.round(timelineZoom * 100)}%
               </span>
               <button
                 type="button"
-                onClick={() => handleTimelineZoom(0.1)}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-sm text-slate-700 shadow-sm transition hover:border-slate-300"
+                onClick={() => handleTimelineZoom(0.05)}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-sm text-slate-700 shadow-sm transition hover:border-slate-300 active:scale-95"
                 aria-label="타임라인 확대"
               >
                 +
@@ -677,9 +680,9 @@ export function StoryEventTimeline() {
               <button
                 type="button"
                 onClick={() => setTimelineZoom(1)}
-                className="rounded-full border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-medium text-slate-600 shadow-sm transition hover:border-slate-300"
+                className="rounded-full border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-medium text-slate-600 shadow-sm transition hover:border-slate-300 active:scale-95"
               >
-                초기화
+                원복
               </button>
             </div>
 
@@ -688,12 +691,15 @@ export function StoryEventTimeline() {
               onPointerDown={beginBoardDrag}
               onWheel={(event) => {
                 event.preventDefault();
-                handleTimelineZoom(event.deltaY < 0 ? 0.1 : -0.1);
+                handleTimelineZoom(event.deltaY < 0 ? 0.05 : -0.05);
               }}
               className="relative cursor-grab touch-none select-none overflow-hidden rounded-[26px] border border-amber-200 bg-white shadow-inner active:cursor-grabbing"
               style={{ width: "100%", height: boardMetrics.height, touchAction: "none" }}
             >
-              <div className="absolute inset-0" style={{ transform: mapTransform, transformOrigin: "top left" }}>
+              <div
+                className="absolute inset-0 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                style={{ transform: mapTransform, transformOrigin: "top left" }}
+              >
                 <div className="pointer-events-none absolute left-1/2 top-6 bottom-8 w-px -translate-x-1/2 bg-slate-200" />
 
                 {Array.from({ length: 7 }).map((_, index) => {
