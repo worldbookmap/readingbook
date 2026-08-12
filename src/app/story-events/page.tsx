@@ -1,17 +1,9 @@
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
-import characterMapLibrary from "@/data/character-map-library.json";
-import { CharacterMapClient } from "@/components/character-map-client";
-import { CharacterMapLibrary } from "@/lib/types";
+import { StoryEventTimeline } from "@/components/story-event-timeline";
 
-export default async function CharactersPage({
-  searchParams,
-}: {
-  searchParams?: Promise<{ workId?: string }>;
-}) {
-  const resolvedParams = searchParams ? await searchParams : undefined;
-
+export default function StoryEventsPage() {
   return (
     <main className="min-h-screen bg-[#f5f5f3] px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
@@ -27,25 +19,21 @@ export default async function CharactersPage({
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <p className="inline-flex rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-sm font-semibold uppercase tracking-[0.24em] text-slate-600">
-                Reader Workspace
+                Story Pulse
               </p>
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-5xl">
-                인물 관계와 행동 메모를
+                소설의 핵심 사건을
                 <br />
-                한 화면에서 정리합니다.
+                카드 타임라인으로 정리합니다.
               </h1>
             </div>
             <div className="max-w-xl rounded-[24px] border border-slate-300 bg-slate-50/80 p-5 text-sm leading-7 text-slate-600">
-              한 인물을 중심으로 연결 인물을 계속 추가하고, 관계 유형과 직접 입력 라벨까지 남길 수 있습니다.
-              메모는 브라우저에 저장되어 읽는 흐름을 끊지 않습니다.
+              역사 연표와 달리, 한 소설 안에서 사건이 겹치고 회귀하는 흐름을 카드로 놓아둘 수 있습니다. 각 사건은 자유롭게 드래그해서 겹쳐 보이게 배치할 수 있습니다.
             </div>
           </div>
         </section>
 
-        <CharacterMapClient
-          library={characterMapLibrary as CharacterMapLibrary}
-          defaultWorkId={resolvedParams?.workId}
-        />
+        <StoryEventTimeline />
       </div>
     </main>
   );

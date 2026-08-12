@@ -26,6 +26,15 @@ const featureCards = [
       "서유럽, 동유럽, 아시아, 미국, 남미, 기타 지역으로 나눈 카드형 타임라인 보드입니다. 연도 카드 추가와 이동이 가능합니다.",
     accent: "from-slate-100 to-white",
   },
+  {
+    href: "/story-events",
+    icon: faBookOpenReader,
+    eyebrow: "Story Pulse",
+    title: "소설 사건 타임라인",
+    description:
+      "소설마다 핵심 사건을 드래그 가능한 카드로 정리하고 겹쳐지는 흐름까지 자연스럽게 보관할 수 있습니다.",
+    accent: "from-amber-50 to-white",
+  },
 ];
 
 export default function Home() {

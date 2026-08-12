@@ -63,6 +63,7 @@ const selectClassName = `${fieldClassName} appearance-none pr-10`;
 
 type Props = {
   library: CharacterMapLibrary;
+  defaultWorkId?: string;
 };
 
 type NovelCharacterBook = {
@@ -90,9 +91,13 @@ type DeleteHistoryItem = {
 
 const novelCharacterLibrary = novelCharData as { books?: NovelCharacterBook[] };
 
-export function CharacterMapClient({ library }: Props) {
+export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const [works, setWorks] = useState<CharacterMapLibrary["works"]>(library.works);
-  const [selectedWorkId, setSelectedWorkId] = useState<string>(library.works[0]?.id ?? "");
+  const [selectedWorkId, setSelectedWorkId] = useState<string>(
+    defaultWorkId && library.works.some((work) => work.id === defaultWorkId)
+      ? defaultWorkId
+      : library.works[0]?.id ?? "",
+  );
   const [nodes, setNodes] = useState<CharacterNode[]>(library.works[0]?.seed.nodes ?? []);
   const [relationships, setRelationships] = useState<CharacterRelationship[]>(library.works[0]?.seed.relationships ?? []);
   const [selectedId, setSelectedId] = useState<string>(library.works[0]?.seed.nodes[0]?.id ?? "");
@@ -266,6 +271,24 @@ export function CharacterMapClient({ library }: Props) {
 
     window.localStorage.setItem(storageKey, JSON.stringify({ works }));
   }, [works]);
+
+  useEffect(() => {
+    if (!defaultWorkId) {
+      return;
+    }
+
+    if (library.works.some((work) => work.id === defaultWorkId)) {
+      setSelectedWorkId(defaultWorkId);
+      const nextWork = library.works.find((work) => work.id === defaultWorkId) ?? library.works[0] ?? null;
+      const nextNodes = nextWork?.seed.nodes ?? [];
+      const nextRelationships = nextWork?.seed.relationships ?? [];
+      setNodes(nextNodes);
+      setRelationships(nextRelationships);
+      setSelectedId(getPreferredNodeId(nextNodes, nextRelationships));
+      setSelectedRelationshipId(null);
+      setDraft(defaultDraft);
+    }
+  }, [defaultWorkId, library.works]);
 
   useEffect(() => {
     if (!selectedWorkId) {

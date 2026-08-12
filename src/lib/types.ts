@@ -42,6 +42,32 @@ export type CharacterMapLibrary = {
   works: CharacterMapEntry[];
 };
 
+export type StoryEventCard = {
+  id: string;
+  title: string;
+  year: number;
+  yearLabel: string;
+  chapter?: string;
+  summary: string;
+  tags: string[];
+  x: number;
+  y: number;
+  color: string;
+};
+
+export type StoryTimelineWork = {
+  id: string;
+  title: string;
+  titleKo?: string;
+  author?: string;
+  linkedCharacterWorkId?: string;
+  events: StoryEventCard[];
+};
+
+export type StoryTimelineLibrary = {
+  works: StoryTimelineWork[];
+};
+
 export type TimelineRegion = string;
 
 export type TimelineCard = {

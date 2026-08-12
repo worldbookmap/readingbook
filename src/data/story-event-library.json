@@ -1,0 +1,49 @@
+{
+  "works": [
+    {
+      "id": "story-default",
+      "title": "기본 사건 타임라인",
+      "titleKo": "기본 사건 타임라인",
+      "author": "Readingbook",
+      "linkedCharacterWorkId": "default",
+      "events": [
+        {
+          "id": "event-1",
+          "title": "편지의 수령",
+          "year": 1776,
+          "yearLabel": "1776",
+          "chapter": "1장",
+          "summary": "주인공은 오래된 편지를 받고 사건의 시작점이 되는 단서를 얻는다.",
+          "tags": ["서막", "기밀", "인연"],
+          "x": 120,
+          "y": 110,
+          "color": "#f59e0b"
+        },
+        {
+          "id": "event-2",
+          "title": "비밀 동맹",
+          "year": 1778,
+          "yearLabel": "1778",
+          "chapter": "2장",
+          "summary": "주인공과 조력자가 함께 비밀 동맹을 맺고 정보를 교환한다.",
+          "tags": ["동맹", "공모", "전환"],
+          "x": 360,
+          "y": 180,
+          "color": "#0f766e"
+        },
+        {
+          "id": "event-3",
+          "title": "도시의 혼란",
+          "year": 1780,
+          "yearLabel": "1780",
+          "chapter": "3장",
+          "summary": "주요 거점이 혼란에 빠지고 경쟁자가 움직이기 시작한다.",
+          "tags": ["위기", "변화", "도시"],
+          "x": 620,
+          "y": 260,
+          "color": "#7c3aed"
+        }
+      ]
+    }
+  ]
+}
