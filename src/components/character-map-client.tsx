@@ -111,6 +111,9 @@ export function CharacterMapClient({ library }: Props) {
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
   const [activePanelTab, setActivePanelTab] = useState<"add" | "info">("add");
   const [selectedRecommendedBook, setSelectedRecommendedBook] = useState<NovelCharacterBook | null>(null);
+  const [existingConnectionTargetId, setExistingConnectionTargetId] = useState<string>("");
+  const [existingConnectionType, setExistingConnectionType] = useState<RelationshipType>("친구");
+  const [existingConnectionLabel, setExistingConnectionLabel] = useState("");
   const [deleteModal, setDeleteModal] = useState<{
     kind: "work" | "node";
     label: string;
@@ -444,6 +447,43 @@ export function CharacterMapClient({ library }: Props) {
           : relationship,
       ),
     );
+  }
+
+  function handleConnectSelectedNodeToExisting() {
+    if (!selectedNode || !existingConnectionTargetId) {
+      return;
+    }
+
+    const targetNode = nodes.find((node) => node.id === existingConnectionTargetId);
+    if (!targetNode || targetNode.id === selectedNode.id) {
+      return;
+    }
+
+    const duplicate = relationships.some(
+      (relationship) =>
+        ((relationship.fromId === selectedNode.id && relationship.toId === targetNode.id) ||
+          (relationship.fromId === targetNode.id && relationship.toId === selectedNode.id)) &&
+        relationship.type === existingConnectionType,
+    );
+
+    if (duplicate) {
+      return;
+    }
+
+    const nextRelationship: CharacterRelationship = {
+      id: crypto.randomUUID(),
+      fromId: selectedNode.id,
+      toId: targetNode.id,
+      type: existingConnectionType,
+      label: existingConnectionType === "기타" ? existingConnectionLabel.trim() || "직접 입력 관계" : undefined,
+    };
+
+    setRelationships((current) => [...current, nextRelationship]);
+    setSelectedRelationshipId(nextRelationship.id);
+    setActivePanelTab("info");
+    setExistingConnectionTargetId("");
+    setExistingConnectionType("친구");
+    setExistingConnectionLabel("");
   }
 
   function applyWorkSelection(workId: string, nextWorks: CharacterMapLibrary["works"]) {
@@ -2072,6 +2112,66 @@ export function CharacterMapClient({ library }: Props) {
                         카드 또는 관계선 클릭 후 여기에서 관계 종류와 라벨을 수정할 수 있습니다.
                       </p>
                     )}
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">기존 인물 연결</p>
+                    <div className="mt-3 space-y-3">
+                      <div>
+                        <label className="text-xs font-semibold text-slate-600">연결 대상</label>
+                        <select
+                          value={existingConnectionTargetId}
+                          onChange={(event) => setExistingConnectionTargetId(event.target.value)}
+                          className={`${selectClassName} mt-2`}
+                          disabled={!selectedNode || nodes.length <= 1}
+                        >
+                          <option value="">대상을 선택하세요</option>
+                          {nodes
+                            .filter((node) => node.id !== selectedNode?.id)
+                            .map((node) => (
+                              <option key={node.id} value={node.id}>
+                                {node.name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-semibold text-slate-600">관계 종류</label>
+                        <select
+                          value={existingConnectionType}
+                          onChange={(event) => setExistingConnectionType(event.target.value as RelationshipType)}
+                          className={`${selectClassName} mt-2`}
+                        >
+                          {relationOptions.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {existingConnectionType === "기타" ? (
+                        <div>
+                          <label className="text-xs font-semibold text-slate-600">커스텀 라벨</label>
+                          <input
+                            value={existingConnectionLabel}
+                            onChange={(event) => setExistingConnectionLabel(event.target.value)}
+                            placeholder="관계를 직접 입력"
+                            className={`${fieldClassName} mt-2`}
+                          />
+                        </div>
+                      ) : null}
+
+                      <button
+                        type="button"
+                        onClick={handleConnectSelectedNodeToExisting}
+                        disabled={!selectedNode || !existingConnectionTargetId}
+                        className="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        연결 추가
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
