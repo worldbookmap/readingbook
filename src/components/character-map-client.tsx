@@ -113,6 +113,8 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const [remoteEnabled, setRemoteEnabled] = useState(false);
   const [newWorkTitle, setNewWorkTitle] = useState("");
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
+  const [quickCreatePosition, setQuickCreatePosition] = useState<{ x: number; y: number } | null>(null);
+  const [quickCreateName, setQuickCreateName] = useState("");
   const [activePanelTab, setActivePanelTab] = useState<"add" | "info">("add");
   const [selectedRecommendedBook, setSelectedRecommendedBook] = useState<NovelCharacterBook | null>(null);
   const [existingConnectionTargetId, setExistingConnectionTargetId] = useState<string>("");
@@ -150,9 +152,11 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const focusFrameRef = useRef<number | null>(null);
   const dragRef = useRef<{
     id: string;
+    pointerId: number;
     offsetX: number;
     offsetY: number;
     moved: boolean;
+    hoveredTargetId: string | null;
   } | null>(null);
   const viewportDragRef = useRef<{
     startX: number;
@@ -437,45 +441,30 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     (relationship) => relationship.type === "부부" || relationship.type === "커플",
   );
 
-  function handleCreateCharacter(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function createCharacterAtPosition(position: { x: number; y: number }, nameOverride?: string) {
+    const nextName = (nameOverride ?? quickCreateName ?? draft.name).trim() || "새 인물";
+    const nextTitle = draft.title.trim() || "새 인물";
+    const nextSummary = draft.summary.trim() || "아직 메모가 없습니다.";
+    const nextMajorActions = draft.majorActions
+      .split("\n")
+      .map((item) => item.trim())
+      .filter(Boolean);
 
-    if (!draft.name.trim()) {
-      return;
-    }
+    const nextNode: CharacterNode = {
+      id: crypto.randomUUID(),
+      name: nextName,
+      title: nextTitle,
+      summary: nextSummary,
+      majorActions: nextMajorActions,
+      x: Math.min(boardWidth - nodeWidth - 40, Math.max(40, position.x)),
+      y: Math.min(boardHeight - nodeHeight - 40, Math.max(40, position.y)),
+      color: ["#f97316", "#0f766e", "#2563eb", "#7c3aed", "#dc2626"][nodes.length % 5],
+    };
 
     const shouldLinkToSelected =
       draft.linkedToSelected && Boolean(selectedNode) && draft.relationshipType !== "선택 없음";
     const selectedRelationshipType =
       shouldLinkToSelected && draft.relationshipType !== "선택 없음" ? draft.relationshipType : null;
-    const siblingCount = shouldLinkToSelected && selectedNode
-      ? relationships.filter(
-          (relationship) => relationship.fromId === selectedNode.id || relationship.toId === selectedNode.id,
-        ).length
-      : nodes.length;
-    const angle = siblingCount * 0.85 + Math.PI / 4;
-    const distance = 220;
-    const baseX = shouldLinkToSelected && selectedNode ? selectedNode.x : boardWidth * 0.55;
-    const baseY = shouldLinkToSelected && selectedNode ? selectedNode.y : boardHeight * 0.42;
-    const nextNode: CharacterNode = {
-      id: crypto.randomUUID(),
-      name: draft.name.trim(),
-      title: draft.title.trim() || "새 인물",
-      summary: draft.summary.trim() || "아직 메모가 없습니다.",
-      majorActions: draft.majorActions
-        .split("\n")
-        .map((item) => item.trim())
-        .filter(Boolean),
-      x: Math.min(
-        boardWidth - nodeWidth - 40,
-        Math.max(40, baseX + Math.round(Math.cos(angle) * distance)),
-      ),
-      y: Math.min(
-        boardHeight - nodeHeight - 40,
-        Math.max(40, baseY + Math.round(Math.sin(angle) * distance)),
-      ),
-      color: ["#f97316", "#0f766e", "#2563eb", "#7c3aed", "#dc2626"][siblingCount % 5],
-    };
 
     const nextRelationship =
       selectedRelationshipType && selectedNode
@@ -497,6 +486,23 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     }
     setSelectedId(nextNode.id);
     setDraft(defaultDraft);
+    setQuickCreateName("");
+    setQuickCreatePosition(null);
+  }
+
+  function handleCreateCharacter(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!draft.name.trim()) {
+      return;
+    }
+
+    const fallbackPosition = {
+      x: boardWidth * 0.55,
+      y: boardHeight * 0.42,
+    };
+
+    createCharacterAtPosition(quickCreatePosition ?? fallbackPosition, draft.name);
   }
 
   function handleNodePatch(field: "name" | "title" | "summary" | "majorActions", value: string) {
@@ -880,22 +886,34 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     });
   }
 
-  function findNodeIdAtPoint(clientX: number, clientY: number, ignoreNodeId?: string) {
-    const hitElement = document.elementsFromPoint(clientX, clientY).find((element) => {
-      const candidateId = (element as HTMLElement).closest("[data-node-id]")?.getAttribute("data-node-id");
-      return Boolean(candidateId && candidateId !== ignoreNodeId);
-    });
-
-    if (hitElement) {
-      return (hitElement as HTMLElement).closest("[data-node-id]")?.getAttribute("data-node-id") ?? null;
-    }
-
-    const fallback = [...document.querySelectorAll<HTMLElement>("[data-node-id]")].find((element) => {
+  function findNodeIdAtPoint(clientX: number, clientY: number, ignoreNodeId?: string, boardElement?: HTMLElement | null) {
+    const candidateNodes = (
+      boardElement
+        ? Array.from(boardElement.querySelectorAll<HTMLElement>("[data-node-id]"))
+        : Array.from(document.querySelectorAll<HTMLElement>("[data-node-id]"))
+    ).filter((element) => {
       const candidateId = element.getAttribute("data-node-id");
       if (!candidateId || candidateId === ignoreNodeId) {
         return false;
       }
 
+      const rect = element.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    });
+
+    const hitElement = document.elementsFromPoint(clientX, clientY).find((element) => {
+      const candidateNode = (element as HTMLElement).closest("[data-node-id]");
+      return Boolean(candidateNode && candidateNodes.some((node) => node === candidateNode));
+    });
+
+    if (hitElement) {
+      const candidateId = (hitElement as HTMLElement).closest("[data-node-id]")?.getAttribute("data-node-id");
+      if (candidateId && candidateId !== ignoreNodeId) {
+        return candidateId;
+      }
+    }
+
+    const fallback = candidateNodes.find((element) => {
       const rect = element.getBoundingClientRect();
       return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
     });
@@ -904,12 +922,23 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   }
 
   function handlePointerDown(event: React.PointerEvent<HTMLElement>, nodeId: string, displayScale = zoom) {
+    if (dragRef.current && dragRef.current.id === nodeId) {
+      return;
+    }
+
     event.preventDefault();
     event.stopPropagation();
 
-    const boardElement = event.currentTarget.closest("[data-character-board]") as HTMLDivElement | null;
+    if (event.button !== 0 && event.pointerType === "mouse") {
+      return;
+    }
+
+    const element = event.currentTarget as HTMLElement;
+    element.setPointerCapture?.(event.pointerId);
+
+    const boardElement = element.closest("[data-character-board]") as HTMLDivElement | null;
     const boardBounds = boardElement?.getBoundingClientRect();
-    const bounds = event.currentTarget.getBoundingClientRect();
+    const bounds = element.getBoundingClientRect();
     if (!boardBounds) {
       return;
     }
@@ -917,36 +946,75 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     setSelectedId(nodeId);
     dragRef.current = {
       id: nodeId,
+      pointerId: event.pointerId,
       offsetX: (event.clientX - bounds.left) / displayScale,
       offsetY: (event.clientY - bounds.top) / displayScale,
       moved: false,
+      hoveredTargetId: null,
     };
 
-    event.preventDefault();
-
-    const move = (moveEvent: PointerEvent) => {
-      if (!dragRef.current || dragRef.current.id !== nodeId) {
+    const move = (moveEvent: MouseEvent | PointerEvent) => {
+      const activeDrag = dragRef.current;
+      if (!activeDrag || activeDrag.id !== nodeId) {
         return;
       }
 
-      dragRef.current.moved = true;
+      if (moveEvent instanceof PointerEvent && moveEvent.pointerId !== activeDrag.pointerId) {
+        return;
+      }
+
+      const deltaX = moveEvent.clientX - event.clientX;
+      const deltaY = moveEvent.clientY - event.clientY;
+      if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
+        activeDrag.moved = true;
+      }
+
+      const hoveredNodeId = findNodeIdAtPoint(moveEvent.clientX, moveEvent.clientY, nodeId);
+      if (hoveredNodeId) {
+        activeDrag.hoveredTargetId = hoveredNodeId;
+      }
+
       updateNodePosition(
         nodeId,
-        (moveEvent.clientX - boardBounds.left) / displayScale - dragRef.current.offsetX,
-        (moveEvent.clientY - boardBounds.top) / displayScale - dragRef.current.offsetY,
+        (moveEvent.clientX - boardBounds.left) / displayScale - activeDrag.offsetX,
+        (moveEvent.clientY - boardBounds.top) / displayScale - activeDrag.offsetY,
       );
     };
 
-    const end = (releaseEvent: PointerEvent) => {
-      const dragState = dragRef.current;
+    const end = (releaseEvent: MouseEvent | PointerEvent) => {
+      const activeDrag = dragRef.current;
+      if (!activeDrag || activeDrag.id !== nodeId) {
+        return;
+      }
+
+      if (releaseEvent instanceof PointerEvent && releaseEvent.pointerId !== activeDrag.pointerId) {
+        return;
+      }
+
       dragRef.current = null;
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", end);
+      element.releasePointerCapture?.(activeDrag.pointerId);
+      element.removeEventListener("pointermove", move as EventListener);
+      element.removeEventListener("pointerup", end as EventListener);
+      window.removeEventListener("pointermove", move as EventListener);
+      window.removeEventListener("pointerup", end as EventListener);
 
-      if (dragState && dragState.moved) {
-        const targetNodeId = findNodeIdAtPoint(releaseEvent.clientX, releaseEvent.clientY, nodeId);
+      if (activeDrag.moved) {
+        const boardScope = element.closest("[data-character-board]") as HTMLElement | null;
+        const targetNodeId =
+          activeDrag.hoveredTargetId ||
+          findNodeIdAtPoint(releaseEvent.clientX, releaseEvent.clientY, nodeId, boardScope) ||
+          findNodeIdAtPoint((event.clientX + releaseEvent.clientX) / 2, (event.clientY + releaseEvent.clientY) / 2, nodeId, boardScope);
 
-        if (targetNodeId) {
+        console.log("DRAG_DEBUG", {
+          sourceNodeId: nodeId,
+          hoveredTargetId: activeDrag.hoveredTargetId,
+          release: { x: releaseEvent.clientX, y: releaseEvent.clientY },
+          midpoint: { x: (event.clientX + releaseEvent.clientX) / 2, y: (event.clientY + releaseEvent.clientY) / 2 },
+          targetNodeId,
+          boardScope: Boolean(boardScope),
+        });
+
+        if (targetNodeId && targetNodeId !== nodeId) {
           setDragConnectDraft({
             sourceNodeId: nodeId,
             targetNodeId,
@@ -956,13 +1024,36 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         }
       }
 
-      if (dragState && !dragState.moved) {
+      if (!activeDrag.moved) {
         setSelectedId(nodeId);
       }
     };
 
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", end, { once: true });
+    element.addEventListener("pointermove", move as EventListener);
+    element.addEventListener("pointerup", end as EventListener, { once: true });
+    window.addEventListener("pointermove", move as EventListener);
+    window.addEventListener("pointerup", end as EventListener, { once: true });
+    document.addEventListener("mousemove", move as EventListener);
+    document.addEventListener("mouseup", end as EventListener, { once: true });
+  }
+
+  function handleMouseDown(event: React.MouseEvent<HTMLElement>, nodeId: string, displayScale = zoom) {
+    if (dragRef.current && dragRef.current.id === nodeId) {
+      return;
+    }
+    if (event.button !== 0) {
+      return;
+    }
+    handlePointerDown({
+      ...event,
+      pointerType: "mouse",
+      pointerId: 1,
+      button: 0,
+      preventDefault: event.preventDefault,
+      stopPropagation: event.stopPropagation,
+      currentTarget: event.currentTarget,
+      target: event.target,
+    } as unknown as React.PointerEvent<HTMLElement>, nodeId, displayScale);
   }
 
   function getNodeAnchor(node: CharacterNode) {
@@ -1109,13 +1200,48 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   }
 
   function handleBoardBackgroundPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    if (event.button !== 0 && event.pointerType === "mouse") {
+      return;
+    }
+
+    if (viewportDragRef.current) {
+      return;
+    }
+
+    const boardElement = event.currentTarget as HTMLDivElement;
+    const pointerNodeId = (event.target as HTMLElement | null)?.closest("[data-node-id]")?.getAttribute("data-node-id") ??
+      findNodeIdAtPoint(event.clientX, event.clientY);
+
+    if (pointerNodeId) {
+      const nodeElement = document.querySelector<HTMLElement>(`[data-node-id="${CSS.escape(pointerNodeId)}"]`);
+      if (nodeElement) {
+        const handledEvent = {
+          ...event,
+          currentTarget: nodeElement,
+          target: nodeElement,
+          preventDefault: event.preventDefault,
+          stopPropagation: event.stopPropagation,
+        } as unknown as React.PointerEvent<HTMLElement>;
+        setHideNodeInfoPopup(false);
+        handlePointerDown(handledEvent, pointerNodeId, getBoardScale());
+        return;
+      }
+    }
+
+    boardElement.setPointerCapture?.(event.pointerId);
+
     if (event.pointerType === "touch") {
       activeTouchRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
     }
 
-    const handlePanMove = (moveEvent: PointerEvent) => {
-      if (event.pointerType === "touch" && activeTouchRef.current.has(moveEvent.pointerId)) {
-        activeTouchRef.current.set(moveEvent.pointerId, {
+    const handlePanMove = (moveEvent: MouseEvent | PointerEvent) => {
+      const pointerId = "pointerId" in moveEvent ? moveEvent.pointerId : event.pointerId;
+      if (pointerId !== event.pointerId && event.pointerType === "mouse") {
+        return;
+      }
+
+      if (event.pointerType === "touch" && activeTouchRef.current.has(pointerId)) {
+        activeTouchRef.current.set(pointerId, {
           x: moveEvent.clientX,
           y: moveEvent.clientY,
         });
@@ -1159,16 +1285,24 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       });
     };
 
-    const handlePanEnd = () => {
+    const handlePanEnd = (endEvent: MouseEvent | PointerEvent) => {
+      const pointerId = "pointerId" in endEvent ? endEvent.pointerId : event.pointerId;
+      if (pointerId !== event.pointerId && event.pointerType === "mouse") {
+        return;
+      }
+
       if (event.pointerType === "touch") {
         activeTouchRef.current.delete(event.pointerId);
         if (activeTouchRef.current.size < 2) {
           pinchGestureRef.current = null;
         }
       }
+      boardElement.releasePointerCapture?.(event.pointerId);
       viewportDragRef.current = null;
-      window.removeEventListener("pointermove", handlePanMove);
-      window.removeEventListener("pointerup", handlePanEnd);
+      boardElement.removeEventListener("pointermove", handlePanMove as EventListener);
+      boardElement.removeEventListener("pointerup", handlePanEnd as EventListener);
+      document.removeEventListener("mousemove", handlePanMove as EventListener);
+      document.removeEventListener("mouseup", handlePanEnd as EventListener);
       if (longPressTimeoutRef.current) {
         window.clearTimeout(longPressTimeoutRef.current);
         longPressTimeoutRef.current = null;
@@ -1196,8 +1330,10 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         startZoom: zoom,
         startPan: pan,
       };
-      window.addEventListener("pointermove", handlePanMove);
-      window.addEventListener("pointerup", handlePanEnd, { once: true });
+      boardElement.addEventListener("pointermove", handlePanMove as EventListener);
+      boardElement.addEventListener("pointerup", handlePanEnd as EventListener, { once: true });
+      document.addEventListener("mousemove", handlePanMove as EventListener);
+      document.addEventListener("mouseup", handlePanEnd as EventListener, { once: true });
       return;
     }
 
@@ -1221,11 +1357,43 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     }
 
     longPressTimeoutRef.current = window.setTimeout(() => {
-      activateAddMode();
+      const boardScale = getBoardScale();
+      const boardRect = boardElement.getBoundingClientRect();
+      const localX = (event.clientX - boardRect.left) / boardScale;
+      const localY = (event.clientY - boardRect.top) / boardScale;
+
+      setQuickCreatePosition({
+        x: Math.min(boardWidth - nodeWidth - 40, Math.max(40, localX)),
+        y: Math.min(boardHeight - nodeHeight - 40, Math.max(40, localY)),
+      });
+      setQuickCreateName("");
+      setActivePanelTab("add");
+      setHideNodeInfoPopup(true);
     }, 550);
 
-    window.addEventListener("pointermove", handlePanMove);
-    window.addEventListener("pointerup", handlePanEnd, { once: true });
+    boardElement.addEventListener("pointermove", handlePanMove as EventListener);
+    boardElement.addEventListener("pointerup", handlePanEnd as EventListener, { once: true });
+    document.addEventListener("mousemove", handlePanMove as EventListener);
+    document.addEventListener("mouseup", handlePanEnd as EventListener, { once: true });
+  }
+
+  function handleBoardBackgroundMouseDown(event: React.MouseEvent<HTMLDivElement>) {
+    if (event.button !== 0) {
+      return;
+    }
+    if (viewportDragRef.current) {
+      return;
+    }
+    handleBoardBackgroundPointerDown({
+      ...event,
+      pointerType: "mouse",
+      pointerId: 1,
+      button: 0,
+      preventDefault: event.preventDefault,
+      stopPropagation: event.stopPropagation,
+      currentTarget: event.currentTarget,
+      target: event.target,
+    } as unknown as React.PointerEvent<HTMLDivElement>);
   }
 
   function handleBoardBackgroundPointerUp(event?: { pointerId?: number }) {
@@ -2194,6 +2362,65 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {quickCreatePosition ? (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/20 backdrop-blur-[1px] p-4">
+          <div className="w-full max-w-md rounded-[30px] border border-slate-200 bg-white p-4 shadow-[0_28px_80px_rgba(15,23,42,0.18)]">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-slate-500">빈 공간 생성</p>
+                <h4 className="mt-2 text-lg font-semibold text-slate-900">새 인물 추가</h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setQuickCreatePosition(null);
+                  setQuickCreateName("");
+                }}
+                className="rounded-full border border-slate-200 px-2 py-1 text-[10px] font-medium text-slate-500 transition hover:border-slate-300 hover:text-slate-800"
+              >
+                취소
+              </button>
+            </div>
+
+            <p className="mt-2 text-[11px] leading-5 text-slate-500">
+              빈 공간을 눌렀던 위치에 인물을 바로 추가합니다.
+            </p>
+
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="text-[10px] font-semibold text-slate-600">인물 이름</label>
+                <input
+                  autoFocus
+                  value={quickCreateName}
+                  onChange={(event) => setQuickCreateName(event.target.value)}
+                  placeholder="예: 낡은 경비원"
+                  className="mt-1 w-full rounded-2xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-200"
+                />
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-[10px] leading-5 text-slate-600">
+                {selectedNode ? (
+                  <span>현재 선택된 인물과 연결 관계를 이어서 만들 수도 있습니다.</span>
+                ) : (
+                  <span>이 위치에 독립 인물을 바로 추가합니다.</span>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const nextName = quickCreateName.trim() || draft.name.trim() || "새 인물";
+                  createCharacterAtPosition(quickCreatePosition, nextName);
+                }}
+                className="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
+              >
+                생성하기
+              </button>
             </div>
           </div>
         </div>
