@@ -80,6 +80,16 @@ type NovelCharacterBook = {
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
+type DeleteHistoryItem = {
+  id: string;
+  kind: "work" | "node";
+  label: string;
+  createdAt: number;
+  work?: CharacterMapLibrary["works"][number];
+  node?: CharacterNode;
+  relatedRelationships?: CharacterRelationship[];
+};
+
 const novelCharacterLibrary = novelCharData as { books?: NovelCharacterBook[] };
 
 export function CharacterMapClient({ library }: Props) {
@@ -100,6 +110,13 @@ export function CharacterMapClient({ library }: Props) {
   const [newWorkTitle, setNewWorkTitle] = useState("");
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
   const [activePanelTab, setActivePanelTab] = useState<"add" | "info">("add");
+  const [deleteModal, setDeleteModal] = useState<{
+    kind: "work" | "node";
+    label: string;
+    workId?: string;
+    nodeId?: string;
+  } | null>(null);
+  const [deleteHistory, setDeleteHistory] = useState<DeleteHistoryItem[]>([]);
   const didMountRef = useRef(false);
   const mapViewportRef = useRef<HTMLDivElement | null>(null);
   const boardViewportRef = useRef<HTMLDivElement | null>(null);
@@ -450,6 +467,132 @@ export function CharacterMapClient({ library }: Props) {
   function handleWorkSelect(workId: string) {
     const nextWorks = works;
     applyWorkSelection(workId, nextWorks);
+  }
+
+  function handleDeleteSelectedWork() {
+    if (!selectedWorkId) {
+      return;
+    }
+
+    const targetWork = works.find((work) => work.id === selectedWorkId);
+    if (!targetWork) {
+      return;
+    }
+
+    setDeleteModal({
+      kind: "work",
+      label: targetWork.titleKo ?? targetWork.title ?? "현재 작품",
+      workId: targetWork.id,
+    });
+  }
+
+  function handleDeleteSelectedNode() {
+    if (!selectedNode) {
+      return;
+    }
+
+    setDeleteModal({
+      kind: "node",
+      label: selectedNode.name,
+      nodeId: selectedNode.id,
+    });
+  }
+
+  function confirmDeleteModal() {
+    if (!deleteModal) {
+      return;
+    }
+
+    if (deleteModal.kind === "work" && deleteModal.workId) {
+      const targetWork = works.find((work) => work.id === deleteModal.workId);
+      if (!targetWork) {
+        setDeleteModal(null);
+        return;
+      }
+
+      const nextWorks = works.filter((work) => work.id !== targetWork.id);
+      const nextHistoryItem: DeleteHistoryItem = {
+        id: `work-${targetWork.id}`,
+        kind: "work",
+        label: targetWork.titleKo ?? targetWork.title ?? "작품",
+        createdAt: Date.now(),
+        work: targetWork,
+      };
+      setDeleteHistory((current) => [nextHistoryItem, ...current].slice(0, 8));
+      setWorks(nextWorks);
+      setDeleteModal(null);
+      setSaveState("idle");
+      setSaveMessage(`작품 "${targetWork.titleKo ?? targetWork.title ?? "작품"}"이(가) 삭제되었습니다. 저장 버튼을 눌러 반영하세요.`);
+
+      if (nextWorks.length === 0) {
+        setSelectedWorkId("");
+        setNodes([]);
+        setRelationships([]);
+        setSelectedId("");
+        setSelectedRelationshipId(null);
+        setDraft(defaultDraft);
+        return;
+      }
+
+      applyWorkSelection(nextWorks[0].id, nextWorks);
+      return;
+    }
+
+    if (deleteModal.kind === "node" && deleteModal.nodeId) {
+      const targetNode = nodes.find((node) => node.id === deleteModal.nodeId);
+      if (!targetNode) {
+        setDeleteModal(null);
+        return;
+      }
+
+      const relatedRelationships = relationships.filter(
+        (relationship) => relationship.fromId === targetNode.id || relationship.toId === targetNode.id,
+      );
+      const nextNodes = nodes.filter((node) => node.id !== targetNode.id);
+      const nextRelationships = relationships.filter(
+        (relationship) => relationship.fromId !== targetNode.id && relationship.toId !== targetNode.id,
+      );
+
+      const nextHistoryItem: DeleteHistoryItem = {
+        id: `node-${targetNode.id}`,
+        kind: "node",
+        label: targetNode.name,
+        createdAt: Date.now(),
+        node: targetNode,
+        relatedRelationships,
+      };
+      setDeleteHistory((current) => [nextHistoryItem, ...current].slice(0, 8));
+
+      setNodes(nextNodes);
+      setRelationships(nextRelationships);
+      setSelectedRelationshipId(null);
+      setSelectedId(nextNodes[0]?.id ?? "");
+      setActivePanelTab("add");
+      setDeleteModal(null);
+      setSaveState("idle");
+      setSaveMessage(`인물 "${targetNode.name}"이(가) 삭제되었습니다. 저장 버튼을 눌러 반영하세요.`);
+    }
+  }
+
+  function restoreDeleteItem(item: DeleteHistoryItem) {
+    if (item.kind === "work" && item.work) {
+      const nextWorks = [...works, item.work];
+      setWorks(nextWorks);
+      applyWorkSelection(item.work.id, nextWorks);
+      setDeleteHistory((current) => current.filter((entry) => entry.id !== item.id));
+      setSaveState("idle");
+      setSaveMessage(`작품 "${item.label}"이(가) 복구되었습니다. 저장 버튼을 눌러 반영하세요.`);
+      return;
+    }
+
+    if (item.kind === "node" && item.node) {
+      setNodes((current) => [...current, item.node!]);
+      setRelationships((current) => [...current, ...(item.relatedRelationships ?? [])]);
+      setSelectedId(item.node.id);
+      setDeleteHistory((current) => current.filter((entry) => entry.id !== item.id));
+      setSaveState("idle");
+      setSaveMessage(`인물 "${item.label}"이(가) 복구되었습니다. 저장 버튼을 눌러 반영하세요.`);
+    }
   }
 
   function findMatchingBook(title: string) {
@@ -968,6 +1111,17 @@ export function CharacterMapClient({ library }: Props) {
                 <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center">
                   <span className="text-lg font-semibold text-slate-600">▾</span>
                 </div>
+              </div>
+
+              <div className="mt-3 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleDeleteSelectedWork}
+                  disabled={!selectedWorkId || works.length === 0}
+                  className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  작품 삭제
+                </button>
               </div>
             </div>
 
@@ -1565,6 +1719,84 @@ export function CharacterMapClient({ library }: Props) {
         </div>
       </section>
 
+      {deleteModal ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_28px_80px_rgba(15,23,42,0.22)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-500">삭제 확인</p>
+                <h4 className="mt-2 text-xl font-semibold text-slate-900">
+                  {deleteModal.kind === "work" ? "작품 삭제" : "인물 삭제"}
+                </h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeleteModal(null)}
+                className="rounded-full border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:border-slate-300 hover:text-slate-800"
+              >
+                취소
+              </button>
+            </div>
+
+            <p className="mt-4 text-sm leading-6 text-slate-600">
+              {deleteModal.kind === "work"
+                ? `"${deleteModal.label}" 작품을 삭제하시겠습니까? 이 작업은 최근 삭제 목록에 보관되어 복구할 수 있습니다.`
+                : `"${deleteModal.label}" 인물을 삭제하시겠습니까? 연결된 관계도 함께 정리됩니다.`}
+            </p>
+
+            <div className="mt-5 space-y-2">
+              <button
+                type="button"
+                onClick={confirmDeleteModal}
+                className="inline-flex w-full items-center justify-center rounded-2xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-500"
+              >
+                삭제하기
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeleteModal(null)}
+                className="inline-flex w-full items-center justify-center rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-white"
+              >
+                돌아가기
+              </button>
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-500">최근 삭제</p>
+                <span className="text-[10px] text-slate-400">{deleteHistory.length}개</span>
+              </div>
+              {deleteHistory.length === 0 ? (
+                <p className="mt-3 text-sm text-slate-500">최근 삭제 항목이 없습니다.</p>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  {deleteHistory.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2"
+                    >
+                      <div>
+                        <p className="text-xs font-semibold text-slate-700">{item.label}</p>
+                        <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
+                          {item.kind === "work" ? "작품" : "인물"}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => restoreDeleteItem(item)}
+                        className="rounded-full border border-slate-300 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-white"
+                      >
+                        복구
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <aside className="space-y-6">
         <section className="rounded-[30px] border border-slate-200 bg-[linear-gradient(135deg,_#ffffff_0%,_#f5f5f4_45%,_#efefee_100%)] p-6 shadow-[0_22px_50px_rgba(15,23,42,0.05)]">
           <div className="mb-5 flex rounded-2xl border border-slate-200 bg-slate-100 p-1 shadow-inner shadow-slate-200/80">
@@ -1680,6 +1912,15 @@ export function CharacterMapClient({ library }: Props) {
                       </button>
                     ))}
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={handleDeleteSelectedNode}
+                    disabled={!selectedNode}
+                    className="mt-4 inline-flex w-full items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    인물 삭제
+                  </button>
 
                   <div className="mt-4 rounded-2xl border border-slate-200 bg-white/80 p-3">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
