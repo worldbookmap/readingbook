@@ -55,6 +55,11 @@ const defaultDraft: DraftState = {
   linkedToSelected: true,
 };
 
+const fieldClassName =
+  "w-full rounded-2xl border border-slate-300 bg-white/90 px-4 py-3 text-sm text-slate-800 shadow-[0_1px_2px_rgba(15,23,42,0.04)] outline-none transition placeholder:text-slate-400 hover:border-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-200";
+const textareaClassName = `${fieldClassName} min-h-[100px] resize-y`;
+const selectClassName = `${fieldClassName} appearance-none pr-10`;
+
 type Props = {
   library: CharacterMapLibrary;
 };
@@ -819,7 +824,7 @@ export function CharacterMapClient({ library }: Props) {
                   aria-label="작품 선택"
                   value={selectedWorkId}
                   onChange={(event) => handleWorkSelect(event.target.value)}
-                  className="w-full appearance-none rounded-[20px] border border-slate-200 bg-[linear-gradient(135deg,_#ffffff_0%,_#f8f8f7_100%)] px-4 py-3 pr-11 text-sm font-medium text-slate-800 shadow-[0_12px_30px_rgba(15,23,42,0.06)] outline-none transition focus:border-slate-400 focus:shadow-[0_14px_34px_rgba(15,23,42,0.10)]"
+                  className={`${selectClassName} shadow-[0_6px_20px_rgba(15,23,42,0.05)]`}
                 >
                   {works.map((work) => (
                     <option key={work.id} value={work.id}>
@@ -835,16 +840,16 @@ export function CharacterMapClient({ library }: Props) {
 
             <form onSubmit={handleCreateWork} className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">작품 추가</p>
-              <div className="mt-2 flex flex-col gap-2 sm:flex-row xl:flex-col 2xl:flex-row">
+              <div className="mt-2 flex flex-row items-center gap-2">
                 <input
                   value={newWorkTitle}
                   onChange={(event) => setNewWorkTitle(event.target.value)}
                   placeholder="새 작품 이름"
-                  className="w-full rounded-full border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400"
+                  className={`${fieldClassName} flex-1 min-w-0`}
                 />
                 <button
                   type="submit"
-                  className="whitespace-nowrap rounded-full bg-slate-900 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700"
+                  className="whitespace-nowrap rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
                 >
                   작품 추가
                 </button>
@@ -1434,7 +1439,7 @@ export function CharacterMapClient({ library }: Props) {
                     <input
                       value={selectedNode?.name ?? ""}
                       onChange={(event) => handleNodePatch("name", event.target.value)}
-                      className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400"
+                      className={`${fieldClassName} mt-2`}
                     />
                   </div>
 
@@ -1445,7 +1450,7 @@ export function CharacterMapClient({ library }: Props) {
                     <input
                       value={selectedNode?.title ?? ""}
                       onChange={(event) => handleNodePatch("title", event.target.value)}
-                      className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400"
+                      className={`${fieldClassName} mt-2`}
                     />
                   </div>
 
@@ -1456,7 +1461,7 @@ export function CharacterMapClient({ library }: Props) {
                     <textarea
                       value={selectedNode?.summary ?? ""}
                       onChange={(event) => handleNodePatch("summary", event.target.value)}
-                      className="mt-2 h-24 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400"
+                      className={`${textareaClassName} mt-2`}
                     />
                   </div>
 
@@ -1467,7 +1472,7 @@ export function CharacterMapClient({ library }: Props) {
                     <textarea
                       value={selectedNode?.majorActions.join("\n") ?? ""}
                       onChange={(event) => handleNodePatch("majorActions", event.target.value)}
-                      className="mt-2 h-28 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400"
+                      className={`${textareaClassName} mt-2`}
                     />
                   </div>
                 </div>
@@ -1505,7 +1510,7 @@ export function CharacterMapClient({ library }: Props) {
                           <select
                             value={selectedRelationship.type}
                             onChange={(event) => handleRelationshipPatch("type", event.target.value as RelationshipType)}
-                            className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-slate-400"
+                            className={`${selectClassName} mt-2`}
                           >
                             {relationOptions.map((option) => (
                               <option key={option} value={option}>
@@ -1521,7 +1526,7 @@ export function CharacterMapClient({ library }: Props) {
                             value={selectedRelationship.label ?? ""}
                             onChange={(event) => handleRelationshipPatch("label", event.target.value)}
                             placeholder={selectedRelationship.type === "기타" ? "관계를 직접 입력" : "선택 사항"}
-                            className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-slate-400"
+                            className={`${fieldClassName} mt-2`}
                           />
                         </div>
                       </div>
@@ -1557,25 +1562,25 @@ export function CharacterMapClient({ library }: Props) {
                       value={draft.name}
                       onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
                       placeholder="인물 이름"
-                      className="w-full rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-slate-500"
+                      className={fieldClassName}
                     />
                     <input
                       value={draft.title}
                       onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
                       placeholder="역할 또는 호칭"
-                      className="w-full rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-slate-500"
+                      className={fieldClassName}
                     />
                     <textarea
                       value={draft.summary}
                       onChange={(event) => setDraft((current) => ({ ...current, summary: event.target.value }))}
                       placeholder="인물 소개"
-                      className="h-24 w-full rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-slate-500"
+                      className={textareaClassName}
                     />
                     <textarea
                       value={draft.majorActions}
                       onChange={(event) => setDraft((current) => ({ ...current, majorActions: event.target.value }))}
                       placeholder="주요 행동을 줄바꿈으로 입력"
-                      className="h-24 w-full rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-slate-500"
+                      className={textareaClassName}
                     />
                     <label className="flex items-center gap-2 rounded-2xl border border-slate-300 bg-white/70 px-4 py-3 text-sm text-slate-700">
                       <input
@@ -1588,7 +1593,7 @@ export function CharacterMapClient({ library }: Props) {
                             relationshipType: event.target.checked ? "선택 없음" : current.relationshipType,
                           }))
                         }
-                        className="h-4 w-4 rounded border-slate-300 bg-white text-slate-700"
+                        className="h-4 w-4 rounded border-slate-300 bg-white text-slate-900 accent-slate-900"
                       />
                       현재 인물과 연결하지 않고 독립 인물로 추가
                     </label>
@@ -1601,7 +1606,7 @@ export function CharacterMapClient({ library }: Props) {
                           relationshipType: event.target.value as RelationshipType | "선택 없음",
                         }))
                       }
-                      className="w-full rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none disabled:cursor-not-allowed disabled:opacity-50 focus:border-slate-400"
+                      className={`${selectClassName} disabled:cursor-not-allowed disabled:opacity-50`}
                     >
                       {relationshipSelectionOptions.map((option) => (
                         <option key={option} value={option} className="text-slate-900">
@@ -1617,7 +1622,7 @@ export function CharacterMapClient({ library }: Props) {
                           setDraft((current) => ({ ...current, customRelationship: event.target.value }))
                         }
                         placeholder="직접 입력 관계"
-                        className="w-full rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-slate-400"
+                        className={fieldClassName}
                       />
                     ) : null}
 
