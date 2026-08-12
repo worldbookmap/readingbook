@@ -593,19 +593,22 @@ export function CharacterMapClient({ library }: Props) {
   }
 
   useEffect(() => {
-    const targetNode = nodes.find((node) => node.id === selectedId) ?? getFocusNode();
-    if (!targetNode || !mapViewportRef.current) {
+    const viewport = mapViewportRef.current;
+    if (!viewport) {
       return;
     }
 
-    const viewportRect = mapViewportRef.current.getBoundingClientRect();
+    const targetNode = nodes.find((node) => node.id === selectedId) ?? getFocusNode();
+    const viewportRect = viewport.getBoundingClientRect();
     const viewportWidth = Math.max(viewportRect.width, 680);
     const viewportHeight = Math.max(viewportRect.height, 520);
-    const centerX = targetNode.x + iconNodeSize / 2;
-    const centerY = targetNode.y + iconNodeSize / 2;
+
+    const targetCenterX = targetNode ? targetNode.x + iconNodeSize / 2 : boardWidth / 2;
+    const targetCenterY = targetNode ? targetNode.y + iconNodeSize / 2 : boardHeight / 2;
+
     const nextPan = {
-      x: viewportWidth / 2 - centerX * zoom,
-      y: viewportHeight / 2 - centerY * zoom,
+      x: (viewportWidth - boardWidth * zoom) / 2 + (boardWidth / 2 - targetCenterX) * zoom,
+      y: (viewportHeight - boardHeight * zoom) / 2 + (boardHeight / 2 - targetCenterY) * zoom,
     };
 
     setPan(nextPan);
@@ -642,7 +645,16 @@ export function CharacterMapClient({ library }: Props) {
 
   function handleBoardBackgroundPointerDown(event: React.PointerEvent<HTMLDivElement>) {
     const target = event.target as HTMLElement;
-    if (target.closest("[data-character-node]") || target.closest("[data-character-relationship]") || target.closest("button")) {
+    if (
+      target.closest("[data-character-node]") ||
+      target.closest("[data-character-relationship]") ||
+      target.closest("button") ||
+      target.closest("[data-relationship-editor]") ||
+      target.closest("input") ||
+      target.closest("select") ||
+      target.closest("textarea") ||
+      target.closest("label")
+    ) {
       return;
     }
 
@@ -984,6 +996,7 @@ export function CharacterMapClient({ library }: Props) {
 
                   {selectedRelationship && selectedRelationshipPosition ? (
                     <div
+                      data-relationship-editor
                       className="absolute z-30 w-56 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-[0_18px_35px_rgba(15,23,42,0.12)] backdrop-blur"
                       style={{ left: selectedRelationshipPosition.left, top: selectedRelationshipPosition.top }}
                     >
@@ -1207,6 +1220,7 @@ export function CharacterMapClient({ library }: Props) {
 
             {selectedRelationship && selectedRelationshipPosition ? (
               <div
+                data-relationship-editor
                 className="absolute z-30 w-56 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-[0_18px_35px_rgba(15,23,42,0.12)] backdrop-blur"
                 style={{ left: selectedRelationshipPosition.left, top: selectedRelationshipPosition.top }}
               >
