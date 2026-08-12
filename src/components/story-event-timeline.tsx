@@ -407,6 +407,9 @@ export function StoryEventTimeline() {
       return;
     }
 
+    event.preventDefault();
+    event.stopPropagation();
+
     const rect = board.getBoundingClientRect();
     const dragCardWidth = isCompact ? 200 : cardWidth;
     const dragCardHeight = isCompact ? 150 : cardHeight;
@@ -418,7 +421,6 @@ export function StoryEventTimeline() {
     };
 
     setSelectedEventId(cardId);
-    event.preventDefault();
 
     const handleMove = (moveEvent: PointerEvent) => {
       if (!dragRef.current || dragRef.current.id !== cardId) {
@@ -480,6 +482,7 @@ export function StoryEventTimeline() {
       originY: boardPan.y,
     };
     event.preventDefault();
+    event.stopPropagation();
 
     const handleMove = (moveEvent: PointerEvent) => {
       if (!boardPanRef.current) {
@@ -572,7 +575,7 @@ export function StoryEventTimeline() {
 
                   setSelectedWorkId(nextValue);
                 }}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-amber-300"
+                className="w-full appearance-none rounded-[18px] border border-rose-200 bg-[linear-gradient(135deg,_#fff7fb_0%,_#fffdf9_35%,_#f7f9ff_100%)] px-3 py-2.5 text-sm text-slate-700 shadow-[0_10px_22px_rgba(251,146,60,0.08)] outline-none transition duration-200 hover:border-rose-300 focus:border-rose-300 focus:ring-2 focus:ring-rose-100"
               >
                 <option value="__new__">새 작품 추가</option>
                 {works.map((work) => (
@@ -583,11 +586,11 @@ export function StoryEventTimeline() {
               </select>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setActiveModal("event")}
-                className="rounded-full border border-slate-300 bg-sky-50 px-4 py-2 text-sm text-sky-700 transition hover:border-sky-400 hover:text-sky-900"
+                className="inline-flex items-center rounded-full border border-sky-200 bg-gradient-to-r from-sky-50 to-cyan-50 px-3.5 py-2 text-sm font-medium text-sky-700 shadow-[0_8px_18px_rgba(14,165,233,0.08)] transition hover:-translate-y-0.5 hover:border-sky-300 hover:text-sky-900"
               >
                 <FontAwesomeIcon icon={faPlus} className="mr-2" />
                 사건 추가
@@ -596,7 +599,7 @@ export function StoryEventTimeline() {
                 type="button"
                 onClick={() => setActiveModal("edit")}
                 disabled={!selectedEvent}
-                className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-700 transition hover:border-slate-400 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-[0_8px_18px_rgba(148,163,184,0.08)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <FontAwesomeIcon icon={faCalendarDays} className="mr-2" />
                 수정하기
@@ -604,7 +607,7 @@ export function StoryEventTimeline() {
               <button
                 type="button"
                 onClick={saveToGithub}
-                className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-700 transition hover:border-slate-400 hover:text-slate-950"
+                className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm font-medium text-slate-700 shadow-[0_8px_18px_rgba(148,163,184,0.08)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-950"
               >
                 <FontAwesomeIcon icon={faCloudArrowUp} className="mr-2" />
                 GitHub 저장
@@ -612,7 +615,7 @@ export function StoryEventTimeline() {
               <button
                 type="button"
                 onClick={resetWorks}
-                className="rounded-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
+                className="inline-flex items-center rounded-full border border-amber-200 bg-gradient-to-r from-amber-50 to-rose-50 px-3 py-2 text-sm font-medium text-slate-700 shadow-[0_8px_18px_rgba(251,146,60,0.08)] transition hover:-translate-y-0.5 hover:border-amber-300 hover:text-slate-900"
               >
                 <FontAwesomeIcon icon={faRotateLeft} className="mr-2" />
                 초기화
@@ -645,7 +648,7 @@ export function StoryEventTimeline() {
                 ),
               );
             }}
-            className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-amber-300 xl:max-w-xs"
+            className="w-full appearance-none rounded-[18px] border border-amber-200 bg-[linear-gradient(135deg,_#fffdf7_0%,_#ffffff_40%,_#f7f9ff_100%)] px-3 py-2.5 text-sm text-slate-700 shadow-[0_10px_22px_rgba(251,191,36,0.08)] outline-none transition duration-200 hover:border-amber-300 focus:border-amber-300 focus:ring-2 focus:ring-amber-100 xl:max-w-xs"
           >
             <option value="">연결된 작품 없음</option>
             {characterWorks.map((work) => (
@@ -666,11 +669,11 @@ export function StoryEventTimeline() {
             <div
               ref={boardRef}
               onPointerDown={beginBoardDrag}
-              className="relative cursor-grab overflow-hidden rounded-[26px] border border-amber-200 bg-white shadow-inner active:cursor-grabbing"
-              style={{ width: "100%", height: boardMetrics.height }}
+              className="relative cursor-grab touch-none select-none overflow-hidden rounded-[26px] border border-amber-200 bg-white shadow-inner active:cursor-grabbing"
+              style={{ width: "100%", height: boardMetrics.height, touchAction: "none" }}
             >
-              <div className="pointer-events-none absolute inset-0" style={{ transform: mapTransform }}>
-                <div className="absolute left-1/2 top-6 bottom-8 w-px -translate-x-1/2 bg-slate-200" />
+              <div className="absolute inset-0" style={{ transform: mapTransform }}>
+                <div className="pointer-events-none absolute left-1/2 top-6 bottom-8 w-px -translate-x-1/2 bg-slate-200" />
 
                 {Array.from({ length: 7 }).map((_, index) => {
                   const ratio = index / 6;
@@ -738,7 +741,7 @@ export function StoryEventTimeline() {
                               data-card-root="true"
                               onPointerDown={(pointerEvent) => beginDrag(pointerEvent, event.id)}
                               onClick={() => setSelectedEventId(event.id)}
-                              className="absolute z-20 rounded-[26px] border bg-white p-4 text-left shadow-[0_22px_45px_rgba(15,23,42,0.08)] transition hover:-translate-y-1"
+                              className="absolute z-20 touch-none select-none rounded-[26px] border bg-white p-4 text-left shadow-[0_22px_45px_rgba(15,23,42,0.08)] transition hover:-translate-y-1"
                               style={{
                                 width: mobileCardWidth,
                                 left: isCompact
@@ -747,6 +750,7 @@ export function StoryEventTimeline() {
                                 top,
                                 borderColor: isActive ? event.color : "rgba(226,232,240,1)",
                                 boxShadow: isActive ? `0 18px 40px ${event.color}33` : "0 18px 40px rgba(15,23,42,0.08)",
+                                touchAction: "none",
                               }}
                             >
                               <div className="flex items-center justify-between gap-2">
