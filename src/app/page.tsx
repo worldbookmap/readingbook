@@ -50,27 +50,34 @@ export default function Home() {
                 독서용 기록 웹앱
               </div>
 
-              <h1 className="mt-6 max-w-4xl text-4xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-5xl lg:text-6xl">
+              <h1 className="mt-6 max-w-4xl text-[2.2rem] font-semibold tracking-[-0.03em] text-slate-950 sm:text-5xl lg:text-6xl">
                 책읽을 때 필요한 것들
               </h1>
 
-              <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
+              <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
                 필요해서 만들어보았다
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href="/characters"
-                  className="inline-flex items-center gap-2 rounded-full bg-black px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800"
+                  className="inline-flex items-center gap-2 rounded-full bg-black px-4 py-2.5 text-xs font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 sm:px-5 sm:py-3 sm:text-sm"
                 >
                   관계도 시작
                   <FontAwesomeIcon icon={faArrowRight} />
                 </Link>
                 <Link
                   href="/timeline"
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-400 hover:text-slate-950"
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-400 hover:text-slate-950 sm:px-5 sm:py-3 sm:text-sm"
                 >
                   연표 보드 열기
+                  <FontAwesomeIcon icon={faArrowRight} />
+                </Link>
+                <Link
+                  href="/story-events"
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-amber-50 px-4 py-2.5 text-xs font-semibold text-slate-800 transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-100 sm:px-5 sm:py-3 sm:text-sm"
+                >
+                  사건 타임라인
                   <FontAwesomeIcon icon={faArrowRight} />
                 </Link>
               </div>
@@ -88,10 +95,10 @@ export default function Home() {
               <div className={`inline-flex rounded-[20px] bg-gradient-to-br ${card.accent} p-4 text-slate-950`}>
                 <FontAwesomeIcon icon={card.icon} size="lg" />
               </div>
-              <p className="mt-6 text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{card.eyebrow}</p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-[-0.02em] text-slate-950">{card.title}</h2>
-              <p className="mt-4 text-base leading-7 text-slate-600">{card.description}</p>
-              <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-900 transition group-hover:text-slate-600">
+              <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400 sm:text-sm">{card.eyebrow}</p>
+              <h2 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-slate-950 sm:text-2xl">{card.title}</h2>
+              <p className="mt-4 text-sm leading-6 text-slate-600 sm:text-base sm:leading-7">{card.description}</p>
+              <div className="mt-6 inline-flex items-center gap-2 text-xs font-semibold text-slate-900 transition group-hover:text-slate-600 sm:text-sm">
                 열어보기
                 <FontAwesomeIcon icon={faArrowRight} />
               </div>

@@ -1471,15 +1471,15 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             </div>
 
             <div className="mt-4 overflow-auto rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
-              <div className="relative h-[420px] min-w-[390px]">
+              <div className="relative h-[420px] min-w-[360px]">
                 <div
-                  className="relative"
+                  className="relative mx-auto"
                   data-character-board
                   style={{
                     height: boardHeight,
                     width: boardWidth,
                     transform: `scale(${mobileTotalScale})`,
-                    transformOrigin: "top left",
+                    transformOrigin: "top center",
                   }}
                 >
                   <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">

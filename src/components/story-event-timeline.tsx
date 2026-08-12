@@ -87,6 +87,7 @@ export function StoryEventTimeline() {
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
   const [collapsedChapters, setCollapsedChapters] = useState<Record<string, boolean>>({});
   const [isCompact, setIsCompact] = useState(false);
+  const [timelineZoom, setTimelineZoom] = useState(1);
   const [boardViewport, setBoardViewport] = useState({ width: boardWidth, height: boardHeight });
   const [activeModal, setActiveModal] = useState<"work" | "event" | "edit" | "detail" | null>(null);
   const [detailEventId, setDetailEventId] = useState<string | null>(null);
@@ -523,13 +524,17 @@ export function StoryEventTimeline() {
     }
   }
 
+  function handleTimelineZoom(nextDelta: number) {
+    setTimelineZoom((current) => clamp(current + nextDelta, 0.7, 1.6));
+  }
+
   const boardMetrics = {
     width: isCompact ? Math.max(320, Math.min(boardViewport.width, 420)) : boardWidth,
     height: isCompact ? 720 : boardHeight,
   };
   const boardScaleX = boardMetrics.width / boardWidth;
   const boardScaleY = boardMetrics.height / boardHeight;
-  const mapTransform = `translate(${boardPan.x}px, ${boardPan.y}px)`;
+  const mapTransform = `translate(${boardPan.x}px, ${boardPan.y}px) scale(${timelineZoom})`;
 
   return (
     <div className="space-y-5">
@@ -649,13 +654,46 @@ export function StoryEventTimeline() {
               <span>{selectedWork?.events.length ?? 0}개 사건</span>
             </div>
 
+            <div className="mb-3 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => handleTimelineZoom(-0.1)}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-sm text-slate-700 shadow-sm transition hover:border-slate-300"
+                aria-label="타임라인 축소"
+              >
+                −
+              </button>
+              <span className="min-w-12 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                {Math.round(timelineZoom * 100)}%
+              </span>
+              <button
+                type="button"
+                onClick={() => handleTimelineZoom(0.1)}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-sm text-slate-700 shadow-sm transition hover:border-slate-300"
+                aria-label="타임라인 확대"
+              >
+                +
+              </button>
+              <button
+                type="button"
+                onClick={() => setTimelineZoom(1)}
+                className="rounded-full border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-medium text-slate-600 shadow-sm transition hover:border-slate-300"
+              >
+                초기화
+              </button>
+            </div>
+
             <div
               ref={boardRef}
               onPointerDown={beginBoardDrag}
+              onWheel={(event) => {
+                event.preventDefault();
+                handleTimelineZoom(event.deltaY < 0 ? 0.1 : -0.1);
+              }}
               className="relative cursor-grab touch-none select-none overflow-hidden rounded-[26px] border border-amber-200 bg-white shadow-inner active:cursor-grabbing"
               style={{ width: "100%", height: boardMetrics.height, touchAction: "none" }}
             >
-              <div className="absolute inset-0" style={{ transform: mapTransform }}>
+              <div className="absolute inset-0" style={{ transform: mapTransform, transformOrigin: "top left" }}>
                 <div className="pointer-events-none absolute left-1/2 top-6 bottom-8 w-px -translate-x-1/2 bg-slate-200" />
 
                 {Array.from({ length: 7 }).map((_, index) => {
