@@ -1048,6 +1048,10 @@ export function CharacterMapClient({ library }: Props) {
       return;
     }
 
+    if (activePanelTab === "info") {
+      setActivePanelTab("add");
+    }
+
     clearRelationshipSelection();
     viewportDragRef.current = {
       startX: event.clientX,
