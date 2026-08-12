@@ -9,33 +9,49 @@ import {
 } from "@/lib/github-sync";
 
 const filePath = "src/data/character-map.json";
+const fallbackLibrary: CharacterMapLibrary = localCharacterMap as CharacterMapLibrary;
 
 type CharacterMapSavePayload = {
   library?: CharacterMapLibrary;
   works?: CharacterMapLibrary["works"];
-  data?: CharacterSeed;
+  data?: CharacterMapLibrary | CharacterSeed;
   nodes?: CharacterSeed["nodes"];
   relationships?: CharacterSeed["relationships"];
   sha?: string;
 };
 
+function hasUsableWorks(data: CharacterMapLibrary | null | undefined): data is CharacterMapLibrary {
+  return Boolean(
+    data &&
+      Array.isArray(data.works) &&
+      data.works.length > 0 &&
+      data.works.every(
+        (work) =>
+          work &&
+          typeof work === "object" &&
+          typeof work.id === "string" &&
+          work.seed &&
+          Array.isArray(work.seed.nodes) &&
+          Array.isArray(work.seed.relationships),
+      ),
+  );
+}
+
 function normalizeCharacterMapPayload(payload: CharacterMapSavePayload | CharacterMapLibrary | CharacterSeed | null | undefined): CharacterMapLibrary {
   if (!payload) {
-    return {
-      works: [
-        {
-          id: "default",
-          title: "기본 인물관계도",
-          titleKo: "기본 인물관계도",
-          author: "Readingbook",
-          seed: { nodes: [], relationships: [] },
-        },
-      ],
-    };
+    return fallbackLibrary;
   }
 
-  if ("works" in payload && Array.isArray(payload.works)) {
-    return payload as CharacterMapLibrary;
+  if ("library" in payload && payload.library && hasUsableWorks(payload.library)) {
+    return payload.library;
+  }
+
+  if ("works" in payload && Array.isArray(payload.works) && payload.works.length > 0) {
+    return { works: payload.works };
+  }
+
+  if ("data" in payload && payload.data && hasUsableWorks(payload.data as CharacterMapLibrary)) {
+    return payload.data as CharacterMapLibrary;
   }
 
   if ("nodes" in payload && Array.isArray(payload.nodes)) {
@@ -55,17 +71,7 @@ function normalizeCharacterMapPayload(payload: CharacterMapSavePayload | Charact
     };
   }
 
-  return {
-    works: [
-      {
-        id: "default",
-        title: "기본 인물관계도",
-        titleKo: "기본 인물관계도",
-        author: "Readingbook",
-        seed: { nodes: [], relationships: [] },
-      },
-    ],
-  };
+  return fallbackLibrary;
 }
 
 export async function GET() {
@@ -95,7 +101,16 @@ export async function PUT(request: Request) {
   try {
     const body = (await request.json()) as CharacterMapSavePayload;
     const { sha, ...rawData } = body;
-    const data = normalizeCharacterMapPayload(rawData);
+    const normalizedLibrary = normalizeCharacterMapPayload(rawData);
+    const data = normalizedLibrary.works.length > 0 ? normalizedLibrary : { works: [
+      {
+        id: "default",
+        title: "기본 인물관계도",
+        titleKo: "기본 인물관계도",
+        author: "Readingbook",
+        seed: { nodes: [], relationships: [] },
+      },
+    ] };
     const nextSha = await updateGithubJsonFile(
       filePath,
       data,

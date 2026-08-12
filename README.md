@@ -35,10 +35,34 @@
 
 ```bash
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
-브라우저에서 http://localhost:3000 을 열면 됩니다.
+브라우저에서 http://localhost:3001 을 열면 됩니다.
+
+## GitHub 동기화 설정
+
+로컬 개발에서는 `.env.local` 파일을 만들고, Vercel 배포에서는 프로젝트 환경변수로 동일한 값을 넣어야 합니다.
+
+```env
+GITHUB_TOKEN=your_github_personal_access_token
+GITHUB_OWNER=your_github_username_or_org
+GITHUB_REPO=your_repository_name
+GITHUB_BRANCH=main
+```
+
+필수 조건:
+- `GITHUB_TOKEN`은 해당 저장소의 `contents` 쓰기 권한이 있어야 합니다.
+- `GITHUB_OWNER`는 사용자 이름 또는 조직 이름입니다.
+- `GITHUB_REPO`는 저장소 이름입니다.
+- `GITHUB_BRANCH`는 기본 브랜치 이름으로 보통 `main` 또는 `master` 입니다.
+
+GitHub 토큰 생성 방법:
+1. GitHub → Settings → Developer settings → Personal access tokens
+2. `repo` 권한 또는 저장소별 Fine-grained token 설정
+3. 이 프로젝트 저장소에 접근 권한 부여
+4. 토큰값을 `GITHUB_TOKEN`에 넣기
 
 ## 데이터 위치
 

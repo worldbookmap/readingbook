@@ -25,6 +25,7 @@ import {
 
 const storageKey = "readingbook-character-map-library";
 const relationOptions: RelationshipType[] = ["친구", "부부", "커플", "자식", "사업", "기타"];
+const relationshipSelectionOptions: Array<RelationshipType | "선택 없음"> = ["선택 없음", ...relationOptions];
 const boardWidth = 920;
 const boardHeight = 920;
 const nodeWidth = 160;
@@ -39,7 +40,7 @@ type DraftState = {
   title: string;
   summary: string;
   majorActions: string;
-  relationshipType: RelationshipType;
+  relationshipType: RelationshipType | "선택 없음";
   customRelationship: string;
   linkedToSelected: boolean;
 };
@@ -49,7 +50,7 @@ const defaultDraft: DraftState = {
   title: "",
   summary: "",
   majorActions: "",
-  relationshipType: "친구",
+  relationshipType: "선택 없음",
   customRelationship: "",
   linkedToSelected: true,
 };
@@ -236,7 +237,10 @@ export function CharacterMapClient({ library }: Props) {
       return;
     }
 
-    const shouldLinkToSelected = draft.linkedToSelected && Boolean(selectedNode);
+    const shouldLinkToSelected =
+      draft.linkedToSelected && Boolean(selectedNode) && draft.relationshipType !== "선택 없음";
+    const selectedRelationshipType =
+      shouldLinkToSelected && draft.relationshipType !== "선택 없음" ? draft.relationshipType : null;
     const siblingCount = shouldLinkToSelected && selectedNode
       ? relationships.filter(
           (relationship) => relationship.fromId === selectedNode.id || relationship.toId === selectedNode.id,
@@ -266,18 +270,19 @@ export function CharacterMapClient({ library }: Props) {
       color: ["#f97316", "#0f766e", "#2563eb", "#7c3aed", "#dc2626"][siblingCount % 5],
     };
 
-    const nextRelationship = shouldLinkToSelected && selectedNode
-      ? {
-          id: crypto.randomUUID(),
-          fromId: selectedNode.id,
-          toId: nextNode.id,
-          type: draft.relationshipType,
-          label:
-            draft.relationshipType === "기타"
-              ? draft.customRelationship.trim() || "직접 입력 관계"
-              : undefined,
-        }
-      : null;
+    const nextRelationship =
+      selectedRelationshipType && selectedNode
+        ? {
+            id: crypto.randomUUID(),
+            fromId: selectedNode.id,
+            toId: nextNode.id,
+            type: selectedRelationshipType,
+            label:
+              selectedRelationshipType === "기타"
+                ? draft.customRelationship.trim() || "직접 입력 관계"
+                : undefined,
+          }
+        : null;
 
     setNodes((current) => [...current, nextNode]);
     if (nextRelationship) {
@@ -567,12 +572,13 @@ export function CharacterMapClient({ library }: Props) {
     setSaveMessage(remoteEnabled ? "Vercel → GitHub 동기화 중..." : "환경변수 확인 필요");
 
     try {
+      const nextLibrary: CharacterMapLibrary = { works };
       const response = await fetch("/api/character-map", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ library: { works }, sha: remoteSha }),
+        body: JSON.stringify({ library: nextLibrary, sha: remoteSha }),
       });
 
       if (!response.ok) {
@@ -582,8 +588,10 @@ export function CharacterMapClient({ library }: Props) {
 
       const payload = (await response.json()) as { ok: true; sha: string };
 
-      setSaveState("saved");
+      window.localStorage.setItem(storageKey, JSON.stringify(nextLibrary));
+      setWorks(nextLibrary.works);
       setRemoteSha(payload.sha);
+      setSaveState("saved");
       setSaveMessage("GitHub 저장소에 반영되었습니다.");
     } catch (error) {
       setSaveState("error");
@@ -1219,14 +1227,14 @@ export function CharacterMapClient({ library }: Props) {
       </section>
 
       <aside className="space-y-6">
-        <section className="rounded-[28px] border border-slate-300/80 bg-white p-6 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
-          <div className="mb-5 flex rounded-2xl border border-slate-200 bg-slate-100/70 p-1">
+        <section className="rounded-[30px] border border-violet-200/70 bg-gradient-to-br from-white via-violet-50/40 to-amber-50/30 p-6 shadow-[0_22px_50px_rgba(124,58,237,0.08)]">
+          <div className="mb-5 flex rounded-2xl border border-violet-200 bg-white/80 p-1 shadow-inner shadow-violet-100/80">
             <button
               type="button"
               onClick={() => setActivePanelTab("add")}
               className={`flex-1 rounded-xl px-3 py-2 text-sm font-semibold transition ${
                 activePanelTab === "add"
-                  ? "bg-slate-900 text-white shadow-sm"
+                  ? "bg-gradient-to-r from-slate-900 to-violet-700 text-white shadow-sm"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -1241,7 +1249,7 @@ export function CharacterMapClient({ library }: Props) {
               }}
               className={`flex-1 rounded-xl px-3 py-2 text-sm font-semibold transition ${
                 activePanelTab === "info"
-                  ? "bg-slate-900 text-white shadow-sm"
+                  ? "bg-gradient-to-r from-slate-900 to-violet-700 text-white shadow-sm"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -1422,7 +1430,11 @@ export function CharacterMapClient({ library }: Props) {
                         type="checkbox"
                         checked={draft.linkedToSelected}
                         onChange={(event) =>
-                          setDraft((current) => ({ ...current, linkedToSelected: event.target.checked }))
+                          setDraft((current) => ({
+                            ...current,
+                            linkedToSelected: event.target.checked,
+                            relationshipType: event.target.checked ? current.relationshipType : "선택 없음",
+                          }))
                         }
                         className="h-4 w-4 rounded border-slate-300 bg-white text-slate-700"
                       />
@@ -1434,12 +1446,12 @@ export function CharacterMapClient({ library }: Props) {
                       onChange={(event) =>
                         setDraft((current) => ({
                           ...current,
-                          relationshipType: event.target.value as RelationshipType,
+                          relationshipType: event.target.value as RelationshipType | "선택 없음",
                         }))
                       }
                       className="w-full rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none disabled:cursor-not-allowed disabled:opacity-50 focus:border-slate-400"
                     >
-                      {relationOptions.map((option) => (
+                      {relationshipSelectionOptions.map((option) => (
                         <option key={option} value={option} className="text-slate-900">
                           {option}
                         </option>
@@ -1459,7 +1471,7 @@ export function CharacterMapClient({ library }: Props) {
 
                     <button
                       type="submit"
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-violet-700 px-4 py-3 text-sm font-semibold text-white transition hover:brightness-110"
                     >
                       <FontAwesomeIcon icon={faWandSparkles} />
                       연결 인물 만들기
@@ -1468,7 +1480,7 @@ export function CharacterMapClient({ library }: Props) {
                     <button
                       type="button"
                       onClick={saveToGithub}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-950"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-violet-200 bg-white/90 px-4 py-3 text-sm font-semibold text-violet-700 transition hover:border-violet-300 hover:bg-violet-50"
                     >
                       <FontAwesomeIcon icon={faCloudArrowUp} />
                       Vercel → GitHub 저장
