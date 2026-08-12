@@ -1,12 +1,25 @@
 {
   "works": [
     {
-      "id": "default",
-      "title": "기본 인물관계도",
-      "titleKo": "기본 인물관계도",
-      "author": "Readingbook",
+      "id": "test-save-check",
+      "title": "테스트 저장",
+      "titleKo": "테스트 저장",
+      "author": "AI",
       "seed": {
-        "nodes": [],
+        "nodes": [
+          {
+            "id": "n1",
+            "name": "테스트인물",
+            "title": "검증자",
+            "summary": "저장 API 확인용",
+            "majorActions": [
+              "저장 테스트"
+            ],
+            "x": 220,
+            "y": 260,
+            "color": "#2563eb"
+          }
+        ],
         "relationships": []
       }
     }
