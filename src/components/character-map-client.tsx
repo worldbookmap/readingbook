@@ -880,6 +880,29 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     });
   }
 
+  function findNodeIdAtPoint(clientX: number, clientY: number, ignoreNodeId?: string) {
+    const hitElement = document.elementsFromPoint(clientX, clientY).find((element) => {
+      const candidateId = (element as HTMLElement).closest("[data-node-id]")?.getAttribute("data-node-id");
+      return Boolean(candidateId && candidateId !== ignoreNodeId);
+    });
+
+    if (hitElement) {
+      return (hitElement as HTMLElement).closest("[data-node-id]")?.getAttribute("data-node-id") ?? null;
+    }
+
+    const fallback = [...document.querySelectorAll<HTMLElement>("[data-node-id]")].find((element) => {
+      const candidateId = element.getAttribute("data-node-id");
+      if (!candidateId || candidateId === ignoreNodeId) {
+        return false;
+      }
+
+      const rect = element.getBoundingClientRect();
+      return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
+    });
+
+    return fallback?.getAttribute("data-node-id") ?? null;
+  }
+
   function handlePointerDown(event: React.PointerEvent<HTMLElement>, nodeId: string, displayScale = zoom) {
     event.preventDefault();
     event.stopPropagation();
@@ -921,10 +944,9 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       window.removeEventListener("pointerup", end);
 
       if (dragState && dragState.moved) {
-        const targetElement = document.elementFromPoint(releaseEvent.clientX, releaseEvent.clientY) as HTMLElement | null;
-        const targetNodeId = targetElement?.closest("[data-node-id]")?.getAttribute("data-node-id");
+        const targetNodeId = findNodeIdAtPoint(releaseEvent.clientX, releaseEvent.clientY, nodeId);
 
-        if (targetNodeId && targetNodeId !== nodeId) {
+        if (targetNodeId) {
           setDragConnectDraft({
             sourceNodeId: nodeId,
             targetNodeId,
@@ -1718,6 +1740,8 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                         <div className="flex flex-col items-center">
                           <button
                             type="button"
+                            data-character-node
+                            data-node-id={node.id}
                             onPointerDown={(event) => {
                               setHideNodeInfoPopup(false);
                               handlePointerDown(event, node.id, mobileTotalScale);
@@ -1972,6 +1996,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                     <div
                       role="button"
                       tabIndex={0}
+                      data-character-node
                       data-node-id={node.id}
                       onPointerDown={(event) => {
                         setHideNodeInfoPopup(false);
