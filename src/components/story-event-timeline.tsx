@@ -146,33 +146,6 @@ export function StoryEventTimeline() {
     }));
   }, [selectedWork]);
 
-  const eventConnections = useMemo(() => {
-    if (!selectedWork || selectedWork.events.length < 2) {
-      return [] as Array<{ fromId: string; toId: string; fromX: number; fromY: number; toX: number; toY: number }>;
-    }
-
-    const sorted = [...selectedWork.events].sort(
-      (left, right) => left.year - right.year || left.title.localeCompare(right.title, "ko"),
-    );
-
-    return sorted.slice(1).map((event, index) => {
-      const previous = sorted[index];
-      const previousCenterX = previous.x + cardWidth / 2;
-      const previousCenterY = previous.y + cardHeight / 2;
-      const eventCenterX = event.x + cardWidth / 2;
-      const eventCenterY = event.y + cardHeight / 2;
-
-      return {
-        fromId: previous.id,
-        toId: event.id,
-        fromX: previousCenterX,
-        fromY: previousCenterY,
-        toX: eventCenterX,
-        toY: eventCenterY,
-      };
-    });
-  }, [selectedWork]);
-
   useEffect(() => {
     const updateLayout = () => {
       const width = window.innerWidth;
@@ -700,19 +673,6 @@ export function StoryEventTimeline() {
                   );
                 })}
 
-                <svg className="pointer-events-none absolute inset-0" viewBox={`0 0 ${boardMetrics.width} ${boardMetrics.height}`}>
-                  {eventConnections.map((connection) => (
-                    <path
-                      key={`${connection.fromId}-${connection.toId}`}
-                      d={`M ${connection.fromX * boardScaleX} ${connection.fromY * boardScaleY} C ${connection.fromX * boardScaleX} ${(connection.fromY + 24) * boardScaleY}, ${(connection.toX * boardScaleX)} ${(connection.toY - 24) * boardScaleY}, ${connection.toX * boardScaleX} ${connection.toY * boardScaleY}`}
-                      stroke="rgba(148, 163, 184, 0.9)"
-                      strokeWidth="2"
-                      fill="none"
-                      strokeDasharray="8 8"
-                    />
-                  ))}
-                </svg>
-
                 {chapterGroups.map(({ chapter, events }, chapterIndex) => {
                   const collapsed = Boolean(collapsedChapters[chapter]);
                   const chapterTop = 16 + chapterIndex * 34;
@@ -722,7 +682,7 @@ export function StoryEventTimeline() {
                       <button
                         type="button"
                         onClick={() => toggleChapter(chapter)}
-                        className="absolute left-4 z-10 rounded-full border border-slate-200 bg-white/80 px-2 py-0.5 text-[8.5px] font-medium uppercase tracking-[0.16em] text-slate-500 shadow-[0_4px_12px_rgba(15,23,42,0.04)] backdrop-blur-sm transition hover:border-slate-300 hover:text-slate-700"
+                        className="absolute left-4 z-10 inline-flex items-center whitespace-nowrap rounded-full border border-slate-200 bg-slate-100/90 px-2.5 py-1 text-[9px] font-medium tracking-[0.12em] text-slate-600 shadow-[0_4px_12px_rgba(15,23,42,0.04)] backdrop-blur-sm transition hover:border-slate-300 hover:text-slate-800 font-serif leading-none"
                         style={{ top: chapterTop }}
                       >
                         {chapter} · {collapsed ? "펼치기" : "접기"}
