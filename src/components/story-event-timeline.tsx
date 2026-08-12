@@ -88,6 +88,7 @@ export function StoryEventTimeline() {
   const [collapsedChapters, setCollapsedChapters] = useState<Record<string, boolean>>({});
   const [isCompact, setIsCompact] = useState(false);
   const [boardViewport, setBoardViewport] = useState({ width: boardWidth, height: boardHeight });
+  const [activeModal, setActiveModal] = useState<"work" | "event" | "edit" | null>(null);
   const boardRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{ id: string; offsetX: number; offsetY: number } | null>(null);
 
@@ -506,57 +507,8 @@ export function StoryEventTimeline() {
   const boardScaleY = boardMetrics.height / boardHeight;
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
-      <aside className="space-y-6">
-        <section className="rounded-[28px] border border-slate-300/80 bg-white p-5 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
-              <FontAwesomeIcon icon={faBookOpen} />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-slate-500">소설 관리</p>
-              <h2 className="text-xl font-semibold text-slate-900">새 작품 추가</h2>
-            </div>
-          </div>
-
-          <form className="mt-5 space-y-3" onSubmit={addWork}>
-            <input
-              value={workDraft.title}
-              onChange={(event) => setWorkDraft((current) => ({ ...current, title: event.target.value }))}
-              placeholder="소설 제목"
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-amber-300"
-            />
-            <input
-              value={workDraft.author}
-              onChange={(event) => setWorkDraft((current) => ({ ...current, author: event.target.value }))}
-              placeholder="작가명(선택)"
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-amber-300"
-            />
-            <select
-              value={workDraft.linkedCharacterWorkId}
-              onChange={(event) =>
-                setWorkDraft((current) => ({ ...current, linkedCharacterWorkId: event.target.value }))
-              }
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-amber-300"
-            >
-              <option value="">인물관계도와 연결하지 않음</option>
-              {characterWorks.map((work) => (
-                <option key={work.id} value={work.id}>
-                  {work.titleKo ?? work.title}
-                </option>
-              ))}
-            </select>
-
-            <button
-              type="submit"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
-            >
-              <FontAwesomeIcon icon={faPlus} />
-              소설 추가
-            </button>
-          </form>
-        </section>
-
+    <div className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
+      <aside className="space-y-5">
         <section className="rounded-[28px] border border-slate-300/80 bg-white p-5 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -624,6 +576,15 @@ export function StoryEventTimeline() {
 
             <button
               type="button"
+              onClick={() => setActiveModal("work")}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
+            >
+              <FontAwesomeIcon icon={faBookOpen} />
+              새 작품 추가
+            </button>
+
+            <button
+              type="button"
               onClick={deleteSelectedWork}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100"
             >
@@ -639,50 +600,30 @@ export function StoryEventTimeline() {
               <FontAwesomeIcon icon={faCalendarDays} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-500">주요 사건 추가</p>
+              <p className="text-sm font-semibold text-slate-500">주요 사건</p>
               <h2 className="text-xl font-semibold text-slate-900">새 사건 카드</h2>
             </div>
           </div>
 
-          <form className="mt-5 space-y-3" onSubmit={addEvent}>
-            <input
-              value={eventDraft.title}
-              onChange={(event) => setEventDraft((current) => ({ ...current, title: event.target.value }))}
-              placeholder="사건 제목"
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
-            />
-            <input
-              value={eventDraft.yearLabel}
-              onChange={(event) => setEventDraft((current) => ({ ...current, yearLabel: event.target.value }))}
-              placeholder="예: 1776 또는 BC 3000"
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
-            />
-            <input
-              value={eventDraft.chapter}
-              onChange={(event) => setEventDraft((current) => ({ ...current, chapter: event.target.value }))}
-              placeholder="장면 or 챕터"
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
-            />
-            <textarea
-              value={eventDraft.summary}
-              onChange={(event) => setEventDraft((current) => ({ ...current, summary: event.target.value }))}
-              placeholder="사건 설명"
-              className="h-24 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
-            />
-            <input
-              value={eventDraft.tags}
-              onChange={(event) => setEventDraft((current) => ({ ...current, tags: event.target.value }))}
-              placeholder="태그를 쉼표로 구분"
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
-            />
+          <div className="mt-5 space-y-3">
             <button
-              type="submit"
+              type="button"
+              onClick={() => setActiveModal("event")}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-sky-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-500"
             >
               <FontAwesomeIcon icon={faPlus} />
-              사건 카드 추가
+              사건 추가
             </button>
-          </form>
+            <button
+              type="button"
+              onClick={() => setActiveModal("edit")}
+              disabled={!selectedEvent}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <FontAwesomeIcon icon={faCalendarDays} />
+              선택 사건 수정
+            </button>
+          </div>
         </section>
       </aside>
 
@@ -694,14 +635,32 @@ export function StoryEventTimeline() {
               {selectedWork?.titleKo ?? selectedWork?.title ?? "소설 사건 타임라인"}
             </h2>
           </div>
-          <button
-            type="button"
-            onClick={saveToGithub}
-            className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-700 transition hover:border-slate-400 hover:text-slate-950"
-          >
-            <FontAwesomeIcon icon={faCloudArrowUp} className="mr-2" />
-            GitHub 저장
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveModal("work")}
+              className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-700 transition hover:border-slate-400 hover:text-slate-950"
+            >
+              <FontAwesomeIcon icon={faBookOpen} className="mr-2" />
+              작품 추가
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveModal("event")}
+              className="rounded-full border border-slate-300 bg-sky-50 px-4 py-2 text-sm text-sky-700 transition hover:border-sky-400 hover:text-sky-900"
+            >
+              <FontAwesomeIcon icon={faPlus} className="mr-2" />
+              사건 추가
+            </button>
+            <button
+              type="button"
+              onClick={saveToGithub}
+              className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-700 transition hover:border-slate-400 hover:text-slate-950"
+            >
+              <FontAwesomeIcon icon={faCloudArrowUp} className="mr-2" />
+              GitHub 저장
+            </button>
+          </div>
         </div>
 
         <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
@@ -852,37 +811,32 @@ export function StoryEventTimeline() {
             ) : null}
 
             {selectedEvent ? (
-              <div className="mt-4 space-y-3">
-                <input
-                  value={selectedEvent.title}
-                  onChange={(event) => updateSelectedEvent("title", event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-sky-300"
-                />
-                <input
-                  value={selectedEvent.yearLabel}
-                  onChange={(event) => updateSelectedEvent("yearLabel", event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-sky-300"
-                />
-                <input
-                  value={selectedEvent.chapter ?? ""}
-                  onChange={(event) => updateSelectedEvent("chapter", event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-sky-300"
-                />
-                <textarea
-                  value={selectedEvent.summary}
-                  onChange={(event) => updateSelectedEvent("summary", event.target.value)}
-                  className="h-24 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-sky-300"
-                />
-                <input
-                  value={selectedEvent.tags.join(", ")}
-                  onChange={(event) =>
-                    updateSelectedEvent("tags", event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean))
-                  }
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-sky-300"
-                />
+              <div className="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-semibold text-slate-500">제목</span>
+                  <span className="font-medium text-slate-900">{selectedEvent.title}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-semibold text-slate-500">연도</span>
+                  <span>{selectedEvent.yearLabel}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-semibold text-slate-500">챕터</span>
+                  <span>{selectedEvent.chapter}</span>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-3 text-xs leading-6 text-slate-600">
+                  {selectedEvent.summary}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {selectedEvent.tags.map((tag) => (
+                    <span key={tag} className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-medium text-slate-600">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
               </div>
             ) : (
-              <p className="mt-4 text-sm text-slate-500">사건을 선택해 상세 내용을 수정하세요.</p>
+              <p className="mt-4 text-sm text-slate-500">사건을 선택해 상세 내용을 확인하세요.</p>
             )}
           </div>
         </div>
@@ -893,6 +847,140 @@ export function StoryEventTimeline() {
           </p>
         </div>
       </section>
+
+      {activeModal ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4">
+          <div className="w-full max-w-lg rounded-[30px] border border-slate-200 bg-white p-5 shadow-[0_32px_80px_rgba(15,23,42,0.25)]">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-4">
+              <div>
+                <p className="text-sm font-semibold text-slate-500">
+                  {activeModal === "work" ? "새 작품" : activeModal === "event" ? "새 사건" : "사건 수정"}
+                </p>
+                <h3 className="text-xl font-semibold text-slate-900">
+                  {activeModal === "work" ? "소설 추가" : activeModal === "event" ? "이벤트 카드 생성" : "선택한 사건 수정"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveModal(null)}
+                className="rounded-full border border-slate-300 px-3 py-2 text-sm text-slate-700"
+              >
+                닫기
+              </button>
+            </div>
+
+            {activeModal === "work" ? (
+              <form className="mt-5 space-y-3" onSubmit={(event) => { addWork(event); setActiveModal(null); }}>
+                <input
+                  value={workDraft.title}
+                  onChange={(event) => setWorkDraft((current) => ({ ...current, title: event.target.value }))}
+                  placeholder="소설 제목"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-amber-300"
+                />
+                <input
+                  value={workDraft.author}
+                  onChange={(event) => setWorkDraft((current) => ({ ...current, author: event.target.value }))}
+                  placeholder="작가명(선택)"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-amber-300"
+                />
+                <select
+                  value={workDraft.linkedCharacterWorkId}
+                  onChange={(event) =>
+                    setWorkDraft((current) => ({ ...current, linkedCharacterWorkId: event.target.value }))
+                  }
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-amber-300"
+                >
+                  <option value="">인물관계도와 연결하지 않음</option>
+                  {characterWorks.map((work) => (
+                    <option key={work.id} value={work.id}>
+                      {work.titleKo ?? work.title}
+                    </option>
+                  ))}
+                </select>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-2xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700">취소</button>
+                  <button type="submit" className="rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">추가하기</button>
+                </div>
+              </form>
+            ) : null}
+
+            {activeModal === "event" ? (
+              <form className="mt-5 space-y-3" onSubmit={(event) => { addEvent(event); setActiveModal(null); }}>
+                <input
+                  value={eventDraft.title}
+                  onChange={(event) => setEventDraft((current) => ({ ...current, title: event.target.value }))}
+                  placeholder="사건 제목"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                />
+                <input
+                  value={eventDraft.yearLabel}
+                  onChange={(event) => setEventDraft((current) => ({ ...current, yearLabel: event.target.value }))}
+                  placeholder="예: 1776 또는 BC 3000"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                />
+                <input
+                  value={eventDraft.chapter}
+                  onChange={(event) => setEventDraft((current) => ({ ...current, chapter: event.target.value }))}
+                  placeholder="장면 or 챕터"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                />
+                <textarea
+                  value={eventDraft.summary}
+                  onChange={(event) => setEventDraft((current) => ({ ...current, summary: event.target.value }))}
+                  placeholder="사건 설명"
+                  className="h-28 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                />
+                <input
+                  value={eventDraft.tags}
+                  onChange={(event) => setEventDraft((current) => ({ ...current, tags: event.target.value }))}
+                  placeholder="태그를 쉼표로 구분"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                />
+                <div className="flex justify-end gap-2 pt-2">
+                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-2xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700">취소</button>
+                  <button type="submit" className="rounded-2xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white">추가하기</button>
+                </div>
+              </form>
+            ) : null}
+
+            {activeModal === "edit" && selectedEvent ? (
+              <div className="mt-5 space-y-3">
+                <input
+                  value={selectedEvent.title}
+                  onChange={(event) => updateSelectedEvent("title", event.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                />
+                <input
+                  value={selectedEvent.yearLabel}
+                  onChange={(event) => updateSelectedEvent("yearLabel", event.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                />
+                <input
+                  value={selectedEvent.chapter ?? ""}
+                  onChange={(event) => updateSelectedEvent("chapter", event.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                />
+                <textarea
+                  value={selectedEvent.summary}
+                  onChange={(event) => updateSelectedEvent("summary", event.target.value)}
+                  className="h-28 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                />
+                <input
+                  value={selectedEvent.tags.join(", ")}
+                  onChange={(event) =>
+                    updateSelectedEvent("tags", event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean))
+                  }
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                />
+                <div className="flex justify-end gap-2 pt-2">
+                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-2xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700">닫기</button>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
