@@ -777,20 +777,19 @@ export function CharacterMapClient({ library }: Props) {
   }
 
   function resetSeed() {
-    const fallbackSeed = works.find((work) => work.id === selectedWorkId) ?? works[0];
+    const nextWork = works.find((work) => work.id === selectedWorkId) ?? works[0];
 
-    if (!fallbackSeed) {
+    if (!nextWork) {
       return;
     }
 
-    const nextNodes = fallbackSeed.seed.nodes;
-    const nextRelationships = fallbackSeed.seed.relationships;
-    setNodes(nextNodes);
-    setRelationships(nextRelationships);
-    setSelectedId(getPreferredNodeId(nextNodes, nextRelationships));
+    setNodes([]);
+    setRelationships([]);
+    setSelectedId("");
     setSelectedRelationshipId(null);
     setDraft(defaultDraft);
-    window.localStorage.removeItem(storageKey);
+    setSaveState("idle");
+    setSaveMessage(`작품 "${nextWork.titleKo ?? nextWork.title}"이(가) 초기화되었습니다. 저장 버튼을 눌러 반영하세요.`);
   }
 
   function updateNodePosition(nodeId: string, x: number, y: number) {
@@ -1204,7 +1203,7 @@ export function CharacterMapClient({ library }: Props) {
               onClick={resetSeed}
               className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-600 transition hover:border-slate-400 hover:text-slate-950"
             >
-              시드로 되돌리기
+              초기화
             </button>
           </div>
         </div>
