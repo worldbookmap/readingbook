@@ -21,7 +21,7 @@ const featureCards = [
     href: "/timeline",
     icon: faGlobe,
     eyebrow: "History Atlas",
-    title: "지역별 역사 연표",
+    title: "세계사 역사 연표",
     description:
       "서유럽, 동유럽, 아시아, 미국, 남미, 기타 지역으로 나눈 카드형 타임라인 보드입니다. 연도 카드 추가와 이동이 가능합니다.",
     accent: "from-slate-100 to-white",
@@ -41,22 +41,28 @@ export default function Home() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#f5f5f3] text-slate-900">
       <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-4 py-8 sm:px-6 lg:px-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-300/70 bg-white px-6 py-8 shadow-[0_20px_60px_rgba(0,0,0,0.05)] sm:px-8 sm:py-10 lg:px-12 lg:py-14">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(0,0,0,0.04),_transparent_32%)]" />
+        <section
+          className="relative overflow-hidden rounded-[32px] border border-slate-300/70 bg-white px-6 py-8 shadow-[0_20px_60px_rgba(0,0,0,0.05)] sm:px-8 sm:py-10 lg:px-12 lg:py-14"
+          style={{
+            backgroundImage: "url('/assets/bgBooks.jpeg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.88),rgba(255,255,255,0.76),rgba(255,255,255,0.84))]" />
           <div className="relative grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_320px] lg:items-end">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-slate-50 px-3.5 py-2 text-sm font-medium text-slate-600">
+              <div className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/80 px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur-sm">
                 <FontAwesomeIcon icon={faBookOpenReader} />
-                독서용 기록 웹앱
+                Reading Workspace
               </div>
 
               <h1 className="mt-6 max-w-4xl text-4xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-5xl lg:text-6xl">
-                책 읽는 흐름을
-                <span className="mt-2 block text-slate-700">더 선명하게 정리합니다</span>
+                책을 읽는 흐름을 더 정리하는 공간
               </h1>
 
-              <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
-                인물 관계와 역사 맥락을 한곳에 모아, 읽는 과정이 더 자연스럽고 명료해지도록 설계된 워크스페이스입니다.
+              <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-700">
+                읽는 동안 필요한 인물, 사건, 역사 맥락을 한곳에 정리해두는 브랜드형 워크스페이스입니다.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
@@ -64,14 +70,14 @@ export default function Home() {
                   href="/characters"
                   className="inline-flex items-center gap-2 rounded-full bg-black px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800"
                 >
-                  관계도 시작
+                  관계도 보기
                   <FontAwesomeIcon icon={faArrowRight} />
                 </Link>
                 <Link
                   href="/timeline"
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-400 hover:text-slate-950"
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/80 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-400 hover:text-slate-950"
                 >
-                  연표 보드 열기
+                  역사 연표 보기
                   <FontAwesomeIcon icon={faArrowRight} />
                 </Link>
               </div>

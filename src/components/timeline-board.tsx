@@ -556,7 +556,7 @@ export function TimelineBoard({ initialCards }: Props) {
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">Timeline Board</p>
-            <h2 className="mt-1 text-2xl font-semibold text-slate-900">지역별 역사 연표</h2>
+            <h2 className="mt-1 text-2xl font-semibold text-slate-900">역사 연표</h2>
           </div>
           <div className="hidden items-center gap-3 rounded-full bg-slate-100 px-4 py-2 text-sm text-slate-600 lg:flex">
             <FontAwesomeIcon icon={faArrowsLeftRight} className="text-slate-700" />

@@ -19,16 +19,14 @@ export default function StoryEventsPage() {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <p className="inline-flex rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-sm font-semibold uppercase tracking-[0.24em] text-slate-600">
-                Story Pulse
+                Story Timeline
               </p>
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-5xl">
-                소설의 핵심 사건을
-                <br />
-                카드 타임라인으로 정리합니다.
+                소설 속 사건을 흐름으로 정리하는 보드
               </h1>
             </div>
             <div className="max-w-xl rounded-[24px] border border-slate-300 bg-slate-50/80 p-5 text-sm leading-7 text-slate-600">
-              역사 연표와 달리, 한 소설 안에서 사건이 겹치고 회귀하는 흐름을 카드로 놓아둘 수 있습니다. 각 사건은 자유롭게 드래그해서 겹쳐 보이게 배치할 수 있습니다.
+              소설의 핵심 사건들을 카드로 놓고 흐름을 따라 읽어보세요.
             </div>
           </div>
         </section>

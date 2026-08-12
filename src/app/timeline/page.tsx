@@ -21,16 +21,14 @@ export default function TimelinePage() {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <p className="inline-flex rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-sm font-semibold uppercase tracking-[0.24em] text-slate-600">
-                History Desk
+                History Atlas
               </p>
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-5xl">
-                지역별 역사 사실을
-                <br />
-                카드 보드로 정리합니다.
+                복잡한 사건과 연도를 한눈에 정리하는 시간표
               </h1>
             </div>
             <div className="max-w-xl rounded-[24px] border border-slate-300 bg-slate-50/80 p-5 text-sm leading-7 text-slate-600">
-              BC 3000부터 주요 시점을 시드 데이터로 넣어두고, 읽는 책의 맥락에 맞게 사건 카드를 지역 간에 이동시키거나 수정할 수 있습니다.
+              외우면 까먹는 세계사의 주요 사건들을 연도별로 정리해두면 훨씬 읽기 편해집니다.
             </div>
           </div>
         </section>
