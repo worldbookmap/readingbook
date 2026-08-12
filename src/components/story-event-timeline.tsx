@@ -722,10 +722,10 @@ export function StoryEventTimeline() {
                       <button
                         type="button"
                         onClick={() => toggleChapter(chapter)}
-                        className="absolute left-4 z-10 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-700"
+                        className="absolute left-4 z-10 rounded-full border border-slate-200 bg-white/80 px-2 py-0.5 text-[8.5px] font-medium uppercase tracking-[0.16em] text-slate-500 shadow-[0_4px_12px_rgba(15,23,42,0.04)] backdrop-blur-sm transition hover:border-slate-300 hover:text-slate-700"
                         style={{ top: chapterTop }}
                       >
-                        {chapter} {collapsed ? "펼치기" : "접기"}
+                        {chapter} · {collapsed ? "펼치기" : "접기"}
                       </button>
 
                       {!collapsed ? (
