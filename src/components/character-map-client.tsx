@@ -106,6 +106,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [hideNodeInfoPopup, setHideNodeInfoPopup] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [saveMessage, setSaveMessage] = useState("Vercel → GitHub 저장 준비 중");
@@ -358,7 +359,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const minimapHeight = boardHeight * minimapScale;
   const viewportWidth = Math.min(boardWidth, 920 / zoom);
   const viewportHeight = Math.min(boardHeight, 760 / zoom);
-  const mobileBoardScale = 0.6;
+  const mobileBoardScale = 0.56;
   const mobileTotalScale = mobileBoardScale * zoom;
 
   function getBoardScale(currentZoom = zoom) {
@@ -366,7 +367,8 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   }
 
   function clampPan(nextPan: { x: number; y: number }, scale = zoom) {
-    const viewport = boardViewportRef.current;
+    const isMobile = window.innerWidth < 1024;
+    const viewport = isMobile ? mobileBoardViewportRef.current : boardViewportRef.current;
     const viewportWidth = viewport?.clientWidth ?? boardWidth;
     const viewportHeight = viewport?.clientHeight ?? boardHeight;
     const effectiveScale = getBoardScale(scale);
@@ -988,7 +990,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
 
   function handleWheelZoom(event: React.WheelEvent<HTMLDivElement>) {
     event.preventDefault();
-    const delta = event.deltaY > 0 ? -0.025 : 0.025;
+    const delta = event.deltaY > 0 ? -0.018 : 0.018;
     updateZoom(zoom + delta);
   }
 
@@ -1012,7 +1014,8 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   }
 
   useEffect(() => {
-    const viewport = boardViewportRef.current ?? mobileBoardViewportRef.current;
+    const isMobile = window.innerWidth < 1024;
+    const viewport = isMobile ? mobileBoardViewportRef.current : boardViewportRef.current;
     if (!viewport || nodes.length === 0) {
       return;
     }
@@ -1034,11 +1037,23 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       y: viewportHeight / 2 - targetCenterY * boardScale,
     };
 
+    if (isMobile) {
+      const boardCenterOffsetX = (boardWidth * boardScale - viewportWidth) / 2;
+      const boardCenterOffsetY = (boardHeight * boardScale - viewportHeight) / 2;
+      const mobilePan = {
+        x: nextPan.x + boardCenterOffsetX + 6,
+        y: nextPan.y + boardCenterOffsetY - 8,
+      };
+      setPan(mobilePan);
+      return;
+    }
+
+    const clampedPan = clampPan(nextPan, boardScale);
     setPan((currentPan) => {
-      if (Math.abs(currentPan.x - nextPan.x) < 0.5 && Math.abs(currentPan.y - nextPan.y) < 0.5) {
+      if (Math.abs(currentPan.x - clampedPan.x) < 0.5 && Math.abs(currentPan.y - clampedPan.y) < 0.5) {
         return currentPan;
       }
-      return clampPan(nextPan, boardScale);
+      return clampedPan;
     });
   }, [selectedId, selectedNode, nodes, selectedWorkId, zoom]);
 
@@ -1084,7 +1099,10 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
           const startDistance = pinchGestureRef.current?.startDistance ?? nextDistance;
           const startZoom = pinchGestureRef.current?.startZoom ?? zoom;
           const scaleFactor = nextDistance / startDistance;
-          const nextZoom = Math.min(maxZoom, Math.max(minZoom, Number((startZoom * (0.7 + scaleFactor * 0.3)).toFixed(2))));
+          const nextZoom = Math.min(
+            maxZoom,
+            Math.max(minZoom, Number((startZoom * (0.9 + (scaleFactor - 1) * 0.55)).toFixed(2))),
+          );
           setZoom(nextZoom);
           setPan((currentPan) => clampPan(currentPan, nextZoom));
         }
@@ -1159,6 +1177,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     }
 
     setHoveredNodeId(null);
+    setHideNodeInfoPopup(true);
     setSelectedRelationshipId(null);
     clearRelationshipSelection();
     viewportDragRef.current = {
@@ -1509,7 +1528,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             <div className="mt-3 grid grid-cols-3 gap-2">
               <button
                 type="button"
-                onClick={() => updateZoom(zoom - 0.03)}
+                onClick={() => updateZoom(zoom - 0.02)}
                 className="inline-flex items-center justify-center gap-1 rounded-2xl border border-slate-200 bg-white px-2.5 py-2.5 text-[11px] font-semibold text-slate-700 shadow-[0_4px_12px_rgba(15,23,42,0.05)] transition active:scale-[0.98] hover:border-slate-300 hover:text-slate-950"
                 aria-label="모바일 축소"
               >
@@ -1518,7 +1537,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               </button>
               <button
                 type="button"
-                onClick={() => updateZoom(zoom + 0.03)}
+                onClick={() => updateZoom(zoom + 0.02)}
                 className="inline-flex items-center justify-center gap-1 rounded-2xl border border-slate-200 bg-white px-2.5 py-2.5 text-[11px] font-semibold text-slate-700 shadow-[0_4px_12px_rgba(15,23,42,0.05)] transition active:scale-[0.98] hover:border-slate-300 hover:text-slate-950"
                 aria-label="모바일 확대"
               >
@@ -1535,9 +1554,9 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             </div>
 
             <div className="mt-4 overflow-auto rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
-              <div ref={mobileBoardViewportRef} className="relative h-[420px] min-w-[320px] px-1">
+              <div ref={mobileBoardViewportRef} className="relative h-[420px] min-w-[320px] px-3">
                 <div
-                  className="relative mx-auto"
+                  className="relative"
                   data-character-board
                   onPointerDown={handleBoardBackgroundPointerDown}
                   onPointerUp={handleBoardBackgroundPointerUp}
@@ -1546,10 +1565,10 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                     height: boardHeight,
                     width: boardWidth,
                     transform: `translate(${pan.x}px, ${pan.y}px) scale(${mobileTotalScale})`,
-                    transformOrigin: "center center",
+                    transformOrigin: "top left",
                     touchAction: "none",
                     userSelect: "none",
-                    margin: "0 auto",
+                    margin: 0,
                   }}
                 >
                   <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">
@@ -1680,7 +1699,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                   {nodes.map((node) => {
                     const isSelected = node.id === selectedNode?.id;
                     const isHovered = hoveredNodeId === node.id;
-                    const showInfo = isSelected || isHovered;
+                    const showInfo = !hideNodeInfoPopup && (isSelected || isHovered);
                     const couplePair = getCouplePair(node.id);
                     const isPaired = Boolean(couplePair && couplePair.pairedId);
 
@@ -1692,8 +1711,12 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                         <div className="flex flex-col items-center">
                           <button
                             type="button"
-                            onPointerDown={(event) => handlePointerDown(event, node.id, mobileTotalScale)}
+                            onPointerDown={(event) => {
+                              setHideNodeInfoPopup(false);
+                              handlePointerDown(event, node.id, mobileTotalScale);
+                            }}
                             onClick={() => {
+                              setHideNodeInfoPopup(false);
                               setSelectedId(node.id);
                               setSelectedRelationshipId(null);
                             }}
@@ -1929,7 +1952,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             {nodes.map((node) => {
               const isSelected = node.id === selectedNode?.id;
               const isHovered = hoveredNodeId === node.id;
-              const showInfo = isSelected || isHovered;
+              const showInfo = !hideNodeInfoPopup && (isSelected || isHovered);
               const couplePair = getCouplePair(node.id);
               const isPaired = Boolean(couplePair && couplePair.pairedId);
 
@@ -1943,19 +1966,27 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                       role="button"
                       tabIndex={0}
                       data-node-id={node.id}
-                      onPointerDown={(event) => handlePointerDown(event, node.id)}
-                      onMouseEnter={() => setHoveredNodeId(node.id)}
+                      onPointerDown={(event) => {
+                        setHideNodeInfoPopup(false);
+                        handlePointerDown(event, node.id);
+                      }}
+                      onMouseEnter={() => {
+                        setHideNodeInfoPopup(false);
+                        setHoveredNodeId(node.id);
+                      }}
                       onMouseLeave={() => setHoveredNodeId(null)}
                       onFocus={() => setHoveredNodeId(node.id)}
                       onBlur={() => setHoveredNodeId(null)}
                       onKeyDown={(event) => {
                         if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();
+                          setHideNodeInfoPopup(false);
                           setSelectedId(node.id);
                           setSelectedRelationshipId(null);
                         }
                       }}
                       onClick={() => {
+                        setHideNodeInfoPopup(false);
                         setSelectedId(node.id);
                         setSelectedRelationshipId(null);
                       }}
