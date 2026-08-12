@@ -811,8 +811,8 @@ export function CharacterMapClient({ library }: Props) {
         </div>
 
         <div className="border-b border-slate-200/80 bg-slate-50/70 px-4 py-4 sm:px-6">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex-1 min-w-0">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
+            <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">작품 목록</p>
               <div className="relative mt-2">
                 <select
@@ -833,19 +833,22 @@ export function CharacterMapClient({ library }: Props) {
               </div>
             </div>
 
-            <form onSubmit={handleCreateWork} className="flex w-full max-w-[420px] flex-col gap-2 sm:flex-row">
-              <input
-                value={newWorkTitle}
-                onChange={(event) => setNewWorkTitle(event.target.value)}
-                placeholder="새 작품 이름"
-                className="w-full rounded-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400"
-              />
-              <button
-                type="submit"
-                className="rounded-full bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
-              >
-                작품 추가
-              </button>
+            <form onSubmit={handleCreateWork} className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">작품 추가</p>
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row xl:flex-col 2xl:flex-row">
+                <input
+                  value={newWorkTitle}
+                  onChange={(event) => setNewWorkTitle(event.target.value)}
+                  placeholder="새 작품 이름"
+                  className="w-full rounded-full border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400"
+                />
+                <button
+                  type="submit"
+                  className="whitespace-nowrap rounded-full bg-slate-900 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700"
+                >
+                  작품 추가
+                </button>
+              </div>
             </form>
           </div>
         </div>
