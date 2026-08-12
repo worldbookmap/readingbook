@@ -1,28 +1,13 @@
 {
   "works": [
     {
-      "id": "test-save-check",
-      "title": "테스트 저장",
-      "titleKo": "테스트 저장",
-      "author": "AI",
+      "id": "default",
+      "title": "기본 인물관계도",
+      "titleKo": "기본 인물관계도",
+      "author": "Readingbook",
       "seed": {
         "nodes": [
           {
-<<<<<<< HEAD
-            "id": "n1",
-            "name": "테스트인물",
-            "title": "검증자",
-            "summary": "저장 API 확인용",
-            "majorActions": [
-              "저장 테스트"
-            ],
-            "x": 220,
-            "y": 260,
-            "color": "#2563eb"
-          }
-        ],
-        "relationships": []
-=======
             "id": "hero",
             "name": "주인공",
             "title": "관찰자",
@@ -94,7 +79,44 @@
             "label": "과거의 증인"
           }
         ]
->>>>>>> 6342448 (저장문제 해결)
+      }
+    },
+    {
+      "id": "e430a2cf-ed7d-4c20-a62e-abe378a9781c",
+      "title": "테스트1",
+      "titleKo": "테스트1",
+      "author": "새 작품",
+      "seed": {
+        "nodes": [
+          {
+            "id": "8a1edd12-a220-436d-8327-26967f4d7465",
+            "name": "정진욱",
+            "title": "주인공",
+            "summary": "나르시스트",
+            "majorActions": [],
+            "x": 662,
+            "y": 542.4,
+            "color": "#f97316"
+          },
+          {
+            "id": "aa11bd3d-40db-4358-9c7f-15fe9f7f477f",
+            "name": "구지선",
+            "title": "와이프",
+            "summary": "아직 메모가 없습니다.",
+            "majorActions": [],
+            "x": 720,
+            "y": 698.4,
+            "color": "#f97316"
+          }
+        ],
+        "relationships": [
+          {
+            "id": "a174daaf-3731-47c1-b7c6-eed295f9d177",
+            "fromId": "8a1edd12-a220-436d-8327-26967f4d7465",
+            "toId": "aa11bd3d-40db-4358-9c7f-15fe9f7f477f",
+            "type": "친구"
+          }
+        ]
       }
     }
   ]
