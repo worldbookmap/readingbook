@@ -143,6 +143,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const didMountRef = useRef(false);
   const mapViewportRef = useRef<HTMLDivElement | null>(null);
   const boardViewportRef = useRef<HTMLDivElement | null>(null);
+  const mobileBoardViewportRef = useRef<HTMLDivElement | null>(null);
   const boardContentRef = useRef<HTMLDivElement | null>(null);
   const boardExportRef = useRef<HTMLDivElement | null>(null);
   const focusFrameRef = useRef<number | null>(null);
@@ -1010,31 +1011,8 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     ).node;
   }
 
-  function animatePanTo(nextPan: { x: number; y: number }) {
-    if (focusFrameRef.current) {
-      window.cancelAnimationFrame(focusFrameRef.current);
-    }
-
-    const tick = () => {
-      setPan((currentPan) => {
-        const nextX = currentPan.x + (nextPan.x - currentPan.x) * 0.16;
-        const nextY = currentPan.y + (nextPan.y - currentPan.y) * 0.16;
-
-        if (Math.abs(nextPan.x - nextX) < 0.4 && Math.abs(nextPan.y - nextY) < 0.4) {
-          focusFrameRef.current = null;
-          return nextPan;
-        }
-
-        focusFrameRef.current = window.requestAnimationFrame(tick);
-        return { x: nextX, y: nextY };
-      });
-    };
-
-    focusFrameRef.current = window.requestAnimationFrame(tick);
-  }
-
   useEffect(() => {
-    const viewport = boardViewportRef.current;
+    const viewport = boardViewportRef.current ?? mobileBoardViewportRef.current;
     if (!viewport || nodes.length === 0) {
       return;
     }
@@ -1047,25 +1025,21 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     const viewportWidth = viewport.clientWidth || boardWidth;
     const viewportHeight = viewport.clientHeight || boardHeight;
     const boardScale = getBoardScale();
-    const effectiveViewportWidth = window.innerWidth < 1024 ? viewportWidth : viewportWidth;
 
     const targetCenterX = targetNode ? targetNode.x + iconNodeSize / 2 : boardWidth / 2;
     const targetCenterY = targetNode ? targetNode.y + iconNodeSize / 2 : boardHeight / 2;
 
-    const mobilePanX = effectiveViewportWidth / 2 - targetCenterX * boardScale;
-    const mobilePanY = viewportHeight / 2 - targetCenterY * boardScale;
-
-    animatePanTo({
-      x: mobilePanX,
-      y: mobilePanY,
-    });
-
-    return () => {
-      if (focusFrameRef.current) {
-        window.cancelAnimationFrame(focusFrameRef.current);
-        focusFrameRef.current = null;
-      }
+    const nextPan = {
+      x: viewportWidth / 2 - targetCenterX * boardScale,
+      y: viewportHeight / 2 - targetCenterY * boardScale,
     };
+
+    setPan((currentPan) => {
+      if (Math.abs(currentPan.x - nextPan.x) < 0.5 && Math.abs(currentPan.y - nextPan.y) < 0.5) {
+        return currentPan;
+      }
+      return clampPan(nextPan, boardScale);
+    });
   }, [selectedId, selectedNode, nodes, selectedWorkId, zoom]);
 
   function toggleFullscreen() {
@@ -1186,7 +1160,6 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
 
     setHoveredNodeId(null);
     setSelectedRelationshipId(null);
-    setSelectedId("");
     clearRelationshipSelection();
     viewportDragRef.current = {
       startX: event.clientX,
@@ -1562,7 +1535,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             </div>
 
             <div className="mt-4 overflow-auto rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
-              <div className="relative h-[420px] min-w-[320px] px-1">
+              <div ref={mobileBoardViewportRef} className="relative h-[420px] min-w-[320px] px-1">
                 <div
                   className="relative mx-auto"
                   data-character-board
