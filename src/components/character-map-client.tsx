@@ -1,6 +1,8 @@
 "use client";
 
 import { FormEvent, startTransition, useEffect, useRef, useState } from "react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowsUpDownLeftRight,
@@ -86,6 +88,8 @@ export function CharacterMapClient({ library }: Props) {
   const [activePanelTab, setActivePanelTab] = useState<"add" | "info">("add");
   const didMountRef = useRef(false);
   const mapViewportRef = useRef<HTMLDivElement | null>(null);
+  const boardExportRef = useRef<HTMLDivElement | null>(null);
+  const focusFrameRef = useRef<number | null>(null);
   const dragRef = useRef<{
     id: string;
     offsetX: number;
@@ -470,17 +474,34 @@ export function CharacterMapClient({ library }: Props) {
   }
 
   function updateNodePosition(nodeId: string, x: number, y: number) {
-    setNodes((current) =>
-      current.map((node) =>
+    setNodes((current) => {
+      const currentNode = current.find((node) => node.id === nodeId);
+      if (!currentNode) {
+        return current;
+      }
+
+      const nextX = Math.min(Math.max(20, x), boardWidth - nodeWidth - 20);
+      const nextY = Math.min(Math.max(20, y), boardHeight - nodeHeight - 20);
+
+      if (nodeId === selectedId) {
+        const deltaX = nextX - currentNode.x;
+        const deltaY = nextY - currentNode.y;
+        setPan((currentPan) => ({
+          x: currentPan.x - deltaX * zoom,
+          y: currentPan.y - deltaY * zoom,
+        }));
+      }
+
+      return current.map((node) =>
         node.id === nodeId
           ? {
               ...node,
-              x: Math.min(Math.max(20, x), boardWidth - nodeWidth - 20),
-              y: Math.min(Math.max(20, y), boardHeight - nodeHeight - 20),
+              x: nextX,
+              y: nextY,
             }
           : node,
-      ),
-    );
+      );
+    });
   }
 
   function handlePointerDown(event: React.PointerEvent<HTMLElement>, nodeId: string, displayScale = zoom) {
@@ -597,13 +618,40 @@ export function CharacterMapClient({ library }: Props) {
     ).node;
   }
 
+  function animatePanTo(nextPan: { x: number; y: number }) {
+    if (focusFrameRef.current) {
+      window.cancelAnimationFrame(focusFrameRef.current);
+    }
+
+    const tick = () => {
+      setPan((currentPan) => {
+        const nextX = currentPan.x + (nextPan.x - currentPan.x) * 0.16;
+        const nextY = currentPan.y + (nextPan.y - currentPan.y) * 0.16;
+
+        if (Math.abs(nextPan.x - nextX) < 0.4 && Math.abs(nextPan.y - nextY) < 0.4) {
+          focusFrameRef.current = null;
+          return nextPan;
+        }
+
+        focusFrameRef.current = window.requestAnimationFrame(tick);
+        return { x: nextX, y: nextY };
+      });
+    };
+
+    focusFrameRef.current = window.requestAnimationFrame(tick);
+  }
+
   useEffect(() => {
     const viewport = mapViewportRef.current;
-    if (!viewport) {
+    if (!viewport || nodes.length === 0) {
       return;
     }
 
-    const targetNode = nodes.find((node) => node.id === selectedId) ?? getFocusNode();
+    if (dragRef.current && dragRef.current.id === selectedId) {
+      return;
+    }
+
+    const targetNode = selectedNode ?? getFocusNode();
     const viewportRect = viewport.getBoundingClientRect();
     const viewportWidth = Math.max(viewportRect.width, 680);
     const viewportHeight = Math.max(viewportRect.height, 520);
@@ -611,13 +659,49 @@ export function CharacterMapClient({ library }: Props) {
     const targetCenterX = targetNode ? targetNode.x + iconNodeSize / 2 : boardWidth / 2;
     const targetCenterY = targetNode ? targetNode.y + iconNodeSize / 2 : boardHeight / 2;
 
-    const nextPan = {
-      x: (viewportWidth - boardWidth * zoom) / 2 + (boardWidth / 2 - targetCenterX) * zoom,
-      y: (viewportHeight - boardHeight * zoom) / 2 + (boardHeight / 2 - targetCenterY) * zoom,
-    };
+    animatePanTo({
+      x: viewportWidth / 2 - targetCenterX * zoom,
+      y: viewportHeight / 2 - targetCenterY * zoom,
+    });
 
-    setPan(nextPan);
-  }, [selectedId, nodes, selectedWorkId, zoom]);
+    return () => {
+      if (focusFrameRef.current) {
+        window.cancelAnimationFrame(focusFrameRef.current);
+        focusFrameRef.current = null;
+      }
+    };
+  }, [selectedId, selectedNode, nodes, selectedWorkId, zoom]);
+
+  async function exportToPdf() {
+    const target = boardExportRef.current ?? mapViewportRef.current;
+    if (!target) {
+      return;
+    }
+
+    const canvas = await html2canvas(target, {
+      backgroundColor: "#ffffff",
+      scale: 2,
+      useCORS: true,
+      logging: false,
+    });
+
+    const pdf = new jsPDF({
+      orientation: "landscape",
+      unit: "pt",
+      format: "a4",
+    });
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
+    const imageWidth = canvas.width * ratio;
+    const imageHeight = canvas.height * ratio;
+
+    const x = (pageWidth - imageWidth) / 2;
+    const y = (pageHeight - imageHeight) / 2;
+    pdf.addImage(canvas.toDataURL("image/png"), "PNG", x, y, imageWidth, imageHeight);
+    pdf.save(`${selectedWork?.titleKo ?? selectedWork?.title ?? "character-map"}.pdf`);
+  }
 
   function toggleFullscreen() {
     if (!mapViewportRef.current) {
@@ -796,6 +880,13 @@ export function CharacterMapClient({ library }: Props) {
               aria-label="확대"
             >
               <FontAwesomeIcon icon={faMagnifyingGlassPlus} />
+            </button>
+            <button
+              type="button"
+              onClick={exportToPdf}
+              className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-600 transition hover:border-slate-400 hover:text-slate-950"
+            >
+              PDF 저장
             </button>
             <button
               type="button"
@@ -1100,6 +1191,7 @@ export function CharacterMapClient({ library }: Props) {
 
         <div className="hidden lg:block">
           <div
+            ref={boardExportRef}
             className="relative h-[760px] overflow-auto bg-[linear-gradient(180deg,_#fcfcfb_0%,_#f4f4f3_100%)]"
             onWheel={handleWheelZoom}
             onDoubleClick={() => activateAddMode()}
@@ -1119,6 +1211,7 @@ export function CharacterMapClient({ library }: Props) {
                 width: boardWidth,
                 transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
                 transformOrigin: "top left",
+                transition: "transform 220ms cubic-bezier(0.22, 1, 0.36, 1)",
               }}
             >
             <svg className="absolute inset-0 h-full w-full overflow-visible" style={{ pointerEvents: "auto" }}>
