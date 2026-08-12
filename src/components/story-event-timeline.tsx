@@ -546,25 +546,114 @@ export function StoryEventTimeline() {
   const mapTransform = `translate(${boardPan.x}px, ${boardPan.y}px)`;
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
-      <section className="order-1 rounded-[32px] border border-slate-300/80 bg-white p-5 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
+    <div className="space-y-5">
+      <section className="rounded-[32px] border border-slate-300/80 bg-white p-5 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
+        <div className="flex flex-col gap-4 border-b border-slate-200/80 pb-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Story Timeline</p>
-            <h2 className="mt-1 text-2xl font-semibold text-slate-900">
-              {selectedWork?.titleKo ?? selectedWork?.title ?? "소설 사건 타임라인"}
+            <div className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-700">
+              Story Timeline
+            </div>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+              {selectedWork?.titleKo ?? selectedWork?.title ?? "기본 사건 타임라인"}
             </h2>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={saveToGithub}
-              className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-700 transition hover:border-slate-400 hover:text-slate-950"
-            >
-              <FontAwesomeIcon icon={faCloudArrowUp} className="mr-2" />
-              GitHub 저장
-            </button>
+
+          <div className="flex flex-col gap-3 xl:items-end">
+            <div className="flex w-full flex-col gap-2 xl:w-[420px]">
+              <label className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">작품 선택</label>
+              <select
+                value={selectedWorkId}
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+                  if (nextValue === "__new__") {
+                    setActiveModal("work");
+                    return;
+                  }
+
+                  setSelectedWorkId(nextValue);
+                }}
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-amber-300"
+              >
+                <option value="__new__">새 작품 추가</option>
+                {works.map((work) => (
+                  <option key={work.id} value={work.id}>
+                    {work.titleKo ?? work.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveModal("event")}
+                className="rounded-full border border-slate-300 bg-sky-50 px-4 py-2 text-sm text-sky-700 transition hover:border-sky-400 hover:text-sky-900"
+              >
+                <FontAwesomeIcon icon={faPlus} className="mr-2" />
+                사건 추가
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveModal("edit")}
+                disabled={!selectedEvent}
+                className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-700 transition hover:border-slate-400 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <FontAwesomeIcon icon={faCalendarDays} className="mr-2" />
+                수정하기
+              </button>
+              <button
+                type="button"
+                onClick={saveToGithub}
+                className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-700 transition hover:border-slate-400 hover:text-slate-950"
+              >
+                <FontAwesomeIcon icon={faCloudArrowUp} className="mr-2" />
+                GitHub 저장
+              </button>
+              <button
+                type="button"
+                onClick={resetWorks}
+                className="rounded-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
+              >
+                <FontAwesomeIcon icon={faRotateLeft} className="mr-2" />
+                초기화
+              </button>
+            </div>
           </div>
+        </div>
+
+        <div className="mt-4 flex flex-col gap-3 rounded-[24px] border border-slate-200 bg-slate-50/80 p-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+              <FontAwesomeIcon icon={faBookOpen} />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">작품 연결</p>
+              <p className="text-sm font-semibold text-slate-800">
+                {linkedCharacterWork ? `인물관계도 연결: ${linkedCharacterWork.titleKo ?? linkedCharacterWork.title}` : "인물관계도 연결 없음"}
+              </p>
+            </div>
+          </div>
+
+          <select
+            value={selectedWork?.linkedCharacterWorkId ?? ""}
+            onChange={(event) => {
+              setWorks((current) =>
+                current.map((work) =>
+                  work.id === selectedWorkId
+                    ? { ...work, linkedCharacterWorkId: event.target.value || undefined }
+                    : work,
+                ),
+              );
+            }}
+            className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-amber-300 xl:max-w-xs"
+          >
+            <option value="">연결된 작품 없음</option>
+            {characterWorks.map((work) => (
+              <option key={work.id} value={work.id}>
+                {work.titleKo ?? work.title}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
