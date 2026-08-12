@@ -92,7 +92,13 @@ export function StoryEventTimeline() {
   const [detailEventId, setDetailEventId] = useState<string | null>(null);
   const [boardPan, setBoardPan] = useState({ x: 0, y: 0 });
   const boardRef = useRef<HTMLDivElement | null>(null);
-  const dragRef = useRef<{ id: string; offsetX: number; offsetY: number } | null>(null);
+  const dragRef = useRef<{
+    id: string;
+    startPointerX: number;
+    startPointerY: number;
+    startCardX: number;
+    startCardY: number;
+  } | null>(null);
   const boardPanRef = useRef<{ startX: number; startY: number; originX: number; originY: number } | null>(null);
 
   const characterWorks = (characterMapLibrary as { works?: Array<{ id: string; title: string; titleKo?: string }> }).works ?? [];
@@ -151,21 +157,21 @@ export function StoryEventTimeline() {
 
     return sorted.slice(1).map((event, index) => {
       const previous = sorted[index];
-      const previousLane = Math.round((previous.year - yearBounds.min) % 2) === 0 ? -1 : 1;
-      const eventLane = Math.round((event.year - yearBounds.min) % 2) === 0 ? -1 : 1;
-      const previousX = boardWidth / 2 + previousLane * (cardWidth / 2 + 30);
-      const eventX = boardWidth / 2 + eventLane * (cardWidth / 2 + 30);
+      const previousCenterX = previous.x + cardWidth / 2;
+      const previousCenterY = previous.y + cardHeight / 2;
+      const eventCenterX = event.x + cardWidth / 2;
+      const eventCenterY = event.y + cardHeight / 2;
 
       return {
         fromId: previous.id,
         toId: event.id,
-        fromX: previousX,
-        fromY: 70 + ((previous.year - yearBounds.min) / Math.max(yearBounds.max - yearBounds.min || 1, 1)) * (boardHeight - 120),
-        toX: eventX,
-        toY: 70 + ((event.year - yearBounds.min) / Math.max(yearBounds.max - yearBounds.min || 1, 1)) * (boardHeight - 120),
+        fromX: previousCenterX,
+        fromY: previousCenterY,
+        toX: eventCenterX,
+        toY: eventCenterY,
       };
     });
-  }, [selectedWork, yearBounds]);
+  }, [selectedWork]);
 
   useEffect(() => {
     const updateLayout = () => {
@@ -411,13 +417,15 @@ export function StoryEventTimeline() {
     event.stopPropagation();
 
     const rect = board.getBoundingClientRect();
-    const dragCardWidth = isCompact ? 200 : cardWidth;
-    const dragCardHeight = isCompact ? 150 : cardHeight;
+    const pointerX = event.clientX - rect.left - boardPan.x;
+    const pointerY = event.clientY - rect.top - boardPan.y;
 
     dragRef.current = {
       id: cardId,
-      offsetX: event.clientX - rect.left - card.x + boardPan.x,
-      offsetY: event.clientY - rect.top - card.y + boardPan.y,
+      startPointerX: pointerX,
+      startPointerY: pointerY,
+      startCardX: card.x,
+      startCardY: card.y,
     };
 
     setSelectedEventId(cardId);
@@ -427,15 +435,17 @@ export function StoryEventTimeline() {
         return;
       }
 
+      const localX = moveEvent.clientX - rect.left - boardPan.x;
+      const localY = moveEvent.clientY - rect.top - boardPan.y;
       const nextX = clamp(
-        moveEvent.clientX - rect.left - dragRef.current.offsetX + boardPan.x,
-        18,
-        (boardRef.current?.clientWidth ?? boardViewport.width) - dragCardWidth - 18,
+        dragRef.current.startCardX + (localX - dragRef.current.startPointerX),
+        0,
+        Math.max(0, (boardRef.current?.clientWidth ?? boardViewport.width) - (isCompact ? 200 : cardWidth)),
       );
       const nextY = clamp(
-        moveEvent.clientY - rect.top - dragRef.current.offsetY + boardPan.y,
-        18,
-        (boardRef.current?.clientHeight ?? boardViewport.height) - dragCardHeight - 18,
+        dragRef.current.startCardY + (localY - dragRef.current.startPointerY),
+        0,
+        Math.max(0, (boardRef.current?.clientHeight ?? boardViewport.height) - (isCompact ? 150 : cardHeight)),
       );
 
       setWorks((current) =>
@@ -721,19 +731,10 @@ export function StoryEventTimeline() {
                       {!collapsed ? (
                         events.map((event) => {
                           const isActive = event.id === selectedEvent?.id;
-                          const laneDirection = isCompact ? 0 : chapterIndex % 2 === 0 ? -1 : 1;
                           const mobileCardWidth = isCompact ? 200 : cardWidth;
                           const mobileCardHeight = isCompact ? 150 : cardHeight;
-                          const left = isCompact
-                            ? boardMetrics.width / 2 - mobileCardWidth / 2
-                            : boardWidth / 2 + laneDirection * (cardWidth + 42);
-                          const leftSideOffset = laneDirection < 0 ? 170 : 0;
-                          const top =
-                            70 +
-                            ((event.year - yearBounds.min) / Math.max(yearBounds.max - yearBounds.min || 1, 1)) *
-                              (boardMetrics.height - 120) -
-                            mobileCardHeight / 2 +
-                            leftSideOffset;
+                          const left = clamp(event.x, 0, Math.max(0, boardMetrics.width - mobileCardWidth));
+                          const top = clamp(event.y, 0, Math.max(0, boardMetrics.height - mobileCardHeight));
 
                           return (
                             <div
@@ -744,9 +745,7 @@ export function StoryEventTimeline() {
                               className="absolute z-20 touch-none select-none rounded-[26px] border bg-white p-4 text-left shadow-[0_22px_45px_rgba(15,23,42,0.08)] transition hover:-translate-y-1"
                               style={{
                                 width: mobileCardWidth,
-                                left: isCompact
-                                  ? left
-                                  : laneDirection < 0 ? Math.max(24, boardWidth / 2 - cardWidth - 60) : left,
+                                left,
                                 top,
                                 borderColor: isActive ? event.color : "rgba(226,232,240,1)",
                                 boxShadow: isActive ? `0 18px 40px ${event.color}33` : "0 18px 40px rgba(15,23,42,0.08)",
