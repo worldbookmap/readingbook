@@ -88,61 +88,84 @@ export function CharacterMapClient({ library }: Props) {
   } | null>(null);
   const longPressTimeoutRef = useRef<number | null>(null);
 
+  async function loadCharacterMap() {
+    try {
+      const response = await fetch("/api/character-map", { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error("failed to load character map");
+      }
+
+      const payload = (await response.json()) as {
+        data: CharacterMapLibrary;
+        remoteEnabled: boolean;
+        sha: string | null;
+      };
+
+      startTransition(() => {
+        const nextWorks = payload.data.works;
+        setWorks(nextWorks);
+        setSelectedWorkId((current) => {
+          const nextWorkId = nextWorks.some((work) => work.id === current)
+            ? current
+            : nextWorks[0]?.id ?? "";
+          const nextWork = nextWorks.find((work) => work.id === nextWorkId) ?? nextWorks[0] ?? null;
+          setSelectedId(nextWork?.seed.nodes[0]?.id ?? "");
+          setNodes(nextWork?.seed.nodes ?? []);
+          setRelationships(nextWork?.seed.relationships ?? []);
+          return nextWorkId;
+        });
+        setRemoteEnabled(payload.remoteEnabled);
+        setRemoteSha(payload.sha);
+        setSaveMessage(
+          payload.remoteEnabled
+            ? "GitHub 저장소와 연결됨"
+            : "환경변수 미설정: 브라우저 로컬 저장 사용 중",
+        );
+      });
+      return payload;
+    } catch {
+      const saved = window.localStorage.getItem(storageKey);
+      if (!saved) {
+        return null;
+      }
+
+      const parsed = JSON.parse(saved) as CharacterMapLibrary;
+      startTransition(() => {
+        const nextWorks = parsed.works;
+        setWorks(nextWorks);
+        setSelectedWorkId(nextWorks[0]?.id ?? "");
+        setSelectedId(nextWorks[0]?.seed.nodes[0]?.id ?? "");
+        setNodes(nextWorks[0]?.seed.nodes ?? []);
+        setRelationships(nextWorks[0]?.seed.relationships ?? []);
+        setSaveMessage("API 연결 실패: 브라우저 로컬 저장 데이터 복원됨");
+      });
+      return { data: parsed, remoteEnabled: false, sha: null } as const;
+    }
+  }
+
   useEffect(() => {
     let cancelled = false;
 
-    async function loadCharacterMap() {
-      try {
-        const response = await fetch("/api/character-map", { cache: "no-store" });
-        if (!response.ok) {
-          throw new Error("failed to load character map");
-        }
-
-        const payload = (await response.json()) as {
-          data: CharacterMapLibrary;
-          remoteEnabled: boolean;
-          sha: string | null;
-        };
-
-        if (cancelled) {
-          return;
-        }
-
-        startTransition(() => {
-          const nextWorks = payload.data.works;
-          setWorks(nextWorks);
-          setSelectedWorkId(nextWorks[0]?.id ?? "");
-          setSelectedId(nextWorks[0]?.seed.nodes[0]?.id ?? "");
-          setNodes(nextWorks[0]?.seed.nodes ?? []);
-          setRelationships(nextWorks[0]?.seed.relationships ?? []);
-          setRemoteEnabled(payload.remoteEnabled);
-          setRemoteSha(payload.sha);
-          setSaveMessage(
-            payload.remoteEnabled
-              ? "GitHub 저장소와 연결됨"
-              : "환경변수 미설정: 브라우저 로컬 저장 사용 중",
-          );
-        });
-      } catch {
-        const saved = window.localStorage.getItem(storageKey);
-        if (!saved || cancelled) {
-          return;
-        }
-
-        const parsed = JSON.parse(saved) as CharacterMapLibrary;
-        startTransition(() => {
-          const nextWorks = parsed.works;
-          setWorks(nextWorks);
-          setSelectedWorkId(nextWorks[0]?.id ?? "");
-          setSelectedId(nextWorks[0]?.seed.nodes[0]?.id ?? "");
-          setNodes(nextWorks[0]?.seed.nodes ?? []);
-          setRelationships(nextWorks[0]?.seed.relationships ?? []);
-          setSaveMessage("API 연결 실패: 브라우저 로컬 저장 데이터 복원됨");
-        });
+    async function hydrate() {
+      const payload = await loadCharacterMap();
+      if (cancelled || !payload) {
+        return;
       }
+
+      startTransition(() => {
+        const nextWorks = payload.data.works;
+        const selected = nextWorks.find((work) => work.id === selectedWorkId) ?? nextWorks[0] ?? null;
+        setWorks(nextWorks);
+        setSelectedWorkId(selected?.id ?? "");
+        setSelectedId(selected?.seed.nodes[0]?.id ?? "");
+        setNodes(selected?.seed.nodes ?? []);
+        setRelationships(selected?.seed.relationships ?? []);
+        setRemoteEnabled(payload.remoteEnabled);
+        setRemoteSha(payload.sha ?? null);
+      });
     }
 
-    loadCharacterMap();
+    hydrate();
 
     return () => {
       cancelled = true;
@@ -587,12 +610,28 @@ export function CharacterMapClient({ library }: Props) {
       }
 
       const payload = (await response.json()) as { ok: true; sha: string };
+      const refreshed = await fetch("/api/character-map", { cache: "no-store" });
+      const refreshedPayload = refreshed.ok ? ((await refreshed.json()) as {
+        data: CharacterMapLibrary;
+        remoteEnabled: boolean;
+        sha: string | null;
+      }) : null;
 
-      window.localStorage.setItem(storageKey, JSON.stringify(nextLibrary));
-      setWorks(nextLibrary.works);
+      const loadedWorks = refreshedPayload?.data.works ?? nextLibrary.works;
+      window.localStorage.setItem(storageKey, JSON.stringify({ works: loadedWorks }));
+      setWorks(loadedWorks);
+      setSelectedWorkId((current) => {
+        const nextSelected = loadedWorks.find((work) => work.id === current)?.id ?? loadedWorks[0]?.id ?? "";
+        const nextWork = loadedWorks.find((work) => work.id === nextSelected) ?? loadedWorks[0] ?? null;
+        setSelectedId(nextWork?.seed.nodes[0]?.id ?? "");
+        setNodes(nextWork?.seed.nodes ?? []);
+        setRelationships(nextWork?.seed.relationships ?? []);
+        return nextSelected;
+      });
+      setRemoteEnabled(refreshedPayload?.remoteEnabled ?? remoteEnabled);
       setRemoteSha(payload.sha);
       setSaveState("saved");
-      setSaveMessage("GitHub 저장소에 반영되었습니다.");
+      setSaveMessage("GitHub 저장소에 반영되었습니다. 최신 데이터를 다시 불러왔습니다.");
     } catch (error) {
       setSaveState("error");
       setSaveMessage(error instanceof Error ? error.message : "GitHub 저장에 실패했습니다.");
@@ -1428,12 +1467,12 @@ export function CharacterMapClient({ library }: Props) {
                     <label className="flex items-center gap-2 rounded-2xl border border-slate-300 bg-white/70 px-4 py-3 text-sm text-slate-700">
                       <input
                         type="checkbox"
-                        checked={draft.linkedToSelected}
+                        checked={!draft.linkedToSelected}
                         onChange={(event) =>
                           setDraft((current) => ({
                             ...current,
-                            linkedToSelected: event.target.checked,
-                            relationshipType: event.target.checked ? current.relationshipType : "선택 없음",
+                            linkedToSelected: !event.target.checked,
+                            relationshipType: event.target.checked ? "선택 없음" : current.relationshipType,
                           }))
                         }
                         className="h-4 w-4 rounded border-slate-300 bg-white text-slate-700"
@@ -1441,7 +1480,7 @@ export function CharacterMapClient({ library }: Props) {
                       현재 인물과 연결하지 않고 독립 인물로 추가
                     </label>
                     <select
-                      disabled={!draft.linkedToSelected}
+                      disabled={draft.linkedToSelected === false}
                       value={draft.relationshipType}
                       onChange={(event) =>
                         setDraft((current) => ({
