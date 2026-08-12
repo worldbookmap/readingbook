@@ -85,6 +85,9 @@ export function StoryEventTimeline() {
   const [saveMessage, setSaveMessage] = useState("브라우저 로컬 저장 사용 중");
   const [remoteEnabled, setRemoteEnabled] = useState(false);
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
+  const [collapsedChapters, setCollapsedChapters] = useState<Record<string, boolean>>({});
+  const [isCompact, setIsCompact] = useState(false);
+  const [boardViewport, setBoardViewport] = useState({ width: boardWidth, height: boardHeight });
   const boardRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{ id: string; offsetX: number; offsetY: number } | null>(null);
 
@@ -134,22 +137,47 @@ export function StoryEventTimeline() {
 
   const eventConnections = useMemo(() => {
     if (!selectedWork || selectedWork.events.length < 2) {
-      return [] as Array<{ fromId: string; toId: string; fromX: number; fromY: number; toX: number; toY: number }>; 
+      return [] as Array<{ fromId: string; toId: string; fromX: number; fromY: number; toX: number; toY: number }>;
     }
 
-    const sorted = [...selectedWork.events].sort((left, right) => left.year - right.year || left.title.localeCompare(right.title, "ko"));
+    const sorted = [...selectedWork.events].sort(
+      (left, right) => left.year - right.year || left.title.localeCompare(right.title, "ko"),
+    );
+
     return sorted.slice(1).map((event, index) => {
       const previous = sorted[index];
+      const previousLane = Math.round((previous.year - yearBounds.min) % 2) === 0 ? -1 : 1;
+      const eventLane = Math.round((event.year - yearBounds.min) % 2) === 0 ? -1 : 1;
+      const previousX = boardWidth / 2 + previousLane * (cardWidth / 2 + 30);
+      const eventX = boardWidth / 2 + eventLane * (cardWidth / 2 + 30);
+
       return {
         fromId: previous.id,
         toId: event.id,
-        fromX: previous.x + cardWidth / 2,
-        fromY: previous.y + cardHeight / 2,
-        toX: event.x + cardWidth / 2,
-        toY: event.y + cardHeight / 2,
+        fromX: previousX,
+        fromY: 70 + ((previous.year - yearBounds.min) / Math.max(yearBounds.max - yearBounds.min || 1, 1)) * (boardHeight - 120),
+        toX: eventX,
+        toY: 70 + ((event.year - yearBounds.min) / Math.max(yearBounds.max - yearBounds.min || 1, 1)) * (boardHeight - 120),
       };
     });
-  }, [selectedWork]);
+  }, [selectedWork, yearBounds]);
+
+  useEffect(() => {
+    const updateLayout = () => {
+      const width = window.innerWidth;
+      const compact = width < 768;
+      setIsCompact(compact);
+      setBoardViewport({
+        width: compact ? Math.max(320, Math.min(width - 32, 420)) : boardWidth,
+        height: compact ? 720 : boardHeight,
+      });
+    };
+
+    updateLayout();
+    window.addEventListener("resize", updateLayout);
+
+    return () => window.removeEventListener("resize", updateLayout);
+  }, []);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(storageKey);
@@ -375,6 +403,9 @@ export function StoryEventTimeline() {
     }
 
     const rect = board.getBoundingClientRect();
+    const dragCardWidth = isCompact ? 180 : cardWidth;
+    const dragCardHeight = isCompact ? 140 : cardHeight;
+
     dragRef.current = {
       id: cardId,
       offsetX: event.clientX - rect.left - card.x,
@@ -391,13 +422,13 @@ export function StoryEventTimeline() {
 
       const nextX = clamp(
         moveEvent.clientX - rect.left - dragRef.current.offsetX,
-        24,
-        boardWidth - cardWidth - 24,
+        18,
+        (boardRef.current?.clientWidth ?? boardViewport.width) - dragCardWidth - 18,
       );
       const nextY = clamp(
         moveEvent.clientY - rect.top - dragRef.current.offsetY,
-        24,
-        boardHeight - cardHeight - 24,
+        18,
+        (boardRef.current?.clientHeight ?? boardViewport.height) - dragCardHeight - 18,
       );
 
       setWorks((current) =>
@@ -432,6 +463,13 @@ export function StoryEventTimeline() {
     window.addEventListener("pointerup", handleUp, { once: true });
   }
 
+  function toggleChapter(chapter: string) {
+    setCollapsedChapters((current) => ({
+      ...current,
+      [chapter]: !current[chapter],
+    }));
+  }
+
   async function saveToGithub() {
     setSaveState("saving");
     setSaveMessage(remoteEnabled ? "GitHub에 저장 중..." : "환경변수 확인 필요");
@@ -459,6 +497,13 @@ export function StoryEventTimeline() {
       setSaveMessage(error instanceof Error ? error.message : "GitHub 저장에 실패했습니다.");
     }
   }
+
+  const boardMetrics = {
+    width: isCompact ? Math.max(320, Math.min(boardViewport.width, 420)) : boardWidth,
+    height: isCompact ? 720 : boardHeight,
+  };
+  const boardScaleX = boardMetrics.width / boardWidth;
+  const boardScaleY = boardMetrics.height / boardHeight;
 
   return (
     <div className="grid gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
@@ -669,30 +714,30 @@ export function StoryEventTimeline() {
             <div
               ref={boardRef}
               className="relative overflow-hidden rounded-[26px] border border-amber-200 bg-white shadow-inner"
-              style={{ width: "100%", height: 560 }}
+              style={{ width: "100%", height: boardMetrics.height }}
             >
-              <div className="absolute inset-x-0 top-0 h-16 bg-[linear-gradient(180deg,_rgba(251,191,36,0.12),_rgba(255,255,255,0))]" />
-              <div className="absolute inset-x-10 bottom-8 h-px bg-slate-200" />
+              <div className="absolute left-1/2 top-6 bottom-8 w-px -translate-x-1/2 bg-slate-200" />
 
-              {Array.from({ length: 6 }).map((_, index) => {
-                const ratio = index / 5;
+              {Array.from({ length: 7 }).map((_, index) => {
+                const ratio = index / 6;
                 const year = Math.round(yearBounds.min + (yearBounds.max - yearBounds.min) * ratio);
-                const x = getYearPosition(year, yearBounds.min, yearBounds.max);
+                const y = 70 + ratio * (boardMetrics.height - 120);
                 return (
-                  <div key={year} className="absolute top-0 bottom-0" style={{ left: x }}>
-                    <div className="absolute top-0 h-full w-px bg-slate-200" />
-                    <span className="absolute top-4 -translate-x-1/2 text-[10px] font-semibold text-slate-500">
+                  <div key={`${year}-tick`} className="absolute left-0 right-0" style={{ top: y }}>
+                    <div className="absolute left-0 h-px w-[calc(50%-10px)] bg-slate-200" />
+                    <div className="absolute right-0 h-px w-[calc(50%-10px)] bg-slate-200" />
+                    <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 text-[10px] font-semibold text-slate-500">
                       {year}
                     </span>
                   </div>
                 );
               })}
 
-              <svg className="pointer-events-none absolute inset-0" viewBox={`0 0 ${boardWidth} ${boardHeight}`}>
+              <svg className="pointer-events-none absolute inset-0" viewBox={`0 0 ${boardMetrics.width} ${boardMetrics.height}`}>
                 {eventConnections.map((connection) => (
                   <path
                     key={`${connection.fromId}-${connection.toId}`}
-                    d={`M ${connection.fromX} ${connection.fromY} C ${connection.fromX + 80} ${connection.fromY}, ${connection.toX - 80} ${connection.toY}, ${connection.toX} ${connection.toY}`}
+                    d={`M ${connection.fromX * boardScaleX} ${connection.fromY * boardScaleY} C ${connection.fromX * boardScaleX} ${(connection.fromY + 24) * boardScaleY}, ${(connection.toX * boardScaleX)} ${(connection.toY - 24) * boardScaleY}, ${connection.toX * boardScaleX} ${connection.toY * boardScaleY}`}
                     stroke="rgba(148, 163, 184, 0.9)"
                     strokeWidth="2"
                     fill="none"
@@ -701,55 +746,80 @@ export function StoryEventTimeline() {
                 ))}
               </svg>
 
-              {chapterGroups.map(({ chapter, events }) => (
-                <div
-                  key={chapter}
-                  className="absolute left-4 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-700"
-                  style={{ top: 18 + chapterGroups.findIndex((group) => group.chapter === chapter) * 30 }}
-                >
-                  {chapter}
-                </div>
-              ))}
+              {chapterGroups.map(({ chapter, events }, chapterIndex) => {
+                const collapsed = Boolean(collapsedChapters[chapter]);
+                const chapterTop = 16 + chapterIndex * 34;
 
-              {selectedWork?.events.map((event) => {
-                const isActive = event.id === selectedEvent?.id;
                 return (
-                  <button
-                    key={event.id}
-                    type="button"
-                    onPointerDown={(pointerEvent) => beginDrag(pointerEvent, event.id)}
-                    onClick={() => setSelectedEventId(event.id)}
-                    className="absolute w-[220px] rounded-[24px] border bg-white p-3 text-left shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5"
-                    style={{
-                      left: event.x,
-                      top: event.y,
-                      borderColor: isActive ? event.color : "rgba(226,232,240,1)",
-                      boxShadow: isActive ? `0 18px 40px ${event.color}33` : "0 18px 40px rgba(15,23,42,0.08)",
-                    }}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span
-                        className="rounded-full px-2.5 py-1 text-[10px] font-semibold text-white"
-                        style={{ backgroundColor: event.color }}
-                      >
-                        {event.yearLabel}
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-[10px] text-slate-400">
-                        <FontAwesomeIcon icon={faGripVertical} />
-                        drag
-                      </span>
-                    </div>
-                    <p className="mt-3 text-sm font-semibold text-slate-900">{event.title}</p>
-                    <p className="mt-1 text-[11px] text-slate-500">{event.chapter}</p>
-                    <p className="mt-2 text-xs leading-5 text-slate-600">{event.summary}</p>
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {event.tags.slice(0, 3).map((tag) => (
-                        <span key={tag} className="rounded-full bg-slate-100 px-2 py-1 text-[10px] text-slate-500">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </button>
+                  <div key={chapter} className="absolute inset-x-0">
+                    <button
+                      type="button"
+                      onClick={() => toggleChapter(chapter)}
+                      className="absolute left-4 z-10 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-700"
+                      style={{ top: chapterTop }}
+                    >
+                      {chapter} {collapsed ? "펼치기" : "접기"}
+                    </button>
+
+                    {!collapsed ? (
+                      events.map((event) => {
+                        const isActive = event.id === selectedEvent?.id;
+                        const laneDirection = isCompact ? 0 : chapterIndex % 2 === 0 ? -1 : 1;
+                        const mobileCardWidth = isCompact ? 180 : cardWidth;
+                        const mobileCardHeight = isCompact ? 128 : cardHeight;
+                        const left = isCompact
+                          ? boardMetrics.width / 2 - mobileCardWidth / 2
+                          : boardWidth / 2 + laneDirection * (cardWidth + 42);
+                        const top =
+                          70 +
+                          ((event.year - yearBounds.min) / Math.max(yearBounds.max - yearBounds.min || 1, 1)) *
+                            (boardMetrics.height - 120) -
+                          mobileCardHeight / 2;
+
+                        return (
+                          <button
+                            key={event.id}
+                            type="button"
+                            onPointerDown={(pointerEvent) => beginDrag(pointerEvent, event.id)}
+                            onClick={() => setSelectedEventId(event.id)}
+                            className="absolute z-20 rounded-[24px] border bg-white p-3 text-left shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5"
+                            style={{
+                              width: mobileCardWidth,
+                              left: isCompact
+                                ? left
+                                : laneDirection < 0 ? Math.max(24, boardWidth / 2 - cardWidth - 60) : left,
+                              top,
+                              borderColor: isActive ? event.color : "rgba(226,232,240,1)",
+                              boxShadow: isActive ? `0 18px 40px ${event.color}33` : "0 18px 40px rgba(15,23,42,0.08)",
+                            }}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span
+                                className="rounded-full px-2.5 py-1 text-[10px] font-semibold text-white"
+                                style={{ backgroundColor: event.color }}
+                              >
+                                {event.yearLabel}
+                              </span>
+                              <span className="inline-flex items-center gap-1 text-[10px] text-slate-400">
+                                <FontAwesomeIcon icon={faGripVertical} />
+                                drag
+                              </span>
+                            </div>
+                            <p className="mt-3 text-sm font-semibold text-slate-900">{event.title}</p>
+                            <p className="mt-1 text-[11px] text-slate-500">{event.chapter}</p>
+                            <p className="mt-2 text-xs leading-5 text-slate-600">{event.summary}</p>
+                            <div className="mt-3 flex flex-wrap gap-1.5">
+                              {event.tags.slice(0, 3).map((tag) => (
+                                <span key={tag} className="rounded-full bg-slate-100 px-2 py-1 text-[10px] text-slate-500">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          </button>
+                        );
+                      })
+                    ) : null}
+                  </div>
                 );
               })}
             </div>
