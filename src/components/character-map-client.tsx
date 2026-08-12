@@ -115,6 +115,14 @@ export function CharacterMapClient({ library }: Props) {
   const [existingConnectionSearch, setExistingConnectionSearch] = useState("");
   const [existingConnectionType, setExistingConnectionType] = useState<RelationshipType>("친구");
   const [existingConnectionLabel, setExistingConnectionLabel] = useState("");
+  const [dragConnectDraft, setDragConnectDraft] = useState<{
+    sourceNodeId: string;
+    targetNodeId: string;
+    type: RelationshipType;
+    label: string;
+  } | null>(null);
+  const [lastCreatedRelationshipId, setLastCreatedRelationshipId] = useState<string | null>(null);
+  const [relationshipDeleteConfirm, setRelationshipDeleteConfirm] = useState<string | null>(null);
   const [deleteModal, setDeleteModal] = useState<{
     kind: "work" | "node";
     label: string;
@@ -292,6 +300,18 @@ export function CharacterMapClient({ library }: Props) {
   }, []);
 
   useEffect(() => {
+    if (!lastCreatedRelationshipId) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setLastCreatedRelationshipId(null);
+    }, 1400);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [lastCreatedRelationshipId]);
+
+  useEffect(() => {
     setExistingConnectionTargetId("");
     setExistingConnectionSearch("");
   }, [selectedId]);
@@ -337,6 +357,7 @@ export function CharacterMapClient({ library }: Props) {
   });
   const selectedExistingConnectionNode =
     nodes.find((node) => node.id === existingConnectionTargetId) ?? null;
+  const canQuickConnect = Boolean(selectedNode) && nodes.length > 1;
   const selectedRelationshipPosition = selectedRelationship
     ? (() => {
         const from = nodes.find((node) => node.id === selectedRelationship.fromId);
@@ -506,6 +527,7 @@ export function CharacterMapClient({ library }: Props) {
 
     setRelationships((current) => [...current, nextRelationship]);
     setSelectedRelationshipId(nextRelationship.id);
+    setLastCreatedRelationshipId(nextRelationship.id);
     setActivePanelTab("info");
     return nextRelationship;
   }
@@ -535,6 +557,26 @@ export function CharacterMapClient({ library }: Props) {
     setExistingConnectionSearch("");
     setExistingConnectionType("친구");
     setExistingConnectionLabel("");
+  }
+
+  function handleDeleteSelectedRelationship() {
+    if (!selectedRelationship) {
+      return;
+    }
+
+    setRelationshipDeleteConfirm(selectedRelationship.id);
+  }
+
+  function confirmDeleteRelationship() {
+    if (!selectedRelationship) {
+      return;
+    }
+
+    setRelationships((current) => current.filter((relationship) => relationship.id !== selectedRelationship.id));
+    setSelectedRelationshipId(null);
+    setRelationshipDeleteConfirm(null);
+    setSaveState("idle");
+    setSaveMessage(`관계 "${selectedRelationship.label ?? selectedRelationship.type}"이(가) 삭제되었습니다. 저장 버튼을 눌러 반영하세요.`);
   }
 
   function applyWorkSelection(workId: string, nextWorks: CharacterMapLibrary["works"]) {
@@ -825,17 +867,12 @@ export function CharacterMapClient({ library }: Props) {
         const targetNodeId = targetElement?.closest("[data-node-id]")?.getAttribute("data-node-id");
 
         if (targetNodeId && targetNodeId !== nodeId) {
-          const created = addRelationshipBetweenExistingNodes(
-            nodeId,
+          setDragConnectDraft({
+            sourceNodeId: nodeId,
             targetNodeId,
-            existingConnectionType,
-            existingConnectionType === "기타" ? existingConnectionLabel || "직접 입력 관계" : undefined,
-          );
-
-          if (created) {
-            setExistingConnectionTargetId(targetNodeId);
-            setExistingConnectionSearch("");
-          }
+            type: existingConnectionType,
+            label: existingConnectionType === "기타" ? existingConnectionLabel || "" : "",
+          });
         }
       }
 
@@ -1665,6 +1702,15 @@ export function CharacterMapClient({ library }: Props) {
             onPointerUp={handleBoardBackgroundPointerUp}
             onPointerLeave={handleBoardBackgroundPointerUp}
           >
+            {canQuickConnect ? (
+              <div className="pointer-events-none absolute left-5 top-5 z-20 max-w-xs rounded-2xl border border-slate-300 bg-white/90 p-3 shadow-[0_18px_35px_rgba(15,23,42,0.08)] backdrop-blur-sm">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">관계 만들기</p>
+                <p className="mt-1 text-sm leading-5 text-slate-700">
+                  선택한 인물을 다른 인물 위로 드래그하면 자동으로 관계가 생성됩니다.
+                </p>
+              </div>
+            ) : null}
+
             <div
               className="relative min-w-fit"
               style={{ height: boardHeight * zoom, width: boardWidth * zoom }}
@@ -1810,6 +1856,13 @@ export function CharacterMapClient({ library }: Props) {
                       className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-2.5 py-2 text-xs text-slate-700 outline-none focus:border-slate-400"
                     />
                   </div>
+                  <button
+                    type="button"
+                    onClick={handleDeleteSelectedRelationship}
+                    className="inline-flex w-full items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100"
+                  >
+                    관계 삭제
+                  </button>
                 </div>
               </div>
             ) : null}
@@ -2022,6 +2075,110 @@ export function CharacterMapClient({ library }: Props) {
         </div>
       ) : null}
 
+      {dragConnectDraft ? (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/20 backdrop-blur-[1px]">
+          <div className="w-full max-w-sm rounded-[28px] border border-slate-200 bg-white p-4 shadow-[0_28px_80px_rgba(15,23,42,0.18)]">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-500">관계 유형 선택</p>
+              <button
+                type="button"
+                onClick={() => setDragConnectDraft(null)}
+                className="rounded-full border border-slate-200 px-1.5 py-0.5 text-[9px] font-medium text-slate-500"
+              >
+                취소
+              </button>
+            </div>
+
+            <div className="mt-3 space-y-3">
+              <div>
+                <label className="text-[9px] font-semibold text-slate-600">관계 종류</label>
+                <select
+                  value={dragConnectDraft.type}
+                  onChange={(event) =>
+                    setDragConnectDraft((current) =>
+                      current ? { ...current, type: event.target.value as RelationshipType } : current,
+                    )
+                  }
+                  className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-2.5 py-2 text-[10px] text-slate-700 outline-none focus:border-slate-400"
+                >
+                  {relationOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {dragConnectDraft.type === "기타" ? (
+                <div>
+                  <label className="text-[9px] font-semibold text-slate-600">커스텀 라벨</label>
+                  <input
+                    value={dragConnectDraft.label}
+                    onChange={(event) =>
+                      setDragConnectDraft((current) =>
+                        current ? { ...current, label: event.target.value } : current,
+                      )
+                    }
+                    placeholder="관계 직접 입력"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-2.5 py-2 text-[10px] text-slate-700 outline-none focus:border-slate-400"
+                  />
+                </div>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={() => {
+                  const created = addRelationshipBetweenExistingNodes(
+                    dragConnectDraft.sourceNodeId,
+                    dragConnectDraft.targetNodeId,
+                    dragConnectDraft.type,
+                    dragConnectDraft.type === "기타" ? dragConnectDraft.label : undefined,
+                  );
+
+                  if (created) {
+                    setExistingConnectionTargetId(dragConnectDraft.targetNodeId);
+                    setExistingConnectionSearch("");
+                  }
+                  setDragConnectDraft(null);
+                }}
+                className="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-[10px] font-semibold text-white transition hover:bg-slate-700"
+              >
+                관계 생성
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {relationshipDeleteConfirm ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_28px_80px_rgba(15,23,42,0.22)]">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-500">삭제 확인</p>
+            <h4 className="mt-2 text-base font-semibold text-slate-900">관계를 삭제할까요?</h4>
+            <p className="mt-2 text-[11px] leading-6 text-slate-600">
+              선택한 관계를 삭제하면 지도가 즉시 반영됩니다.
+            </p>
+
+            <div className="mt-5 space-y-2">
+              <button
+                type="button"
+                onClick={confirmDeleteRelationship}
+                className="inline-flex w-full items-center justify-center rounded-2xl bg-rose-600 px-4 py-3 text-[11px] font-semibold text-white transition hover:bg-rose-500"
+              >
+                삭제하기
+              </button>
+              <button
+                type="button"
+                onClick={() => setRelationshipDeleteConfirm(null)}
+                className="inline-flex w-full items-center justify-center rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-[11px] font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-white"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <aside className="space-y-6">
         <section className="rounded-[30px] border border-slate-200 bg-[linear-gradient(135deg,_#ffffff_0%,_#f5f5f4_45%,_#efefee_100%)] p-6 shadow-[0_22px_50px_rgba(15,23,42,0.05)]">
           <div className="mb-5 flex rounded-2xl border border-slate-200 bg-slate-100 p-1 shadow-inner shadow-slate-200/80">
@@ -2177,6 +2334,14 @@ export function CharacterMapClient({ library }: Props) {
                             className={`${fieldClassName} mt-2`}
                           />
                         </div>
+
+                        <button
+                          type="button"
+                          onClick={handleDeleteSelectedRelationship}
+                          className="inline-flex w-full items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100"
+                        >
+                          관계 삭제
+                        </button>
                       </div>
                     ) : (
                       <p className="mt-3 text-sm leading-6 text-slate-500">
