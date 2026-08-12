@@ -19,8 +19,8 @@ import storyEventLibrary from "@/data/story-event-library.json";
 const storageKey = "readingbook-story-event-library";
 const boardWidth = 1100;
 const boardHeight = 560;
-const cardWidth = 220;
-const cardHeight = 150;
+const cardWidth = 260;
+const cardHeight = 180;
 const eventPalette = ["#f59e0b", "#0f766e", "#2563eb", "#7c3aed", "#ef4444", "#f97316"];
 
 type WorkDraft = {
@@ -88,14 +88,18 @@ export function StoryEventTimeline() {
   const [collapsedChapters, setCollapsedChapters] = useState<Record<string, boolean>>({});
   const [isCompact, setIsCompact] = useState(false);
   const [boardViewport, setBoardViewport] = useState({ width: boardWidth, height: boardHeight });
-  const [activeModal, setActiveModal] = useState<"work" | "event" | "edit" | null>(null);
+  const [activeModal, setActiveModal] = useState<"work" | "event" | "edit" | "detail" | null>(null);
+  const [detailEventId, setDetailEventId] = useState<string | null>(null);
+  const [boardPan, setBoardPan] = useState({ x: 0, y: 0 });
   const boardRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{ id: string; offsetX: number; offsetY: number } | null>(null);
+  const boardPanRef = useRef<{ startX: number; startY: number; originX: number; originY: number } | null>(null);
 
   const characterWorks = (characterMapLibrary as { works?: Array<{ id: string; title: string; titleKo?: string }> }).works ?? [];
 
   const selectedWork = works.find((work) => work.id === selectedWorkId) ?? works[0] ?? null;
   const selectedEvent = selectedWork?.events.find((event) => event.id === selectedEventId) ?? selectedWork?.events[0] ?? null;
+  const detailEvent = selectedWork?.events.find((event) => event.id === detailEventId) ?? null;
 
   const linkedCharacterWork =
     characterWorks.find((work) => work.id === selectedWork?.linkedCharacterWorkId) ??
@@ -392,7 +396,7 @@ export function StoryEventTimeline() {
     window.localStorage.removeItem(storageKey);
   }
 
-  function beginDrag(event: React.PointerEvent<HTMLButtonElement>, cardId: string) {
+  function beginDrag(event: React.PointerEvent<HTMLDivElement>, cardId: string) {
     if (!selectedWork) {
       return;
     }
@@ -404,13 +408,13 @@ export function StoryEventTimeline() {
     }
 
     const rect = board.getBoundingClientRect();
-    const dragCardWidth = isCompact ? 180 : cardWidth;
-    const dragCardHeight = isCompact ? 140 : cardHeight;
+    const dragCardWidth = isCompact ? 200 : cardWidth;
+    const dragCardHeight = isCompact ? 150 : cardHeight;
 
     dragRef.current = {
       id: cardId,
-      offsetX: event.clientX - rect.left - card.x,
-      offsetY: event.clientY - rect.top - card.y,
+      offsetX: event.clientX - rect.left - card.x + boardPan.x,
+      offsetY: event.clientY - rect.top - card.y + boardPan.y,
     };
 
     setSelectedEventId(cardId);
@@ -422,12 +426,12 @@ export function StoryEventTimeline() {
       }
 
       const nextX = clamp(
-        moveEvent.clientX - rect.left - dragRef.current.offsetX,
+        moveEvent.clientX - rect.left - dragRef.current.offsetX + boardPan.x,
         18,
         (boardRef.current?.clientWidth ?? boardViewport.width) - dragCardWidth - 18,
       );
       const nextY = clamp(
-        moveEvent.clientY - rect.top - dragRef.current.offsetY,
+        moveEvent.clientY - rect.top - dragRef.current.offsetY + boardPan.y,
         18,
         (boardRef.current?.clientHeight ?? boardViewport.height) - dragCardHeight - 18,
       );
@@ -456,6 +460,40 @@ export function StoryEventTimeline() {
 
     const handleUp = () => {
       dragRef.current = null;
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+    };
+
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp, { once: true });
+  }
+
+  function beginBoardDrag(event: React.PointerEvent<HTMLDivElement>) {
+    if ((event.target as HTMLElement).closest("[data-card-root='true']")) {
+      return;
+    }
+
+    boardPanRef.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: boardPan.x,
+      originY: boardPan.y,
+    };
+    event.preventDefault();
+
+    const handleMove = (moveEvent: PointerEvent) => {
+      if (!boardPanRef.current) {
+        return;
+      }
+
+      setBoardPan({
+        x: boardPanRef.current.originX + (moveEvent.clientX - boardPanRef.current.startX),
+        y: boardPanRef.current.originY + (moveEvent.clientY - boardPanRef.current.startY),
+      });
+    };
+
+    const handleUp = () => {
+      boardPanRef.current = null;
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
     };
@@ -505,33 +543,34 @@ export function StoryEventTimeline() {
   };
   const boardScaleX = boardMetrics.width / boardWidth;
   const boardScaleY = boardMetrics.height / boardHeight;
+  const mapTransform = `translate(${boardPan.x}px, ${boardPan.y}px)`;
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
-      <aside className="space-y-5">
-        <section className="rounded-[28px] border border-slate-300/80 bg-white p-5 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
-          <div className="flex items-center justify-between gap-3">
+    <div className="grid gap-5 xl:grid-cols-[280px_minmax(0,1fr)]">
+      <aside className="space-y-3">
+        <section className="rounded-[22px] border border-slate-200 bg-white/90 p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
+          <div className="flex items-center justify-between gap-2">
             <div>
-              <p className="text-sm font-semibold text-slate-500">현재 작품</p>
-              <h3 className="text-xl font-semibold text-slate-900">{selectedWork?.titleKo ?? selectedWork?.title ?? "작품 없음"}</h3>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">current</p>
+              <h3 className="mt-1 text-base font-semibold text-slate-900">{selectedWork?.titleKo ?? selectedWork?.title ?? "작품 없음"}</h3>
             </div>
             <button
               type="button"
               onClick={resetWorks}
-              className="rounded-full border border-slate-300 px-3 py-2 text-sm text-slate-700 transition hover:border-slate-400 hover:text-slate-950"
+              className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
             >
               <FontAwesomeIcon icon={faRotateLeft} />
             </button>
           </div>
 
-          <div className="mt-4 space-y-3">
-            <label className="block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+          <div className="mt-4 space-y-2.5">
+            <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
               작품 선택
             </label>
             <select
               value={selectedWorkId}
               onChange={(event) => setSelectedWorkId(event.target.value)}
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-amber-300"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-amber-300"
             >
               {works.map((work) => (
                 <option key={work.id} value={work.id}>
@@ -540,8 +579,8 @@ export function StoryEventTimeline() {
               ))}
             </select>
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-2.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
                 <FontAwesomeIcon icon={faLink} className="text-amber-600" />
                 인물관계도 연결
               </div>
@@ -556,7 +595,7 @@ export function StoryEventTimeline() {
                     ),
                   );
                 }}
-                className="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-300"
+                className="mt-2.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-300"
               >
                 <option value="">연결된 작품 없음</option>
                 {characterWorks.map((work) => (
@@ -566,50 +605,52 @@ export function StoryEventTimeline() {
                 ))}
               </select>
               {linkedCharacterWork ? (
-                <p className="mt-2 text-xs text-slate-600">
+                <p className="mt-2 text-[11px] text-slate-600">
                   연결됨: {linkedCharacterWork.titleKo ?? linkedCharacterWork.title}
                 </p>
               ) : (
-                <p className="mt-2 text-xs text-slate-500">현재 제목과 비슷한 인물관계도 작품을 자동으로 연결합니다.</p>
+                <p className="mt-2 text-[11px] text-slate-500">자동 연결 중</p>
               )}
             </div>
 
-            <button
-              type="button"
-              onClick={() => setActiveModal("work")}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
-            >
-              <FontAwesomeIcon icon={faBookOpen} />
-              새 작품 추가
-            </button>
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setActiveModal("work")}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-2.5 py-2 text-xs font-semibold text-white transition hover:bg-slate-700"
+              >
+                <FontAwesomeIcon icon={faBookOpen} />
+                추가
+              </button>
 
-            <button
-              type="button"
-              onClick={deleteSelectedWork}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100"
-            >
-              <FontAwesomeIcon icon={faTrash} />
-              작품 삭제
-            </button>
+              <button
+                type="button"
+                onClick={deleteSelectedWork}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-2.5 py-2 text-xs font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100"
+              >
+                <FontAwesomeIcon icon={faTrash} />
+                삭제
+              </button>
+            </div>
           </div>
         </section>
 
-        <section className="rounded-[28px] border border-slate-300/80 bg-white p-5 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
+        <section className="rounded-[22px] border border-slate-200 bg-white/90 p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
               <FontAwesomeIcon icon={faCalendarDays} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-500">주요 사건</p>
-              <h2 className="text-xl font-semibold text-slate-900">새 사건 카드</h2>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">event</p>
+              <h2 className="text-base font-semibold text-slate-900">이벤트</h2>
             </div>
           </div>
 
-          <div className="mt-5 space-y-3">
+          <div className="mt-4 grid gap-2">
             <button
               type="button"
               onClick={() => setActiveModal("event")}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-sky-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-500"
+              className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-sky-500 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-sky-400"
             >
               <FontAwesomeIcon icon={faPlus} />
               사건 추가
@@ -618,10 +659,10 @@ export function StoryEventTimeline() {
               type="button"
               onClick={() => setActiveModal("edit")}
               disabled={!selectedEvent}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <FontAwesomeIcon icon={faCalendarDays} />
-              선택 사건 수정
+              수정하기
             </button>
           </div>
         </section>
@@ -672,115 +713,131 @@ export function StoryEventTimeline() {
 
             <div
               ref={boardRef}
-              className="relative overflow-hidden rounded-[26px] border border-amber-200 bg-white shadow-inner"
+              onPointerDown={beginBoardDrag}
+              className="relative cursor-grab overflow-hidden rounded-[26px] border border-amber-200 bg-white shadow-inner active:cursor-grabbing"
               style={{ width: "100%", height: boardMetrics.height }}
             >
-              <div className="absolute left-1/2 top-6 bottom-8 w-px -translate-x-1/2 bg-slate-200" />
+              <div className="pointer-events-none absolute inset-0" style={{ transform: mapTransform }}>
+                <div className="absolute left-1/2 top-6 bottom-8 w-px -translate-x-1/2 bg-slate-200" />
 
-              {Array.from({ length: 7 }).map((_, index) => {
-                const ratio = index / 6;
-                const year = Math.round(yearBounds.min + (yearBounds.max - yearBounds.min) * ratio);
-                const y = 70 + ratio * (boardMetrics.height - 120);
-                return (
-                  <div key={`${year}-tick`} className="absolute left-0 right-0" style={{ top: y }}>
-                    <div className="absolute left-0 h-px w-[calc(50%-10px)] bg-slate-200" />
-                    <div className="absolute right-0 h-px w-[calc(50%-10px)] bg-slate-200" />
-                    <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 text-[10px] font-semibold text-slate-500">
-                      {year}
-                    </span>
-                  </div>
-                );
-              })}
+                {Array.from({ length: 7 }).map((_, index) => {
+                  const ratio = index / 6;
+                  const year = Math.round(yearBounds.min + (yearBounds.max - yearBounds.min) * ratio);
+                  const y = 70 + ratio * (boardMetrics.height - 120);
+                  return (
+                    <div key={`${year}-tick`} className="absolute left-0 right-0" style={{ top: y }}>
+                      <div className="absolute left-0 h-px w-[calc(50%-10px)] bg-slate-200" />
+                      <div className="absolute right-0 h-px w-[calc(50%-10px)] bg-slate-200" />
+                      <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 text-[10px] font-semibold text-slate-500">
+                        {year}
+                      </span>
+                    </div>
+                  );
+                })}
 
-              <svg className="pointer-events-none absolute inset-0" viewBox={`0 0 ${boardMetrics.width} ${boardMetrics.height}`}>
-                {eventConnections.map((connection) => (
-                  <path
-                    key={`${connection.fromId}-${connection.toId}`}
-                    d={`M ${connection.fromX * boardScaleX} ${connection.fromY * boardScaleY} C ${connection.fromX * boardScaleX} ${(connection.fromY + 24) * boardScaleY}, ${(connection.toX * boardScaleX)} ${(connection.toY - 24) * boardScaleY}, ${connection.toX * boardScaleX} ${connection.toY * boardScaleY}`}
-                    stroke="rgba(148, 163, 184, 0.9)"
-                    strokeWidth="2"
-                    fill="none"
-                    strokeDasharray="8 8"
-                  />
-                ))}
-              </svg>
+                <svg className="pointer-events-none absolute inset-0" viewBox={`0 0 ${boardMetrics.width} ${boardMetrics.height}`}>
+                  {eventConnections.map((connection) => (
+                    <path
+                      key={`${connection.fromId}-${connection.toId}`}
+                      d={`M ${connection.fromX * boardScaleX} ${connection.fromY * boardScaleY} C ${connection.fromX * boardScaleX} ${(connection.fromY + 24) * boardScaleY}, ${(connection.toX * boardScaleX)} ${(connection.toY - 24) * boardScaleY}, ${connection.toX * boardScaleX} ${connection.toY * boardScaleY}`}
+                      stroke="rgba(148, 163, 184, 0.9)"
+                      strokeWidth="2"
+                      fill="none"
+                      strokeDasharray="8 8"
+                    />
+                  ))}
+                </svg>
 
-              {chapterGroups.map(({ chapter, events }, chapterIndex) => {
-                const collapsed = Boolean(collapsedChapters[chapter]);
-                const chapterTop = 16 + chapterIndex * 34;
+                {chapterGroups.map(({ chapter, events }, chapterIndex) => {
+                  const collapsed = Boolean(collapsedChapters[chapter]);
+                  const chapterTop = 16 + chapterIndex * 34;
 
-                return (
-                  <div key={chapter} className="absolute inset-x-0">
-                    <button
-                      type="button"
-                      onClick={() => toggleChapter(chapter)}
-                      className="absolute left-4 z-10 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-700"
-                      style={{ top: chapterTop }}
-                    >
-                      {chapter} {collapsed ? "펼치기" : "접기"}
-                    </button>
+                  return (
+                    <div key={chapter} className="absolute inset-x-0">
+                      <button
+                        type="button"
+                        onClick={() => toggleChapter(chapter)}
+                        className="absolute left-4 z-10 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-700"
+                        style={{ top: chapterTop }}
+                      >
+                        {chapter} {collapsed ? "펼치기" : "접기"}
+                      </button>
 
-                    {!collapsed ? (
-                      events.map((event) => {
-                        const isActive = event.id === selectedEvent?.id;
-                        const laneDirection = isCompact ? 0 : chapterIndex % 2 === 0 ? -1 : 1;
-                        const mobileCardWidth = isCompact ? 180 : cardWidth;
-                        const mobileCardHeight = isCompact ? 128 : cardHeight;
-                        const left = isCompact
-                          ? boardMetrics.width / 2 - mobileCardWidth / 2
-                          : boardWidth / 2 + laneDirection * (cardWidth + 42);
-                        const top =
-                          70 +
-                          ((event.year - yearBounds.min) / Math.max(yearBounds.max - yearBounds.min || 1, 1)) *
-                            (boardMetrics.height - 120) -
-                          mobileCardHeight / 2;
+                      {!collapsed ? (
+                        events.map((event) => {
+                          const isActive = event.id === selectedEvent?.id;
+                          const laneDirection = isCompact ? 0 : chapterIndex % 2 === 0 ? -1 : 1;
+                          const mobileCardWidth = isCompact ? 200 : cardWidth;
+                          const mobileCardHeight = isCompact ? 150 : cardHeight;
+                          const left = isCompact
+                            ? boardMetrics.width / 2 - mobileCardWidth / 2
+                            : boardWidth / 2 + laneDirection * (cardWidth + 42);
+                          const leftSideOffset = laneDirection < 0 ? 170 : 0;
+                          const top =
+                            70 +
+                            ((event.year - yearBounds.min) / Math.max(yearBounds.max - yearBounds.min || 1, 1)) *
+                              (boardMetrics.height - 120) -
+                            mobileCardHeight / 2 +
+                            leftSideOffset;
 
-                        return (
-                          <button
-                            key={event.id}
-                            type="button"
-                            onPointerDown={(pointerEvent) => beginDrag(pointerEvent, event.id)}
-                            onClick={() => setSelectedEventId(event.id)}
-                            className="absolute z-20 rounded-[24px] border bg-white p-3 text-left shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5"
-                            style={{
-                              width: mobileCardWidth,
-                              left: isCompact
-                                ? left
-                                : laneDirection < 0 ? Math.max(24, boardWidth / 2 - cardWidth - 60) : left,
-                              top,
-                              borderColor: isActive ? event.color : "rgba(226,232,240,1)",
-                              boxShadow: isActive ? `0 18px 40px ${event.color}33` : "0 18px 40px rgba(15,23,42,0.08)",
-                            }}
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <span
-                                className="rounded-full px-2.5 py-1 text-[10px] font-semibold text-white"
-                                style={{ backgroundColor: event.color }}
-                              >
-                                {event.yearLabel}
-                              </span>
-                              <span className="inline-flex items-center gap-1 text-[10px] text-slate-400">
-                                <FontAwesomeIcon icon={faGripVertical} />
-                                drag
-                              </span>
-                            </div>
-                            <p className="mt-3 text-sm font-semibold text-slate-900">{event.title}</p>
-                            <p className="mt-1 text-[11px] text-slate-500">{event.chapter}</p>
-                            <p className="mt-2 text-xs leading-5 text-slate-600">{event.summary}</p>
-                            <div className="mt-3 flex flex-wrap gap-1.5">
-                              {event.tags.slice(0, 3).map((tag) => (
-                                <span key={tag} className="rounded-full bg-slate-100 px-2 py-1 text-[10px] text-slate-500">
-                                  {tag}
+                          return (
+                            <div
+                              key={event.id}
+                              data-card-root="true"
+                              onPointerDown={(pointerEvent) => beginDrag(pointerEvent, event.id)}
+                              onClick={() => setSelectedEventId(event.id)}
+                              className="absolute z-20 rounded-[26px] border bg-white p-4 text-left shadow-[0_22px_45px_rgba(15,23,42,0.08)] transition hover:-translate-y-1"
+                              style={{
+                                width: mobileCardWidth,
+                                left: isCompact
+                                  ? left
+                                  : laneDirection < 0 ? Math.max(24, boardWidth / 2 - cardWidth - 60) : left,
+                                top,
+                                borderColor: isActive ? event.color : "rgba(226,232,240,1)",
+                                boxShadow: isActive ? `0 18px 40px ${event.color}33` : "0 18px 40px rgba(15,23,42,0.08)",
+                              }}
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <span
+                                  className="rounded-full px-2.5 py-1 text-[10px] font-semibold text-white"
+                                  style={{ backgroundColor: event.color }}
+                                >
+                                  {event.yearLabel}
                                 </span>
-                              ))}
+                                <span className="inline-flex items-center gap-1 text-[10px] text-slate-400">
+                                  <FontAwesomeIcon icon={faGripVertical} />
+                                  drag
+                                </span>
+                              </div>
+                              <p className="mt-3 text-sm font-semibold text-slate-900">{event.title}</p>
+                              <p className="mt-1 text-[11px] text-slate-500">{event.chapter}</p>
+                              <p className="mt-2 text-xs leading-5 text-slate-600">{event.summary}</p>
+                              <div className="mt-3 flex flex-wrap gap-1.5">
+                                {event.tags.slice(0, 3).map((tag) => (
+                                  <span key={tag} className="rounded-full bg-slate-100 px-2 py-1 text-[10px] text-slate-500">
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={(pointerEvent) => {
+                                  pointerEvent.stopPropagation();
+                                  setDetailEventId(event.id);
+                                  setActiveModal("detail");
+                                }}
+                                className="mt-3 inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-semibold text-rose-700"
+                              >
+                                세부정보
+                              </button>
                             </div>
-                          </button>
-                        );
-                      })
-                    ) : null}
-                  </div>
-                );
-              })}
+                          );
+                        })
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -849,21 +906,26 @@ export function StoryEventTimeline() {
       </section>
 
       {activeModal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4">
-          <div className="w-full max-w-lg rounded-[30px] border border-slate-200 bg-white p-5 shadow-[0_32px_80px_rgba(15,23,42,0.25)]">
-            <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-4">
-              <div>
-                <p className="text-sm font-semibold text-slate-500">
-                  {activeModal === "work" ? "새 작품" : activeModal === "event" ? "새 사건" : "사건 수정"}
-                </p>
-                <h3 className="text-xl font-semibold text-slate-900">
-                  {activeModal === "work" ? "소설 추가" : activeModal === "event" ? "이벤트 카드 생성" : "선택한 사건 수정"}
-                </h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-rose-50/60 p-4 backdrop-blur-[2px]">
+          <div className="w-full max-w-lg rounded-[32px] border border-rose-100 bg-[linear-gradient(180deg,_#fff9fb_0%,_#ffffff_100%)] p-5 shadow-[0_32px_80px_rgba(244,114,182,0.18)]">
+            <div className="flex items-center justify-between gap-3 border-b border-rose-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-200 via-amber-100 to-sky-100 text-lg text-slate-700">
+                  {activeModal === "work" ? "📚" : activeModal === "event" ? "✨" : "📝"}
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+                    {activeModal === "work" ? "new work" : activeModal === "event" ? "new event" : "edit event"}
+                  </p>
+                  <h3 className="text-xl font-semibold text-slate-900">
+                    {activeModal === "work" ? "소설 추가" : activeModal === "event" ? "이벤트 카드 생성" : "선택한 사건 수정"}
+                  </h3>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="rounded-full border border-slate-300 px-3 py-2 text-sm text-slate-700"
+                className="rounded-full border border-rose-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm"
               >
                 닫기
               </button>
@@ -899,8 +961,8 @@ export function StoryEventTimeline() {
                 </select>
 
                 <div className="flex justify-end gap-2 pt-2">
-                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-2xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700">취소</button>
-                  <button type="submit" className="rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">추가하기</button>
+                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-2xl border border-rose-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700">취소</button>
+                  <button type="submit" className="rounded-2xl bg-gradient-to-r from-rose-300 via-amber-300 to-sky-300 px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-[0_8px_20px_rgba(251,191,36,0.2)]">추가하기</button>
                 </div>
               </form>
             ) : null}
@@ -938,8 +1000,8 @@ export function StoryEventTimeline() {
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
                 />
                 <div className="flex justify-end gap-2 pt-2">
-                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-2xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700">취소</button>
-                  <button type="submit" className="rounded-2xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white">추가하기</button>
+                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-2xl border border-rose-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700">취소</button>
+                  <button type="submit" className="rounded-2xl bg-gradient-to-r from-sky-300 via-cyan-300 to-emerald-200 px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-[0_8px_20px_rgba(125,211,252,0.2)]">추가하기</button>
                 </div>
               </form>
             ) : null}
@@ -974,7 +1036,37 @@ export function StoryEventTimeline() {
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
                 />
                 <div className="flex justify-end gap-2 pt-2">
-                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-2xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700">닫기</button>
+                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-2xl border border-rose-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700">닫기</button>
+                </div>
+              </div>
+            ) : null}
+
+            {activeModal === "detail" && detailEvent ? (
+              <div className="mt-5 space-y-4">
+                <div className="rounded-[24px] border border-rose-100 bg-rose-50 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="rounded-full px-2.5 py-1 text-[10px] font-semibold text-white" style={{ backgroundColor: detailEvent.color }}>
+                      {detailEvent.yearLabel}
+                    </span>
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">{detailEvent.chapter}</span>
+                  </div>
+                  <h4 className="mt-3 text-2xl font-semibold text-slate-900">{detailEvent.title}</h4>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{detailEvent.summary}</p>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">태그</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {detailEvent.tags.map((tag) => (
+                      <span key={tag} className="rounded-full bg-white px-2.5 py-1 text-[10px] font-medium text-slate-600">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-2xl border border-rose-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700">닫기</button>
                 </div>
               </div>
             ) : null}
