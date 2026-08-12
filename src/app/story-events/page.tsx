@@ -19,14 +19,14 @@ export default function StoryEventsPage() {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <p className="inline-flex rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-sm font-semibold uppercase tracking-[0.24em] text-slate-600">
-                Story Timeline
+                Story Pulse
               </p>
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-5xl">
-                소설 속 사건을 흐름으로 정리하는 보드
+                소설 속 사건 타임라인
               </h1>
             </div>
             <div className="max-w-xl rounded-[24px] border border-slate-300 bg-slate-50/80 p-5 text-sm leading-7 text-slate-600">
-              소설의 핵심 사건들을 카드로 놓고 흐름을 따라 읽어보세요.
+              소설의 핵심 사건을 카드 타임라인으로 정리합니다.
             </div>
           </div>
         </section>

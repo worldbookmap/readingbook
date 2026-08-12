@@ -27,14 +27,14 @@ export default async function CharactersPage({
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <p className="inline-flex rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-sm font-semibold uppercase tracking-[0.24em] text-slate-600">
-                Character Map
+                Reader Workspace
               </p>
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-5xl">
-                소설 속 인물 관계를 한눈에 정리하는 공간
+                소설 속 인물들의 관계
               </h1>
             </div>
             <div className="max-w-xl rounded-[24px] border border-slate-300 bg-slate-50/80 p-5 text-sm leading-7 text-slate-600">
-              복잡한 인물 관계를 정리하며 읽는 흐름을 유지해 보세요.
+              복잡한 인물관계를 좀 정리하면서 읽어보자.
             </div>
           </div>
         </section>

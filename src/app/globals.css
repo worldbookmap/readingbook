@@ -20,7 +20,9 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background: linear-gradient(135deg, #fcfbf8 0%, #f6f8fc 46%, #f5efe8 100%);
+  background:
+    linear-gradient(rgba(245, 243, 236, 0.7), rgba(245, 243, 236, 0.7)),
+    url("/assets/bgBooks.jpeg") center/cover no-repeat fixed;
   color: var(--text);
   font-family: "Inter", "Pretendard", "Segoe UI", sans-serif;
   letter-spacing: -0.01em;
