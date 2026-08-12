@@ -89,6 +89,7 @@ export function CharacterMapClient({ library }: Props) {
   const didMountRef = useRef(false);
   const mapViewportRef = useRef<HTMLDivElement | null>(null);
   const boardViewportRef = useRef<HTMLDivElement | null>(null);
+  const boardContentRef = useRef<HTMLDivElement | null>(null);
   const boardExportRef = useRef<HTMLDivElement | null>(null);
   const focusFrameRef = useRef<number | null>(null);
   const dragRef = useRef<{
@@ -673,34 +674,43 @@ export function CharacterMapClient({ library }: Props) {
   }, [selectedId, selectedNode, nodes, selectedWorkId, zoom]);
 
   async function exportToPdf() {
-    const target = boardExportRef.current ?? mapViewportRef.current;
+    const target = boardContentRef.current ?? boardExportRef.current ?? mapViewportRef.current;
     if (!target) {
       return;
     }
 
-    const canvas = await html2canvas(target, {
-      backgroundColor: "#ffffff",
-      scale: 2,
-      useCORS: true,
-      logging: false,
-    });
+    try {
+      const canvas = await html2canvas(target, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        width: target.scrollWidth || target.clientWidth || boardWidth,
+        height: target.scrollHeight || target.clientHeight || boardHeight,
+        windowWidth: target.scrollWidth || target.clientWidth || boardWidth,
+        windowHeight: target.scrollHeight || target.clientHeight || boardHeight,
+      });
 
-    const pdf = new jsPDF({
-      orientation: "landscape",
-      unit: "pt",
-      format: "a4",
-    });
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "pt",
+        format: "a4",
+      });
 
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
-    const imageWidth = canvas.width * ratio;
-    const imageHeight = canvas.height * ratio;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
+      const imageWidth = canvas.width * ratio;
+      const imageHeight = canvas.height * ratio;
 
-    const x = (pageWidth - imageWidth) / 2;
-    const y = (pageHeight - imageHeight) / 2;
-    pdf.addImage(canvas.toDataURL("image/png"), "PNG", x, y, imageWidth, imageHeight);
-    pdf.save(`${selectedWork?.titleKo ?? selectedWork?.title ?? "character-map"}.pdf`);
+      const x = (pageWidth - imageWidth) / 2;
+      const y = (pageHeight - imageHeight) / 2;
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", x, y, imageWidth, imageHeight);
+      pdf.save(`${selectedWork?.titleKo ?? selectedWork?.title ?? "character-map"}.pdf`);
+    } catch (error) {
+      console.error("PDF export failed", error);
+      window.alert("PDF 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+    }
   }
 
   function toggleFullscreen() {
@@ -1207,6 +1217,7 @@ export function CharacterMapClient({ library }: Props) {
               style={{ height: boardHeight * zoom, width: boardWidth * zoom }}
             >
             <div
+              ref={boardContentRef}
               className="relative"
               data-character-board
               style={{
