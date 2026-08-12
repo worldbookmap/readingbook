@@ -64,8 +64,16 @@ async function waitForServer(url) {
 async function main() {
   console.log('빌드를 시작합니다...');
   await run('npm', ['run', 'build']);
-  console.log('서버를 시작합니다...');
 
+  try {
+    await fetch(URL);
+    console.log(`기존 서버를 종료하고 최신 빌드를 시작합니다: ${URL}`);
+    await run('bash', ['-lc', "lsof -ti tcp:3001 | xargs -r kill -9"]);
+  } catch {
+    // 서버가 아직 실행 중이 아니면 그대로 시작합니다.
+  }
+
+  console.log('서버를 시작합니다...');
   const server = spawn('npm', ['run', 'start'], {
     stdio: 'inherit',
     shell: true,
@@ -78,13 +86,14 @@ async function main() {
 
   try {
     await waitForServer(URL);
-    console.log(`브라우저를 엽니다: ${URL}`);
-    await openBrowser(URL);
   } catch (error) {
     console.error(error.message);
     server.kill('SIGTERM');
     process.exit(1);
   }
+
+  console.log(`브라우저를 엽니다: ${URL}`);
+  await openBrowser(URL);
 }
 
 main();

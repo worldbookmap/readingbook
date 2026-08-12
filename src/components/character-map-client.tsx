@@ -814,39 +814,22 @@ export function CharacterMapClient({ library }: Props) {
           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex-1 min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">작품 목록</p>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                {recentWorks.map((work) => {
-                  const isActive = work.id === selectedWorkId;
-                  return (
-                    <button
-                      key={work.id}
-                      type="button"
-                      onClick={() => handleWorkSelect(work.id)}
-                      className={`rounded-full border px-3 py-1.5 text-sm transition ${
-                        isActive
-                          ? "border-slate-900 bg-slate-900 text-white"
-                          : "border-slate-300 bg-white text-slate-600 hover:border-slate-400 hover:text-slate-950"
-                      }`}
-                    >
+              <div className="relative mt-2">
+                <select
+                  aria-label="작품 선택"
+                  value={selectedWorkId}
+                  onChange={(event) => handleWorkSelect(event.target.value)}
+                  className="w-full appearance-none rounded-[20px] border border-slate-200 bg-[linear-gradient(135deg,_#ffffff_0%,_#f8f8f7_100%)] px-4 py-3 pr-11 text-sm font-medium text-slate-800 shadow-[0_12px_30px_rgba(15,23,42,0.06)] outline-none transition focus:border-slate-400 focus:shadow-[0_14px_34px_rgba(15,23,42,0.10)]"
+                >
+                  {works.map((work) => (
+                    <option key={work.id} value={work.id}>
                       {work.titleKo ?? work.title}
-                    </button>
-                  );
-                })}
-
-                {remainingWorks.length > 0 ? (
-                  <select
-                    aria-label="추가 작품 선택"
-                    value={selectedWorkId}
-                    onChange={(event) => handleWorkSelect(event.target.value)}
-                    className="min-w-[170px] rounded-full border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 outline-none focus:border-slate-400"
-                  >
-                    {remainingWorks.map((work) => (
-                      <option key={work.id} value={work.id}>
-                        {work.titleKo ?? work.title}
-                      </option>
-                    ))}
-                  </select>
-                ) : null}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center">
+                  <span className="text-lg font-semibold text-slate-600">▾</span>
+                </div>
               </div>
             </div>
 
