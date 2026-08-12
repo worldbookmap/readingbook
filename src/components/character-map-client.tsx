@@ -112,6 +112,7 @@ export function CharacterMapClient({ library }: Props) {
   const [activePanelTab, setActivePanelTab] = useState<"add" | "info">("add");
   const [selectedRecommendedBook, setSelectedRecommendedBook] = useState<NovelCharacterBook | null>(null);
   const [existingConnectionTargetId, setExistingConnectionTargetId] = useState<string>("");
+  const [existingConnectionSearch, setExistingConnectionSearch] = useState("");
   const [existingConnectionType, setExistingConnectionType] = useState<RelationshipType>("친구");
   const [existingConnectionLabel, setExistingConnectionLabel] = useState("");
   const [deleteModal, setDeleteModal] = useState<{
@@ -290,6 +291,11 @@ export function CharacterMapClient({ library }: Props) {
     };
   }, []);
 
+  useEffect(() => {
+    setExistingConnectionTargetId("");
+    setExistingConnectionSearch("");
+  }, [selectedId]);
+
   const selectedWork = works.find((work) => work.id === selectedWorkId) ?? null;
   const selectedNode = nodes.find((node) => node.id === selectedId) ?? nodes[0] ?? null;
   const matchedBooks = findMatchingBooks(newWorkTitle);
@@ -313,6 +319,24 @@ export function CharacterMapClient({ library }: Props) {
   const selectedRelationship = relationships.find(
     (relationship) => relationship.id === selectedRelationshipId,
   ) ?? null;
+  const filteredExistingConnectionNodes = nodes.filter((node) => {
+    if (node.id === selectedNode?.id) {
+      return false;
+    }
+
+    const normalizedQuery = existingConnectionSearch.trim().toLowerCase();
+    if (!normalizedQuery) {
+      return true;
+    }
+
+    return (
+      node.name.toLowerCase().includes(normalizedQuery) ||
+      node.title.toLowerCase().includes(normalizedQuery) ||
+      node.summary.toLowerCase().includes(normalizedQuery)
+    );
+  });
+  const selectedExistingConnectionNode =
+    nodes.find((node) => node.id === existingConnectionTargetId) ?? null;
   const selectedRelationshipPosition = selectedRelationship
     ? (() => {
         const from = nodes.find((node) => node.id === selectedRelationship.fromId);
@@ -449,39 +473,66 @@ export function CharacterMapClient({ library }: Props) {
     );
   }
 
+  function addRelationshipBetweenExistingNodes(
+    fromNodeId: string,
+    toNodeId: string,
+    nextType: RelationshipType,
+    nextLabel?: string,
+  ) {
+    const sourceNode = nodes.find((node) => node.id === fromNodeId);
+    const targetNode = nodes.find((node) => node.id === toNodeId);
+
+    if (!sourceNode || !targetNode || sourceNode.id === targetNode.id) {
+      return null;
+    }
+
+    const duplicate = relationships.some(
+      (relationship) =>
+        (relationship.fromId === fromNodeId && relationship.toId === toNodeId) ||
+        (relationship.fromId === toNodeId && relationship.toId === fromNodeId),
+    );
+
+    if (duplicate) {
+      return null;
+    }
+
+    const nextRelationship: CharacterRelationship = {
+      id: crypto.randomUUID(),
+      fromId: fromNodeId,
+      toId: toNodeId,
+      type: nextType,
+      label: nextType === "기타" ? nextLabel?.trim() || "직접 입력 관계" : undefined,
+    };
+
+    setRelationships((current) => [...current, nextRelationship]);
+    setSelectedRelationshipId(nextRelationship.id);
+    setActivePanelTab("info");
+    return nextRelationship;
+  }
+
   function handleConnectSelectedNodeToExisting() {
     if (!selectedNode || !existingConnectionTargetId) {
       return;
     }
 
     const targetNode = nodes.find((node) => node.id === existingConnectionTargetId);
-    if (!targetNode || targetNode.id === selectedNode.id) {
+    if (!targetNode) {
       return;
     }
 
-    const duplicate = relationships.some(
-      (relationship) =>
-        ((relationship.fromId === selectedNode.id && relationship.toId === targetNode.id) ||
-          (relationship.fromId === targetNode.id && relationship.toId === selectedNode.id)) &&
-        relationship.type === existingConnectionType,
+    const created = addRelationshipBetweenExistingNodes(
+      selectedNode.id,
+      targetNode.id,
+      existingConnectionType,
+      existingConnectionType === "기타" ? existingConnectionLabel : undefined,
     );
 
-    if (duplicate) {
+    if (!created) {
       return;
     }
 
-    const nextRelationship: CharacterRelationship = {
-      id: crypto.randomUUID(),
-      fromId: selectedNode.id,
-      toId: targetNode.id,
-      type: existingConnectionType,
-      label: existingConnectionType === "기타" ? existingConnectionLabel.trim() || "직접 입력 관계" : undefined,
-    };
-
-    setRelationships((current) => [...current, nextRelationship]);
-    setSelectedRelationshipId(nextRelationship.id);
-    setActivePanelTab("info");
     setExistingConnectionTargetId("");
+    setExistingConnectionSearch("");
     setExistingConnectionType("친구");
     setExistingConnectionLabel("");
   }
@@ -763,11 +814,30 @@ export function CharacterMapClient({ library }: Props) {
       );
     };
 
-    const end = () => {
+    const end = (releaseEvent: PointerEvent) => {
       const dragState = dragRef.current;
       dragRef.current = null;
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", end);
+
+      if (dragState && dragState.moved) {
+        const targetElement = document.elementFromPoint(releaseEvent.clientX, releaseEvent.clientY) as HTMLElement | null;
+        const targetNodeId = targetElement?.closest("[data-node-id]")?.getAttribute("data-node-id");
+
+        if (targetNodeId && targetNodeId !== nodeId) {
+          const created = addRelationshipBetweenExistingNodes(
+            nodeId,
+            targetNodeId,
+            existingConnectionType,
+            existingConnectionType === "기타" ? existingConnectionLabel || "직접 입력 관계" : undefined,
+          );
+
+          if (created) {
+            setExistingConnectionTargetId(targetNodeId);
+            setExistingConnectionSearch("");
+          }
+        }
+      }
 
       if (dragState && !dragState.moved) {
         setSelectedId(nodeId);
@@ -1760,6 +1830,7 @@ export function CharacterMapClient({ library }: Props) {
                     <div
                       role="button"
                       tabIndex={0}
+                      data-node-id={node.id}
                       onPointerDown={(event) => handlePointerDown(event, node.id)}
                       onMouseEnter={() => setHoveredNodeId(node.id)}
                       onMouseLeave={() => setHoveredNodeId(null)}
@@ -2119,21 +2190,68 @@ export function CharacterMapClient({ library }: Props) {
                     <div className="mt-3 space-y-3">
                       <div>
                         <label className="text-xs font-semibold text-slate-600">연결 대상</label>
-                        <select
-                          value={existingConnectionTargetId}
-                          onChange={(event) => setExistingConnectionTargetId(event.target.value)}
-                          className={`${selectClassName} mt-2`}
-                          disabled={!selectedNode || nodes.length <= 1}
-                        >
-                          <option value="">대상을 선택하세요</option>
-                          {nodes
-                            .filter((node) => node.id !== selectedNode?.id)
-                            .map((node) => (
-                              <option key={node.id} value={node.id}>
-                                {node.name}
-                              </option>
-                            ))}
-                        </select>
+                        <div className="mt-2 rounded-2xl border border-slate-300 bg-white/90 p-2 shadow-[0_6px_16px_rgba(15,23,42,0.04)]">
+                          <input
+                            value={existingConnectionSearch}
+                            onChange={(event) => setExistingConnectionSearch(event.target.value)}
+                            placeholder={selectedNode ? "인물 검색해서 선택" : "먼저 인물을 선택하세요"}
+                            disabled={!selectedNode || nodes.length <= 1}
+                            className={`${fieldClassName} border-0 bg-transparent px-2 py-2 shadow-none focus:ring-0`}
+                          />
+
+                          {selectedExistingConnectionNode ? (
+                            <div className="mt-2 flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2">
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-slate-800">
+                                  {selectedExistingConnectionNode.name}
+                                </p>
+                                <p className="truncate text-[10px] text-slate-500">
+                                  {selectedExistingConnectionNode.title}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setExistingConnectionTargetId("");
+                                  setExistingConnectionSearch("");
+                                }}
+                                className="rounded-full border border-slate-300 bg-white px-2 py-1 text-[10px] font-medium text-slate-700"
+                              >
+                                취소
+                              </button>
+                            </div>
+                          ) : null}
+
+                          {selectedNode && nodes.length > 1 ? (
+                            <div className="mt-2 max-h-44 space-y-1 overflow-y-auto pr-1">
+                              {filteredExistingConnectionNodes.length === 0 ? (
+                                <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+                                  검색 결과가 없습니다.
+                                </p>
+                              ) : (
+                                filteredExistingConnectionNodes.map((node) => (
+                                  <button
+                                    key={node.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setExistingConnectionTargetId(node.id);
+                                      setExistingConnectionSearch(node.name);
+                                    }}
+                                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left transition hover:border-slate-400 hover:bg-slate-50"
+                                  >
+                                    <div className="min-w-0">
+                                      <p className="truncate text-sm font-semibold text-slate-800">{node.name}</p>
+                                      <p className="truncate text-[10px] text-slate-500">{node.title}</p>
+                                    </div>
+                                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
+                                      선택
+                                    </span>
+                                  </button>
+                                ))
+                              )}
+                            </div>
+                          ) : null}
+                        </div>
                       </div>
 
                       <div>
@@ -2162,6 +2280,10 @@ export function CharacterMapClient({ library }: Props) {
                           />
                         </div>
                       ) : null}
+
+                      <div className="rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-[11px] leading-5 text-slate-500">
+                        드래그로 다른 인물에 놓으면 빠르게 관계를 추가할 수 있습니다.
+                      </div>
 
                       <button
                         type="button"
