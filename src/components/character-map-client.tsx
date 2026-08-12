@@ -987,7 +987,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
 
   function handleWheelZoom(event: React.WheelEvent<HTMLDivElement>) {
     event.preventDefault();
-    const delta = event.deltaY > 0 ? -0.04 : 0.04;
+    const delta = event.deltaY > 0 ? -0.025 : 0.025;
     updateZoom(zoom + delta);
   }
 
@@ -1047,13 +1047,17 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     const viewportWidth = viewport.clientWidth || boardWidth;
     const viewportHeight = viewport.clientHeight || boardHeight;
     const boardScale = getBoardScale();
+    const effectiveViewportWidth = window.innerWidth < 1024 ? viewportWidth : viewportWidth;
 
     const targetCenterX = targetNode ? targetNode.x + iconNodeSize / 2 : boardWidth / 2;
     const targetCenterY = targetNode ? targetNode.y + iconNodeSize / 2 : boardHeight / 2;
 
+    const mobilePanX = effectiveViewportWidth / 2 - targetCenterX * boardScale;
+    const mobilePanY = viewportHeight / 2 - targetCenterY * boardScale;
+
     animatePanTo({
-      x: viewportWidth / 2 - targetCenterX * boardScale,
-      y: viewportHeight / 2 - targetCenterY * boardScale,
+      x: mobilePanX,
+      y: mobilePanY,
     });
 
     return () => {
@@ -1105,7 +1109,8 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
           const nextDistance = Math.hypot(touches[1].x - touches[0].x, touches[1].y - touches[0].y);
           const startDistance = pinchGestureRef.current?.startDistance ?? nextDistance;
           const startZoom = pinchGestureRef.current?.startZoom ?? zoom;
-          const nextZoom = Math.min(maxZoom, Math.max(minZoom, Number((startZoom * (nextDistance / startDistance)).toFixed(2))));
+          const scaleFactor = nextDistance / startDistance;
+          const nextZoom = Math.min(maxZoom, Math.max(minZoom, Number((startZoom * (0.7 + scaleFactor * 0.3)).toFixed(2))));
           setZoom(nextZoom);
           setPan((currentPan) => clampPan(currentPan, nextZoom));
         }
@@ -1179,6 +1184,9 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       setActivePanelTab("add");
     }
 
+    setHoveredNodeId(null);
+    setSelectedRelationshipId(null);
+    setSelectedId("");
     clearRelationshipSelection();
     viewportDragRef.current = {
       startX: event.clientX,
@@ -1528,7 +1536,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             <div className="mt-3 grid grid-cols-3 gap-2">
               <button
                 type="button"
-                onClick={() => updateZoom(zoom - 0.05)}
+                onClick={() => updateZoom(zoom - 0.03)}
                 className="inline-flex items-center justify-center gap-1 rounded-2xl border border-slate-200 bg-white px-2.5 py-2.5 text-[11px] font-semibold text-slate-700 shadow-[0_4px_12px_rgba(15,23,42,0.05)] transition active:scale-[0.98] hover:border-slate-300 hover:text-slate-950"
                 aria-label="모바일 축소"
               >
@@ -1537,7 +1545,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               </button>
               <button
                 type="button"
-                onClick={() => updateZoom(zoom + 0.05)}
+                onClick={() => updateZoom(zoom + 0.03)}
                 className="inline-flex items-center justify-center gap-1 rounded-2xl border border-slate-200 bg-white px-2.5 py-2.5 text-[11px] font-semibold text-slate-700 shadow-[0_4px_12px_rgba(15,23,42,0.05)] transition active:scale-[0.98] hover:border-slate-300 hover:text-slate-950"
                 aria-label="모바일 확대"
               >
@@ -1554,7 +1562,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             </div>
 
             <div className="mt-4 overflow-auto rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
-              <div className="relative h-[420px] min-w-[360px]">
+              <div className="relative h-[420px] min-w-[320px] px-1">
                 <div
                   className="relative mx-auto"
                   data-character-board
@@ -1565,9 +1573,10 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                     height: boardHeight,
                     width: boardWidth,
                     transform: `translate(${pan.x}px, ${pan.y}px) scale(${mobileTotalScale})`,
-                    transformOrigin: "0 0",
+                    transformOrigin: "center center",
                     touchAction: "none",
                     userSelect: "none",
+                    margin: "0 auto",
                   }}
                 >
                   <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">
@@ -1758,9 +1767,6 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                 </div>
               </div>
 
-              <p className="px-4 py-3 text-xs leading-5 text-slate-500">
-                카드를 손가락으로 끌어서 옮길 수 있고, 빈 공간은 손가락으로 밀어 캔버스를 움직일 수 있습니다.
-              </p>
             </div>
           </div>
         </div>
