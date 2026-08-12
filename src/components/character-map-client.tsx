@@ -70,6 +70,7 @@ export function CharacterMapClient({ library }: Props) {
   const [selectedRelationshipId, setSelectedRelationshipId] = useState<string | null>(null);
   const [draft, setDraft] = useState<DraftState>(defaultDraft);
   const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
@@ -86,7 +87,31 @@ export function CharacterMapClient({ library }: Props) {
     offsetY: number;
     moved: boolean;
   } | null>(null);
+  const viewportDragRef = useRef<{
+    startX: number;
+    startY: number;
+    startPanX: number;
+    startPanY: number;
+  } | null>(null);
   const longPressTimeoutRef = useRef<number | null>(null);
+
+  function getPreferredNodeId(workNodes: CharacterNode[], workRelationships: CharacterRelationship[]) {
+    const heroNode = workNodes.find((node) => node.name.includes("주인공") || node.title.includes("주인공"));
+    if (heroNode) {
+      return heroNode.id;
+    }
+
+    const ranked = workNodes
+      .map((node) => ({
+        node,
+        score: workRelationships.filter(
+          (relationship) => relationship.fromId === node.id || relationship.toId === node.id,
+        ).length,
+      }))
+      .sort((a, b) => b.score - a.score);
+
+    return ranked[0]?.node.id ?? workNodes[0]?.id ?? "";
+  }
 
   async function loadCharacterMap() {
     try {
@@ -109,9 +134,11 @@ export function CharacterMapClient({ library }: Props) {
             ? current
             : nextWorks[0]?.id ?? "";
           const nextWork = nextWorks.find((work) => work.id === nextWorkId) ?? nextWorks[0] ?? null;
-          setSelectedId(nextWork?.seed.nodes[0]?.id ?? "");
-          setNodes(nextWork?.seed.nodes ?? []);
-          setRelationships(nextWork?.seed.relationships ?? []);
+          const nextWorkNodes = nextWork?.seed.nodes ?? [];
+          const nextWorkRelationships = nextWork?.seed.relationships ?? [];
+          setSelectedId(getPreferredNodeId(nextWorkNodes, nextWorkRelationships));
+          setNodes(nextWorkNodes);
+          setRelationships(nextWorkRelationships);
           return nextWorkId;
         });
         setRemoteEnabled(payload.remoteEnabled);
@@ -134,9 +161,12 @@ export function CharacterMapClient({ library }: Props) {
         const nextWorks = parsed.works;
         setWorks(nextWorks);
         setSelectedWorkId(nextWorks[0]?.id ?? "");
-        setSelectedId(nextWorks[0]?.seed.nodes[0]?.id ?? "");
-        setNodes(nextWorks[0]?.seed.nodes ?? []);
-        setRelationships(nextWorks[0]?.seed.relationships ?? []);
+        const firstWork = nextWorks[0] ?? null;
+        const firstNodes = firstWork?.seed.nodes ?? [];
+        const firstRelationships = firstWork?.seed.relationships ?? [];
+        setSelectedId(getPreferredNodeId(firstNodes, firstRelationships));
+        setNodes(firstNodes);
+        setRelationships(firstRelationships);
         setSaveMessage("API 연결 실패: 브라우저 로컬 저장 데이터 복원됨");
       });
       return { data: parsed, remoteEnabled: false, sha: null } as const;
@@ -157,9 +187,11 @@ export function CharacterMapClient({ library }: Props) {
         const selected = nextWorks.find((work) => work.id === selectedWorkId) ?? nextWorks[0] ?? null;
         setWorks(nextWorks);
         setSelectedWorkId(selected?.id ?? "");
-        setSelectedId(selected?.seed.nodes[0]?.id ?? "");
-        setNodes(selected?.seed.nodes ?? []);
-        setRelationships(selected?.seed.relationships ?? []);
+        const selectedNodes = selected?.seed.nodes ?? [];
+        const selectedRelationships = selected?.seed.relationships ?? [];
+        setSelectedId(getPreferredNodeId(selectedNodes, selectedRelationships));
+        setNodes(selectedNodes);
+        setRelationships(selectedRelationships);
         setRemoteEnabled(payload.remoteEnabled);
         setRemoteSha(payload.sha ?? null);
       });
@@ -379,9 +411,11 @@ export function CharacterMapClient({ library }: Props) {
       return;
     }
 
-    setNodes(nextWork.seed.nodes);
-    setRelationships(nextWork.seed.relationships);
-    setSelectedId(nextWork.seed.nodes[0]?.id ?? "");
+    const nextNodes = nextWork.seed.nodes;
+    const nextRelationships = nextWork.seed.relationships;
+    setNodes(nextNodes);
+    setRelationships(nextRelationships);
+    setSelectedId(getPreferredNodeId(nextNodes, nextRelationships));
     setSelectedRelationshipId(null);
     setDraft(defaultDraft);
   }
@@ -420,9 +454,11 @@ export function CharacterMapClient({ library }: Props) {
       return;
     }
 
-    setNodes(fallbackSeed.seed.nodes);
-    setRelationships(fallbackSeed.seed.relationships);
-    setSelectedId(fallbackSeed.seed.nodes[0]?.id ?? "");
+    const nextNodes = fallbackSeed.seed.nodes;
+    const nextRelationships = fallbackSeed.seed.relationships;
+    setNodes(nextNodes);
+    setRelationships(nextRelationships);
+    setSelectedId(getPreferredNodeId(nextNodes, nextRelationships));
     setSelectedRelationshipId(null);
     setDraft(defaultDraft);
     window.localStorage.removeItem(storageKey);
@@ -537,6 +573,44 @@ export function CharacterMapClient({ library }: Props) {
     updateZoom(zoom + delta);
   }
 
+  function getFocusNode() {
+    const heroNode = nodes.find((node) => node.name.includes("주인공") || node.title.includes("주인공"));
+    if (heroNode) {
+      return heroNode;
+    }
+
+    const nodeScores = nodes.map((node) => {
+      const relatedCount = relationships.filter(
+        (relationship) => relationship.fromId === node.id || relationship.toId === node.id,
+      ).length;
+      return { node, score: relatedCount };
+    });
+
+    return nodeScores.reduce<{ node: CharacterNode | null; score: number }>(
+      (best, current) => (current.score > best.score ? current : best),
+      { node: nodes[0] ?? null, score: -1 },
+    ).node;
+  }
+
+  useEffect(() => {
+    const targetNode = nodes.find((node) => node.id === selectedId) ?? getFocusNode();
+    if (!targetNode || !mapViewportRef.current) {
+      return;
+    }
+
+    const viewportRect = mapViewportRef.current.getBoundingClientRect();
+    const viewportWidth = Math.max(viewportRect.width, 680);
+    const viewportHeight = Math.max(viewportRect.height, 520);
+    const centerX = targetNode.x + iconNodeSize / 2;
+    const centerY = targetNode.y + iconNodeSize / 2;
+    const nextPan = {
+      x: viewportWidth / 2 - centerX * zoom,
+      y: viewportHeight / 2 - centerY * zoom,
+    };
+
+    setPan(nextPan);
+  }, [selectedId, nodes, selectedWorkId, zoom]);
+
   function toggleFullscreen() {
     if (!mapViewportRef.current) {
       return;
@@ -573,6 +647,12 @@ export function CharacterMapClient({ library }: Props) {
     }
 
     clearRelationshipSelection();
+    viewportDragRef.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      startPanX: pan.x,
+      startPanY: pan.y,
+    };
 
     if (longPressTimeoutRef.current) {
       window.clearTimeout(longPressTimeoutRef.current);
@@ -581,6 +661,38 @@ export function CharacterMapClient({ library }: Props) {
     longPressTimeoutRef.current = window.setTimeout(() => {
       activateAddMode();
     }, 550);
+
+    const handlePanMove = (moveEvent: PointerEvent) => {
+      const dragState = viewportDragRef.current;
+      if (!dragState) {
+        return;
+      }
+
+      const deltaX = moveEvent.clientX - dragState.startX;
+      const deltaY = moveEvent.clientY - dragState.startY;
+      if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) {
+        window.clearTimeout(longPressTimeoutRef.current ?? undefined);
+        longPressTimeoutRef.current = null;
+      }
+
+      setPan({
+        x: dragState.startPanX + deltaX,
+        y: dragState.startPanY + deltaY,
+      });
+    };
+
+    const handlePanEnd = () => {
+      viewportDragRef.current = null;
+      window.removeEventListener("pointermove", handlePanMove);
+      window.removeEventListener("pointerup", handlePanEnd);
+      if (longPressTimeoutRef.current) {
+        window.clearTimeout(longPressTimeoutRef.current);
+        longPressTimeoutRef.current = null;
+      }
+    };
+
+    window.addEventListener("pointermove", handlePanMove);
+    window.addEventListener("pointerup", handlePanEnd, { once: true });
   }
 
   function handleBoardBackgroundPointerUp() {
@@ -588,6 +700,7 @@ export function CharacterMapClient({ library }: Props) {
       window.clearTimeout(longPressTimeoutRef.current);
       longPressTimeoutRef.current = null;
     }
+    viewportDragRef.current = null;
   }
 
   async function saveToGithub() {
@@ -983,7 +1096,7 @@ export function CharacterMapClient({ library }: Props) {
 
         <div className="hidden lg:block">
           <div
-            className="relative h-[760px] overflow-auto bg-[linear-gradient(180deg,_#fcfcfb_0%,_#f6f6f2_100%)]"
+            className="relative h-[760px] overflow-auto bg-[linear-gradient(180deg,_#fcfcfb_0%,_#f4f4f3_100%)]"
             onWheel={handleWheelZoom}
             onDoubleClick={() => activateAddMode()}
             onPointerDown={handleBoardBackgroundPointerDown}
@@ -1000,7 +1113,7 @@ export function CharacterMapClient({ library }: Props) {
               style={{
                 height: boardHeight,
                 width: boardWidth,
-                transform: `scale(${zoom})`,
+                transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
                 transformOrigin: "top left",
               }}
             >
@@ -1266,15 +1379,15 @@ export function CharacterMapClient({ library }: Props) {
       </section>
 
       <aside className="space-y-6">
-        <section className="rounded-[30px] border border-violet-200/70 bg-gradient-to-br from-white via-violet-50/40 to-amber-50/30 p-6 shadow-[0_22px_50px_rgba(124,58,237,0.08)]">
-          <div className="mb-5 flex rounded-2xl border border-violet-200 bg-white/80 p-1 shadow-inner shadow-violet-100/80">
+        <section className="rounded-[30px] border border-slate-200 bg-[linear-gradient(135deg,_#ffffff_0%,_#f5f5f4_45%,_#efefee_100%)] p-6 shadow-[0_22px_50px_rgba(15,23,42,0.05)]">
+          <div className="mb-5 flex rounded-2xl border border-slate-200 bg-slate-100 p-1 shadow-inner shadow-slate-200/80">
             <button
               type="button"
               onClick={() => setActivePanelTab("add")}
               className={`flex-1 rounded-xl px-3 py-2 text-sm font-semibold transition ${
                 activePanelTab === "add"
-                  ? "bg-gradient-to-r from-slate-900 to-violet-700 text-white shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-slate-950 text-white shadow-sm"
+                  : "text-slate-600 hover:text-slate-950"
               }`}
             >
               인물 추가
@@ -1288,8 +1401,8 @@ export function CharacterMapClient({ library }: Props) {
               }}
               className={`flex-1 rounded-xl px-3 py-2 text-sm font-semibold transition ${
                 activePanelTab === "info"
-                  ? "bg-gradient-to-r from-slate-900 to-violet-700 text-white shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-slate-950 text-white shadow-sm"
+                  : "text-slate-600 hover:text-slate-950"
               }`}
             >
               인물 정보
@@ -1444,25 +1557,25 @@ export function CharacterMapClient({ library }: Props) {
                       value={draft.name}
                       onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
                       placeholder="인물 이름"
-                      className="w-full rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300"
+                      className="w-full rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-slate-500"
                     />
                     <input
                       value={draft.title}
                       onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
                       placeholder="역할 또는 호칭"
-                      className="w-full rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300"
+                      className="w-full rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-slate-500"
                     />
                     <textarea
                       value={draft.summary}
                       onChange={(event) => setDraft((current) => ({ ...current, summary: event.target.value }))}
                       placeholder="인물 소개"
-                      className="h-24 w-full rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300"
+                      className="h-24 w-full rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-slate-500"
                     />
                     <textarea
                       value={draft.majorActions}
                       onChange={(event) => setDraft((current) => ({ ...current, majorActions: event.target.value }))}
                       placeholder="주요 행동을 줄바꿈으로 입력"
-                      className="h-24 w-full rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300"
+                      className="h-24 w-full rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-slate-500"
                     />
                     <label className="flex items-center gap-2 rounded-2xl border border-slate-300 bg-white/70 px-4 py-3 text-sm text-slate-700">
                       <input
@@ -1510,7 +1623,7 @@ export function CharacterMapClient({ library }: Props) {
 
                     <button
                       type="submit"
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-violet-700 px-4 py-3 text-sm font-semibold text-white transition hover:brightness-110"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
                     >
                       <FontAwesomeIcon icon={faWandSparkles} />
                       연결 인물 만들기
@@ -1519,7 +1632,7 @@ export function CharacterMapClient({ library }: Props) {
                     <button
                       type="button"
                       onClick={saveToGithub}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-violet-200 bg-white/90 px-4 py-3 text-sm font-semibold text-violet-700 transition hover:border-violet-300 hover:bg-violet-50"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-800 transition hover:border-slate-700 hover:bg-slate-50"
                     >
                       <FontAwesomeIcon icon={faCloudArrowUp} />
                       Vercel → GitHub 저장
