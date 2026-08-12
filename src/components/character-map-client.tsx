@@ -126,6 +126,12 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     label: string;
   } | null>(null);
   const [lastCreatedRelationshipId, setLastCreatedRelationshipId] = useState<string | null>(null);
+  const pinchGestureRef = useRef<{
+    startDistance: number;
+    startZoom: number;
+    startPan: { x: number; y: number };
+  } | null>(null);
+  const activeTouchRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const [relationshipDeleteConfirm, setRelationshipDeleteConfirm] = useState<string | null>(null);
   const [deleteModal, setDeleteModal] = useState<{
     kind: "work" | "node";
@@ -354,12 +360,17 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const mobileBoardScale = 0.6;
   const mobileTotalScale = mobileBoardScale * zoom;
 
+  function getBoardScale(currentZoom = zoom) {
+    return window.innerWidth < 1024 ? mobileBoardScale * currentZoom : currentZoom;
+  }
+
   function clampPan(nextPan: { x: number; y: number }, scale = zoom) {
     const viewport = boardViewportRef.current;
     const viewportWidth = viewport?.clientWidth ?? boardWidth;
     const viewportHeight = viewport?.clientHeight ?? boardHeight;
-    const scaledBoardWidth = boardWidth * scale;
-    const scaledBoardHeight = boardHeight * scale;
+    const effectiveScale = getBoardScale(scale);
+    const scaledBoardWidth = boardWidth * effectiveScale;
+    const scaledBoardHeight = boardHeight * effectiveScale;
     const fitsWidth = scaledBoardWidth <= viewportWidth;
     const fitsHeight = scaledBoardHeight <= viewportHeight;
 
@@ -971,12 +982,6 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   function updateZoom(nextZoom: number) {
     const clampedZoom = Math.min(maxZoom, Math.max(minZoom, Number(nextZoom.toFixed(2))));
     setZoom(clampedZoom);
-
-    const viewport = boardViewportRef.current;
-    if (!viewport) {
-      return;
-    }
-
     setPan((currentPan) => clampPan(currentPan, clampedZoom));
   }
 
@@ -1039,15 +1044,16 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     }
 
     const targetNode = selectedNode ?? getFocusNode();
-    const viewportWidth = Math.max(viewport.clientWidth, 640);
-    const viewportHeight = Math.max(viewport.clientHeight, 520);
+    const viewportWidth = viewport.clientWidth || boardWidth;
+    const viewportHeight = viewport.clientHeight || boardHeight;
+    const boardScale = getBoardScale();
 
     const targetCenterX = targetNode ? targetNode.x + iconNodeSize / 2 : boardWidth / 2;
     const targetCenterY = targetNode ? targetNode.y + iconNodeSize / 2 : boardHeight / 2;
 
     animatePanTo({
-      x: viewportWidth / 2 - targetCenterX * zoom,
-      y: viewportHeight / 2 - targetCenterY * zoom,
+      x: viewportWidth / 2 - targetCenterX * boardScale,
+      y: viewportHeight / 2 - targetCenterY * boardScale,
     });
 
     return () => {
@@ -1088,6 +1094,61 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   }
 
   function handleBoardBackgroundPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    if (event.pointerType === "touch") {
+      activeTouchRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    }
+
+    const handlePanMove = (moveEvent: PointerEvent) => {
+      if (event.pointerType === "touch" && activeTouchRef.current.size >= 2) {
+        const touches = Array.from(activeTouchRef.current.values());
+        if (touches.length >= 2) {
+          const nextDistance = Math.hypot(touches[1].x - touches[0].x, touches[1].y - touches[0].y);
+          const startDistance = pinchGestureRef.current?.startDistance ?? nextDistance;
+          const startZoom = pinchGestureRef.current?.startZoom ?? zoom;
+          const nextZoom = Math.min(maxZoom, Math.max(minZoom, Number((startZoom * (nextDistance / startDistance)).toFixed(2))));
+          setZoom(nextZoom);
+          setPan((currentPan) => clampPan(currentPan, nextZoom));
+        }
+        return;
+      }
+
+      const dragState = viewportDragRef.current;
+      if (!dragState) {
+        return;
+      }
+
+      const deltaX = moveEvent.clientX - dragState.startX;
+      const deltaY = moveEvent.clientY - dragState.startY;
+      if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) {
+        window.clearTimeout(longPressTimeoutRef.current ?? undefined);
+        longPressTimeoutRef.current = null;
+      }
+
+      setPan((currentPan) => {
+        const nextPan = {
+          x: dragState.startPanX + deltaX,
+          y: dragState.startPanY + deltaY,
+        };
+        return clampPan(nextPan, zoom);
+      });
+    };
+
+    const handlePanEnd = () => {
+      if (event.pointerType === "touch") {
+        activeTouchRef.current.delete(event.pointerId);
+        if (activeTouchRef.current.size < 2) {
+          pinchGestureRef.current = null;
+        }
+      }
+      viewportDragRef.current = null;
+      window.removeEventListener("pointermove", handlePanMove);
+      window.removeEventListener("pointerup", handlePanEnd);
+      if (longPressTimeoutRef.current) {
+        window.clearTimeout(longPressTimeoutRef.current);
+        longPressTimeoutRef.current = null;
+      }
+    };
+
     const target = event.target as HTMLElement;
     if (
       target.closest("[data-character-node]") ||
@@ -1099,6 +1160,18 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       target.closest("textarea") ||
       target.closest("label")
     ) {
+      return;
+    }
+
+    if (event.pointerType === "touch" && activeTouchRef.current.size >= 2) {
+      const touches = Array.from(activeTouchRef.current.values());
+      pinchGestureRef.current = {
+        startDistance: Math.hypot(touches[1].x - touches[0].x, touches[1].y - touches[0].y),
+        startZoom: zoom,
+        startPan: pan,
+      };
+      window.addEventListener("pointermove", handlePanMove);
+      window.addEventListener("pointerup", handlePanEnd, { once: true });
       return;
     }
 
@@ -1122,48 +1195,22 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       activateAddMode();
     }, 550);
 
-    const handlePanMove = (moveEvent: PointerEvent) => {
-      const dragState = viewportDragRef.current;
-      if (!dragState) {
-        return;
-      }
-
-      const deltaX = moveEvent.clientX - dragState.startX;
-      const deltaY = moveEvent.clientY - dragState.startY;
-      if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) {
-        window.clearTimeout(longPressTimeoutRef.current ?? undefined);
-        longPressTimeoutRef.current = null;
-      }
-
-      setPan((currentPan) => {
-        const nextPan = {
-          x: dragState.startPanX + deltaX,
-          y: dragState.startPanY + deltaY,
-        };
-        return clampPan(nextPan, zoom);
-      });
-    };
-
-    const handlePanEnd = () => {
-      viewportDragRef.current = null;
-      window.removeEventListener("pointermove", handlePanMove);
-      window.removeEventListener("pointerup", handlePanEnd);
-      if (longPressTimeoutRef.current) {
-        window.clearTimeout(longPressTimeoutRef.current);
-        longPressTimeoutRef.current = null;
-      }
-    };
-
     window.addEventListener("pointermove", handlePanMove);
     window.addEventListener("pointerup", handlePanEnd, { once: true });
   }
 
-  function handleBoardBackgroundPointerUp() {
+  function handleBoardBackgroundPointerUp(event?: { pointerId?: number }) {
+    if (event?.pointerId !== undefined) {
+      activeTouchRef.current.delete(event.pointerId);
+    }
     if (longPressTimeoutRef.current) {
       window.clearTimeout(longPressTimeoutRef.current);
       longPressTimeoutRef.current = null;
     }
     viewportDragRef.current = null;
+    if (activeTouchRef.current.size < 2) {
+      pinchGestureRef.current = null;
+    }
   }
 
   async function saveToGithub() {
@@ -1478,27 +1525,29 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               </span>
             </div>
 
-            <div className="mt-3 flex items-center justify-between gap-2">
+            <div className="mt-3 grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => updateZoom(zoom - 0.05)}
-                className="flex-1 rounded-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm transition hover:border-slate-400 hover:text-slate-950"
+                className="inline-flex items-center justify-center gap-1 rounded-2xl border border-slate-200 bg-white px-2.5 py-2.5 text-[11px] font-semibold text-slate-700 shadow-[0_4px_12px_rgba(15,23,42,0.05)] transition active:scale-[0.98] hover:border-slate-300 hover:text-slate-950"
                 aria-label="모바일 축소"
               >
                 <FontAwesomeIcon icon={faMagnifyingGlassMinus} />
+                <span className="hidden sm:inline">축소</span>
               </button>
               <button
                 type="button"
                 onClick={() => updateZoom(zoom + 0.05)}
-                className="flex-1 rounded-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm transition hover:border-slate-400 hover:text-slate-950"
+                className="inline-flex items-center justify-center gap-1 rounded-2xl border border-slate-200 bg-white px-2.5 py-2.5 text-[11px] font-semibold text-slate-700 shadow-[0_4px_12px_rgba(15,23,42,0.05)] transition active:scale-[0.98] hover:border-slate-300 hover:text-slate-950"
                 aria-label="모바일 확대"
               >
                 <FontAwesomeIcon icon={faMagnifyingGlassPlus} />
+                <span className="hidden sm:inline">확대</span>
               </button>
               <button
                 type="button"
                 onClick={resetSeed}
-                className="flex-1 rounded-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm transition hover:border-slate-400 hover:text-slate-950"
+                className="rounded-2xl border border-slate-200 bg-slate-900 px-2.5 py-2.5 text-[11px] font-semibold text-white shadow-[0_6px_18px_rgba(15,23,42,0.12)] transition active:scale-[0.98] hover:bg-slate-800"
               >
                 초기화
               </button>
@@ -1516,7 +1565,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                     height: boardHeight,
                     width: boardWidth,
                     transform: `translate(${pan.x}px, ${pan.y}px) scale(${mobileTotalScale})`,
-                    transformOrigin: "top center",
+                    transformOrigin: "0 0",
                     touchAction: "none",
                     userSelect: "none",
                   }}
