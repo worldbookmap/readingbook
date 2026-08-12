@@ -72,10 +72,11 @@ export function CharacterMapClient({ library }: Props) {
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
-  const [saveMessage, setSaveMessage] = useState("브라우저 로컬 저장 사용 중");
+  const [saveMessage, setSaveMessage] = useState("Vercel → GitHub 저장 준비 중");
   const [remoteEnabled, setRemoteEnabled] = useState(false);
   const [newWorkTitle, setNewWorkTitle] = useState("");
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
+  const [activePanelTab, setActivePanelTab] = useState<"add" | "info">("add");
   const didMountRef = useRef(false);
   const mapViewportRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{
@@ -84,6 +85,7 @@ export function CharacterMapClient({ library }: Props) {
     offsetY: number;
     moved: boolean;
   } | null>(null);
+  const longPressTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -188,6 +190,8 @@ export function CharacterMapClient({ library }: Props) {
 
   const selectedWork = works.find((work) => work.id === selectedWorkId) ?? null;
   const selectedNode = nodes.find((node) => node.id === selectedId) ?? nodes[0] ?? null;
+  const recentWorks = works.slice(-3);
+  const remainingWorks = works.filter((work) => !recentWorks.some((recent) => recent.id === work.id));
   const minimapWidth = boardWidth * minimapScale;
   const minimapHeight = boardHeight * minimapScale;
   const viewportWidth = Math.min(boardWidth, 920 / zoom);
@@ -202,6 +206,25 @@ export function CharacterMapClient({ library }: Props) {
   const selectedRelationship = relationships.find(
     (relationship) => relationship.id === selectedRelationshipId,
   ) ?? null;
+  const selectedRelationshipPosition = selectedRelationship
+    ? (() => {
+        const from = nodes.find((node) => node.id === selectedRelationship.fromId);
+        const to = nodes.find((node) => node.id === selectedRelationship.toId);
+
+        if (!from || !to) {
+          return null;
+        }
+
+        const curve = buildCurvePath(from, to);
+        const cardWidth = 220;
+        const cardHeight = 180;
+
+        return {
+          left: Math.min(boardWidth - cardWidth - 18, Math.max(18, curve.labelX - cardWidth / 2)),
+          top: Math.min(boardHeight - cardHeight - 18, Math.max(18, curve.labelY - cardHeight / 2)),
+        };
+      })()
+    : null;
   const coupleRelationships = relationships.filter(
     (relationship) => relationship.type === "부부" || relationship.type === "커플",
   );
@@ -292,6 +315,7 @@ export function CharacterMapClient({ library }: Props) {
 
   function handleRelationshipSelect(relationshipId: string, nodeId?: string) {
     setSelectedRelationshipId(relationshipId);
+    setActivePanelTab("info");
     if (nodeId) {
       setSelectedId(nodeId);
     }
@@ -498,9 +522,49 @@ export function CharacterMapClient({ library }: Props) {
     mapViewportRef.current.requestFullscreen();
   }
 
+  function activateAddMode() {
+    setActivePanelTab("add");
+    setSelectedRelationshipId(null);
+  }
+
+  function activateInfoMode(nodeId?: string) {
+    if (nodeId) {
+      setSelectedId(nodeId);
+    }
+    setActivePanelTab("info");
+  }
+
+  function clearRelationshipSelection() {
+    setSelectedRelationshipId(null);
+  }
+
+  function handleBoardBackgroundPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    const target = event.target as HTMLElement;
+    if (target.closest("[data-character-node]") || target.closest("[data-character-relationship]") || target.closest("button")) {
+      return;
+    }
+
+    clearRelationshipSelection();
+
+    if (longPressTimeoutRef.current) {
+      window.clearTimeout(longPressTimeoutRef.current);
+    }
+
+    longPressTimeoutRef.current = window.setTimeout(() => {
+      activateAddMode();
+    }, 550);
+  }
+
+  function handleBoardBackgroundPointerUp() {
+    if (longPressTimeoutRef.current) {
+      window.clearTimeout(longPressTimeoutRef.current);
+      longPressTimeoutRef.current = null;
+    }
+  }
+
   async function saveToGithub() {
     setSaveState("saving");
-    setSaveMessage(remoteEnabled ? "GitHub 저장 중..." : "환경변수 확인 필요");
+    setSaveMessage(remoteEnabled ? "Vercel → GitHub 동기화 중..." : "환경변수 확인 필요");
 
     try {
       const response = await fetch("/api/character-map", {
@@ -578,8 +642,8 @@ export function CharacterMapClient({ library }: Props) {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex-1">
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">작품 목록</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {works.map((work) => {
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {recentWorks.map((work) => {
                   const isActive = work.id === selectedWorkId;
                   return (
                     <button
@@ -596,6 +660,21 @@ export function CharacterMapClient({ library }: Props) {
                     </button>
                   );
                 })}
+
+                {remainingWorks.length > 0 ? (
+                  <select
+                    aria-label="추가 작품 선택"
+                    value={selectedWorkId}
+                    onChange={(event) => handleWorkSelect(event.target.value)}
+                    className="min-w-[170px] rounded-full border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 outline-none focus:border-slate-400"
+                  >
+                    {remainingWorks.map((work) => (
+                      <option key={work.id} value={work.id}>
+                        {work.titleKo ?? work.title}
+                      </option>
+                    ))}
+                  </select>
+                ) : null}
               </div>
             </div>
 
@@ -712,6 +791,7 @@ export function CharacterMapClient({ library }: Props) {
                           key={`mobile-${relationship.id}`}
                           role="button"
                           tabIndex={0}
+                          data-character-relationship
                           onClick={() => handleRelationshipSelect(relationship.id, relationship.fromId)}
                           onKeyDown={(event) => {
                             if (event.key === "Enter" || event.key === " ") {
@@ -720,6 +800,7 @@ export function CharacterMapClient({ library }: Props) {
                             }
                           }}
                           className="cursor-pointer"
+                          style={{ pointerEvents: "auto" }}
                         >
                           <path
                             d={curve.path}
@@ -740,6 +821,50 @@ export function CharacterMapClient({ library }: Props) {
                       );
                     })}
                   </svg>
+
+                  {selectedRelationship && selectedRelationshipPosition ? (
+                    <div
+                      className="absolute z-30 w-56 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-[0_18px_35px_rgba(15,23,42,0.12)] backdrop-blur"
+                      style={{ left: selectedRelationshipPosition.left, top: selectedRelationshipPosition.top }}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">관계 편집</p>
+                        <button
+                          type="button"
+                          onClick={clearRelationshipSelection}
+                          className="rounded-full border border-slate-200 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 transition hover:border-slate-300 hover:text-slate-800"
+                        >
+                          닫기
+                        </button>
+                      </div>
+
+                      <div className="mt-3 space-y-3">
+                        <div>
+                          <label className="text-[11px] font-semibold text-slate-600">종류</label>
+                          <select
+                            value={selectedRelationship.type}
+                            onChange={(event) => handleRelationshipPatch("type", event.target.value as RelationshipType)}
+                            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-2.5 py-2 text-xs text-slate-700 outline-none focus:border-slate-400"
+                          >
+                            {relationOptions.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-semibold text-slate-600">라벨</label>
+                          <input
+                            value={selectedRelationship.label ?? ""}
+                            onChange={(event) => handleRelationshipPatch("label", event.target.value)}
+                            placeholder={selectedRelationship.type === "기타" ? "직접 입력" : "선택 사항"}
+                            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-2.5 py-2 text-xs text-slate-700 outline-none focus:border-slate-400"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
 
                   {nodes.map((node) => {
                     const isSelected = node.id === selectedNode?.id;
@@ -813,6 +938,10 @@ export function CharacterMapClient({ library }: Props) {
           <div
             className="relative h-[760px] overflow-auto bg-[linear-gradient(180deg,_#fcfcfb_0%,_#f6f6f2_100%)]"
             onWheel={handleWheelZoom}
+            onDoubleClick={() => activateAddMode()}
+            onPointerDown={handleBoardBackgroundPointerDown}
+            onPointerUp={handleBoardBackgroundPointerUp}
+            onPointerLeave={handleBoardBackgroundPointerUp}
           >
             <div
               className="relative min-w-fit"
@@ -828,7 +957,7 @@ export function CharacterMapClient({ library }: Props) {
                 transformOrigin: "top left",
               }}
             >
-            <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">
+            <svg className="absolute inset-0 h-full w-full overflow-visible" style={{ pointerEvents: "auto" }}>
               {coupleRelationships.map((relationship) => {
                 const from = nodes.find((node) => node.id === relationship.fromId);
                 const to = nodes.find((node) => node.id === relationship.toId);
@@ -877,6 +1006,7 @@ export function CharacterMapClient({ library }: Props) {
                     key={relationship.id}
                     role="button"
                     tabIndex={0}
+                    data-character-relationship
                     onClick={() => handleRelationshipSelect(relationship.id, relationship.fromId)}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" || event.key === " ") {
@@ -885,6 +1015,7 @@ export function CharacterMapClient({ library }: Props) {
                       }
                     }}
                     className="cursor-pointer"
+                    style={{ pointerEvents: "auto" }}
                   >
                     <path
                       d={curve.path}
@@ -913,6 +1044,50 @@ export function CharacterMapClient({ library }: Props) {
                 );
               })}
             </svg>
+
+            {selectedRelationship && selectedRelationshipPosition ? (
+              <div
+                className="absolute z-30 w-56 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-[0_18px_35px_rgba(15,23,42,0.12)] backdrop-blur"
+                style={{ left: selectedRelationshipPosition.left, top: selectedRelationshipPosition.top }}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">관계 편집</p>
+                  <button
+                    type="button"
+                    onClick={clearRelationshipSelection}
+                    className="rounded-full border border-slate-200 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 transition hover:border-slate-300 hover:text-slate-800"
+                  >
+                    닫기
+                  </button>
+                </div>
+
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-600">종류</label>
+                    <select
+                      value={selectedRelationship.type}
+                      onChange={(event) => handleRelationshipPatch("type", event.target.value as RelationshipType)}
+                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-2.5 py-2 text-xs text-slate-700 outline-none focus:border-slate-400"
+                    >
+                      {relationOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-600">라벨</label>
+                    <input
+                      value={selectedRelationship.label ?? ""}
+                      onChange={(event) => handleRelationshipPatch("label", event.target.value)}
+                      placeholder={selectedRelationship.type === "기타" ? "직접 입력" : "선택 사항"}
+                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-2.5 py-2 text-xs text-slate-700 outline-none focus:border-slate-400"
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             {nodes.map((node) => {
               const isSelected = node.id === selectedNode?.id;
@@ -1045,231 +1220,276 @@ export function CharacterMapClient({ library }: Props) {
 
       <aside className="space-y-6">
         <section className="rounded-[28px] border border-slate-300/80 bg-white p-6 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
-              <FontAwesomeIcon icon={faBookOpen} />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-slate-500">선택한 인물</p>
-              <h3 className="text-xl font-semibold text-slate-900">{selectedNode?.name || "인물 없음"}</h3>
-            </div>
+          <div className="mb-5 flex rounded-2xl border border-slate-200 bg-slate-100/70 p-1">
+            <button
+              type="button"
+              onClick={() => setActivePanelTab("add")}
+              className={`flex-1 rounded-xl px-3 py-2 text-sm font-semibold transition ${
+                activePanelTab === "add"
+                  ? "bg-slate-900 text-white shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              인물 추가
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (selectedNode) {
+                  setActivePanelTab("info");
+                }
+              }}
+              className={`flex-1 rounded-xl px-3 py-2 text-sm font-semibold transition ${
+                activePanelTab === "info"
+                  ? "bg-slate-900 text-white shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              인물 정보
+            </button>
           </div>
 
-          <div className="mt-5 space-y-3">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
-              <label className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                이름
-              </label>
-              <input
-                value={selectedNode?.name ?? ""}
-                onChange={(event) => handleNodePatch("name", event.target.value)}
-                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400"
-              />
+          <div className="relative">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+                <FontAwesomeIcon icon={faBookOpen} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-500">{activePanelTab === "add" ? "새 인물" : "선택한 인물"}</p>
+                <h3 className="text-xl font-semibold text-slate-900">{selectedNode?.name || (activePanelTab === "info" ? "인물 없음" : "새 인물")}</h3>
+              </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
-              <label className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                역할 / 호칭
-              </label>
-              <input
-                value={selectedNode?.title ?? ""}
-                onChange={(event) => handleNodePatch("title", event.target.value)}
-                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400"
-              />
-            </div>
+            <div className="relative mt-5">
+              <div
+                className={`transition-all duration-200 ${
+                  activePanelTab === "info" ? "opacity-100 translate-y-0" : "pointer-events-none absolute inset-0 opacity-0 translate-y-2"
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
+                    <label className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                      이름
+                    </label>
+                    <input
+                      value={selectedNode?.name ?? ""}
+                      onChange={(event) => handleNodePatch("name", event.target.value)}
+                      className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400"
+                    />
+                  </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
-              <label className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                배경 메모
-              </label>
-              <textarea
-                value={selectedNode?.summary ?? ""}
-                onChange={(event) => handleNodePatch("summary", event.target.value)}
-                className="mt-2 h-24 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400"
-              />
-            </div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
+                    <label className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                      역할 / 호칭
+                    </label>
+                    <input
+                      value={selectedNode?.title ?? ""}
+                      onChange={(event) => handleNodePatch("title", event.target.value)}
+                      className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400"
+                    />
+                  </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
-              <label className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                주요 행동 메모
-              </label>
-              <textarea
-                value={selectedNode?.majorActions.join("\n") ?? ""}
-                onChange={(event) => handleNodePatch("majorActions", event.target.value)}
-                className="mt-2 h-28 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400"
-              />
-            </div>
-          </div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
+                    <label className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                      배경 메모
+                    </label>
+                    <textarea
+                      value={selectedNode?.summary ?? ""}
+                      onChange={(event) => handleNodePatch("summary", event.target.value)}
+                      className="mt-2 h-24 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400"
+                    />
+                  </div>
 
-          <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
-              <FontAwesomeIcon icon={faLink} className="text-slate-700" />
-              연결된 관계
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {connectedRelationships.map((relationship) => (
-                <button
-                  key={relationship.id}
-                  type="button"
-                  onClick={() => handleRelationshipSelect(relationship.id, selectedNode?.id)}
-                  className={`rounded-full px-3 py-1 text-xs font-medium shadow-sm transition ${
-                    selectedRelationship?.id === relationship.id
-                      ? "bg-slate-900 text-white"
-                      : "bg-white text-slate-600 hover:text-slate-950"
-                  }`}
-                >
-                  {relationship.label ?? relationship.type}
-                </button>
-              ))}
-            </div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
+                    <label className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                      주요 행동 메모
+                    </label>
+                    <textarea
+                      value={selectedNode?.majorActions.join("\n") ?? ""}
+                      onChange={(event) => handleNodePatch("majorActions", event.target.value)}
+                      className="mt-2 h-28 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400"
+                    />
+                  </div>
+                </div>
 
-            <div className="mt-4 rounded-2xl border border-slate-200 bg-white/80 p-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                관계 편집
-              </p>
-              {selectedRelationship ? (
-                <div className="mt-3 space-y-3">
-                  <div>
-                    <label className="text-xs font-semibold text-slate-600">관계 종류</label>
+                <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
+                    <FontAwesomeIcon icon={faLink} className="text-slate-700" />
+                    연결된 관계
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {connectedRelationships.map((relationship) => (
+                      <button
+                        key={relationship.id}
+                        type="button"
+                        onClick={() => handleRelationshipSelect(relationship.id, selectedNode?.id)}
+                        className={`rounded-full px-3 py-1 text-xs font-medium shadow-sm transition ${
+                          selectedRelationship?.id === relationship.id
+                            ? "bg-slate-900 text-white"
+                            : "bg-white text-slate-600 hover:text-slate-950"
+                        }`}
+                      >
+                        {relationship.label ?? relationship.type}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-slate-200 bg-white/80 p-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                      관계 편집
+                    </p>
+                    {selectedRelationship ? (
+                      <div className="mt-3 space-y-3">
+                        <div>
+                          <label className="text-xs font-semibold text-slate-600">관계 종류</label>
+                          <select
+                            value={selectedRelationship.type}
+                            onChange={(event) => handleRelationshipPatch("type", event.target.value as RelationshipType)}
+                            className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-slate-400"
+                          >
+                            {relationOptions.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-slate-600">커스텀 라벨</label>
+                          <input
+                            value={selectedRelationship.label ?? ""}
+                            onChange={(event) => handleRelationshipPatch("label", event.target.value)}
+                            placeholder={selectedRelationship.type === "기타" ? "관계를 직접 입력" : "선택 사항"}
+                            className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-slate-400"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="mt-3 text-sm leading-6 text-slate-500">
+                        카드 또는 관계선 클릭 후 여기에서 관계 종류와 라벨을 수정할 수 있습니다.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div
+                className={`transition-all duration-200 ${
+                  activePanelTab === "add" ? "opacity-100 translate-y-0" : "pointer-events-none absolute inset-0 opacity-0 translate-y-2"
+                }`}
+              >
+                <div className="rounded-[28px] border border-slate-300/80 bg-[linear-gradient(180deg,_#fafaf8_0%,_#f4f4ef_100%)] p-6 text-slate-800 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+                      <FontAwesomeIcon icon={faPlus} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-600">인물 추가</p>
+                      <h3 className="text-xl font-semibold text-slate-900">
+                        {draft.linkedToSelected && selectedNode ? `${selectedNode.name}와 이어 붙이기` : "독립 인물로 추가"}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <form className="mt-5 space-y-3" onSubmit={handleCreateCharacter}>
+                    <input
+                      value={draft.name}
+                      onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
+                      placeholder="인물 이름"
+                      className="w-full rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300"
+                    />
+                    <input
+                      value={draft.title}
+                      onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
+                      placeholder="역할 또는 호칭"
+                      className="w-full rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300"
+                    />
+                    <textarea
+                      value={draft.summary}
+                      onChange={(event) => setDraft((current) => ({ ...current, summary: event.target.value }))}
+                      placeholder="인물 소개"
+                      className="h-24 w-full rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300"
+                    />
+                    <textarea
+                      value={draft.majorActions}
+                      onChange={(event) => setDraft((current) => ({ ...current, majorActions: event.target.value }))}
+                      placeholder="주요 행동을 줄바꿈으로 입력"
+                      className="h-24 w-full rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300"
+                    />
+                    <label className="flex items-center gap-2 rounded-2xl border border-slate-300 bg-white/70 px-4 py-3 text-sm text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={draft.linkedToSelected}
+                        onChange={(event) =>
+                          setDraft((current) => ({ ...current, linkedToSelected: event.target.checked }))
+                        }
+                        className="h-4 w-4 rounded border-slate-300 bg-white text-slate-700"
+                      />
+                      현재 인물과 연결하지 않고 독립 인물로 추가
+                    </label>
                     <select
-                      value={selectedRelationship.type}
-                      onChange={(event) => handleRelationshipPatch("type", event.target.value as RelationshipType)}
-                      className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-slate-400"
+                      disabled={!draft.linkedToSelected}
+                      value={draft.relationshipType}
+                      onChange={(event) =>
+                        setDraft((current) => ({
+                          ...current,
+                          relationshipType: event.target.value as RelationshipType,
+                        }))
+                      }
+                      className="w-full rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none disabled:cursor-not-allowed disabled:opacity-50 focus:border-slate-400"
                     >
                       {relationOptions.map((option) => (
-                        <option key={option} value={option}>
+                        <option key={option} value={option} className="text-slate-900">
                           {option}
                         </option>
                       ))}
                     </select>
-                  </div>
 
-                  <div>
-                    <label className="text-xs font-semibold text-slate-600">커스텀 라벨</label>
-                    <input
-                      value={selectedRelationship.label ?? ""}
-                      onChange={(event) => handleRelationshipPatch("label", event.target.value)}
-                      placeholder={selectedRelationship.type === "기타" ? "관계를 직접 입력" : "선택 사항"}
-                      className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-slate-400"
-                    />
-                  </div>
+                    {draft.linkedToSelected && draft.relationshipType === "기타" ? (
+                      <input
+                        value={draft.customRelationship}
+                        onChange={(event) =>
+                          setDraft((current) => ({ ...current, customRelationship: event.target.value }))
+                        }
+                        placeholder="직접 입력 관계"
+                        className="w-full rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-slate-400"
+                      />
+                    ) : null}
+
+                    <button
+                      type="submit"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
+                    >
+                      <FontAwesomeIcon icon={faWandSparkles} />
+                      연결 인물 만들기
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={saveToGithub}
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-950"
+                    >
+                      <FontAwesomeIcon icon={faCloudArrowUp} />
+                      Vercel → GitHub 저장
+                    </button>
+
+                    <p
+                      className={`text-xs leading-6 ${
+                        saveState === "error"
+                          ? "text-rose-500"
+                          : saveState === "saved"
+                            ? "text-slate-600"
+                            : "text-slate-500"
+                      }`}
+                    >
+                      {saveMessage}
+                    </p>
+                  </form>
                 </div>
-              ) : (
-                <p className="mt-3 text-sm leading-6 text-slate-500">
-                  카드 또는 관계선 클릭 후 여기에서 관계 종류와 라벨을 수정할 수 있습니다.
-                </p>
-              )}
+              </div>
             </div>
           </div>
-        </section>
-
-        <section className="rounded-[28px] border border-slate-300/80 bg-[linear-gradient(180deg,_#fafaf8_0%,_#f4f4ef_100%)] p-6 text-slate-800 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
-              <FontAwesomeIcon icon={faPlus} />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-600">인물 추가</p>
-              <h3 className="text-xl font-semibold text-slate-900">
-                {draft.linkedToSelected && selectedNode ? `${selectedNode.name}와 이어 붙이기` : "독립 인물로 추가"}
-              </h3>
-            </div>
-          </div>
-
-          <form className="mt-5 space-y-3" onSubmit={handleCreateCharacter}>
-            <input
-              value={draft.name}
-              onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
-              placeholder="인물 이름"
-              className="w-full rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300"
-            />
-            <input
-              value={draft.title}
-              onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
-              placeholder="역할 또는 호칭"
-              className="w-full rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300"
-            />
-            <textarea
-              value={draft.summary}
-              onChange={(event) => setDraft((current) => ({ ...current, summary: event.target.value }))}
-              placeholder="인물 소개"
-              className="h-24 w-full rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300"
-            />
-            <textarea
-              value={draft.majorActions}
-              onChange={(event) => setDraft((current) => ({ ...current, majorActions: event.target.value }))}
-              placeholder="주요 행동을 줄바꿈으로 입력"
-              className="h-24 w-full rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300"
-            />
-            <label className="flex items-center gap-2 rounded-2xl border border-slate-300 bg-white/70 px-4 py-3 text-sm text-slate-700">
-              <input
-                type="checkbox"
-                checked={draft.linkedToSelected}
-                onChange={(event) =>
-                  setDraft((current) => ({ ...current, linkedToSelected: event.target.checked }))
-                }
-                className="h-4 w-4 rounded border-slate-300 bg-white text-slate-700"
-              />
-              현재 인물과 연결하지 않고 독립 인물로 추가
-            </label>
-            <select
-              disabled={!draft.linkedToSelected}
-              value={draft.relationshipType}
-              onChange={(event) =>
-                setDraft((current) => ({
-                  ...current,
-                  relationshipType: event.target.value as RelationshipType,
-                }))
-              }
-              className="w-full rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none disabled:cursor-not-allowed disabled:opacity-50 focus:border-slate-400"
-            >
-              {relationOptions.map((option) => (
-                <option key={option} value={option} className="text-slate-900">
-                  {option}
-                </option>
-              ))}
-            </select>
-
-            {draft.linkedToSelected && draft.relationshipType === "기타" ? (
-              <input
-                value={draft.customRelationship}
-                onChange={(event) =>
-                  setDraft((current) => ({ ...current, customRelationship: event.target.value }))
-                }
-                placeholder="직접 입력 관계"
-                className="w-full rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-slate-400"
-              />
-            ) : null}
-
-            <button
-              type="submit"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
-            >
-              <FontAwesomeIcon icon={faWandSparkles} />
-              연결 인물 만들기
-            </button>
-
-            <button
-              type="button"
-              onClick={saveToGithub}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-950"
-            >
-              <FontAwesomeIcon icon={faCloudArrowUp} />
-              GitHub에 저장
-            </button>
-
-            <p
-              className={`text-xs leading-6 ${
-                saveState === "error"
-                  ? "text-rose-500"
-                  : saveState === "saved"
-                    ? "text-slate-600"
-                    : "text-slate-500"
-              }`}
-            >
-              {saveMessage}
-            </p>
-          </form>
         </section>
       </aside>
     </div>
