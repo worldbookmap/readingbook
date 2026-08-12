@@ -1,8 +1,6 @@
 "use client";
 
 import { FormEvent, startTransition, useEffect, useRef, useState } from "react";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowsUpDownLeftRight,
@@ -115,6 +113,7 @@ export function CharacterMapClient({ library }: Props) {
   const [existingConnectionSearch, setExistingConnectionSearch] = useState("");
   const [existingConnectionType, setExistingConnectionType] = useState<RelationshipType>("친구");
   const [existingConnectionLabel, setExistingConnectionLabel] = useState("");
+  const [showQuickConnectHint, setShowQuickConnectHint] = useState(true);
   const [dragConnectDraft, setDragConnectDraft] = useState<{
     sourceNodeId: string;
     targetNodeId: string;
@@ -1006,46 +1005,6 @@ export function CharacterMapClient({ library }: Props) {
     };
   }, [selectedId, selectedNode, nodes, selectedWorkId, zoom]);
 
-  async function exportToPdf() {
-    const target = boardContentRef.current ?? boardExportRef.current ?? mapViewportRef.current;
-    if (!target) {
-      return;
-    }
-
-    try {
-      const canvas = await html2canvas(target, {
-        backgroundColor: "#ffffff",
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        width: target.scrollWidth || target.clientWidth || boardWidth,
-        height: target.scrollHeight || target.clientHeight || boardHeight,
-        windowWidth: target.scrollWidth || target.clientWidth || boardWidth,
-        windowHeight: target.scrollHeight || target.clientHeight || boardHeight,
-      });
-
-      const pdf = new jsPDF({
-        orientation: "landscape",
-        unit: "pt",
-        format: "a4",
-      });
-
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
-      const imageWidth = canvas.width * ratio;
-      const imageHeight = canvas.height * ratio;
-
-      const x = (pageWidth - imageWidth) / 2;
-      const y = (pageHeight - imageHeight) / 2;
-      pdf.addImage(canvas.toDataURL("image/png"), "PNG", x, y, imageWidth, imageHeight);
-      pdf.save(`${selectedWork?.titleKo ?? selectedWork?.title ?? "character-map"}.pdf`);
-    } catch (error) {
-      console.error("PDF export failed", error);
-      window.alert("PDF 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
-    }
-  }
-
   function toggleFullscreen() {
     if (!mapViewportRef.current) {
       return;
@@ -1226,10 +1185,11 @@ export function CharacterMapClient({ library }: Props) {
             </button>
             <button
               type="button"
-              onClick={exportToPdf}
+              onClick={saveToGithub}
               className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-600 transition hover:border-slate-400 hover:text-slate-950"
             >
-              PDF 저장
+              <FontAwesomeIcon icon={faCloudArrowUp} className="mr-2" />
+              GitHub 저장
             </button>
             <button
               type="button"
@@ -1702,13 +1662,17 @@ export function CharacterMapClient({ library }: Props) {
             onPointerUp={handleBoardBackgroundPointerUp}
             onPointerLeave={handleBoardBackgroundPointerUp}
           >
-            {canQuickConnect ? (
-              <div className="pointer-events-none absolute left-5 top-5 z-20 max-w-xs rounded-2xl border border-slate-300 bg-white/90 p-3 shadow-[0_18px_35px_rgba(15,23,42,0.08)] backdrop-blur-sm">
+            {canQuickConnect && showQuickConnectHint ? (
+              <button
+                type="button"
+                onClick={() => setShowQuickConnectHint(false)}
+                className="absolute left-5 top-5 z-20 max-w-xs cursor-pointer rounded-2xl border border-slate-300 bg-white/90 p-3 text-left shadow-[0_18px_35px_rgba(15,23,42,0.08)] backdrop-blur-sm transition hover:border-slate-400 hover:bg-white"
+              >
                 <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">관계 만들기</p>
                 <p className="mt-1 text-sm leading-5 text-slate-700">
                   선택한 인물을 다른 인물 위로 드래그하면 자동으로 관계가 생성됩니다.
                 </p>
-              </div>
+              </button>
             ) : null}
 
             <div
