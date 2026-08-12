@@ -847,6 +847,9 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   }
 
   function handlePointerDown(event: React.PointerEvent<HTMLElement>, nodeId: string, displayScale = zoom) {
+    event.preventDefault();
+    event.stopPropagation();
+
     const boardElement = event.currentTarget.closest("[data-character-board]") as HTMLDivElement | null;
     const boardBounds = boardElement?.getBoundingClientRect();
     const bounds = event.currentTarget.getBoundingClientRect();
@@ -1475,11 +1478,16 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                 <div
                   className="relative mx-auto"
                   data-character-board
+                  onPointerDown={handleBoardBackgroundPointerDown}
+                  onPointerUp={handleBoardBackgroundPointerUp}
+                  onPointerLeave={handleBoardBackgroundPointerUp}
                   style={{
                     height: boardHeight,
                     width: boardWidth,
-                    transform: `scale(${mobileTotalScale})`,
+                    transform: `translate(${pan.x}px, ${pan.y}px) scale(${mobileTotalScale})`,
                     transformOrigin: "top center",
+                    touchAction: "none",
+                    userSelect: "none",
                   }}
                 >
                   <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">
@@ -1637,13 +1645,15 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                                 setSelectedId(node.id);
                               }
                             }}
-                            className="flex h-14 w-14 cursor-grab items-center justify-center rounded-full border bg-white text-white shadow-lg transition active:cursor-grabbing touch-none"
+                            className="flex h-14 w-14 cursor-grab items-center justify-center rounded-full border bg-white text-white shadow-lg transition active:cursor-grabbing"
                             style={{
                               borderColor: isSelected ? node.color : "rgba(226,232,240,0.92)",
                               boxShadow: isSelected
                                 ? `0 20px 40px ${node.color}33`
                                 : "0 18px 35px rgba(15,23,42,0.08)",
                               backgroundColor: node.color,
+                              touchAction: "none",
+                              userSelect: "none",
                             }}
                             aria-label={node.name}
                           >
@@ -1897,6 +1907,8 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                           ? `0 20px 40px ${node.color}33`
                           : "0 18px 35px rgba(15,23,42,0.08)",
                         backgroundColor: node.color,
+                        touchAction: "none",
+                        userSelect: "none",
                       }}
                     >
                       <FontAwesomeIcon icon={faUser} />
