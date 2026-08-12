@@ -18,15 +18,6 @@ const featureCards = [
     accent: "from-slate-100 to-white",
   },
   {
-    href: "/timeline",
-    icon: faGlobe,
-    eyebrow: "History Atlas",
-    title: "세계사 역사 연표",
-    description:
-      "서유럽, 동유럽, 아시아, 미국, 남미, 기타 지역으로 나눈 카드형 타임라인 보드입니다. 연도 카드 추가와 이동이 가능합니다.",
-    accent: "from-slate-100 to-white",
-  },
-  {
     href: "/story-events",
     icon: faBookOpenReader,
     eyebrow: "Story Pulse",
@@ -34,6 +25,15 @@ const featureCards = [
     description:
       "소설마다 핵심 사건을 드래그 가능한 카드로 정리하고 겹쳐지는 흐름까지 자연스럽게 보관할 수 있습니다.",
     accent: "from-amber-50 to-white",
+  },
+  {
+    href: "/timeline",
+    icon: faGlobe,
+    eyebrow: "History Atlas",
+    title: "세계사 역사 연표",
+    description:
+      "서유럽, 동유럽, 아시아, 미국, 남미, 기타 지역으로 나눈 카드형 타임라인 보드입니다. 연도 카드 추가와 이동이 가능합니다.",
+    accent: "from-slate-100 to-white",
   },
 ];
 
@@ -67,17 +67,17 @@ export default function Home() {
                   <FontAwesomeIcon icon={faArrowRight} />
                 </Link>
                 <Link
-                  href="/timeline"
-                  className="inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2.5 text-[11px] font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-400 hover:text-slate-950 sm:px-5 sm:py-3 sm:text-sm"
-                >
-                  연표 보드 열기
-                  <FontAwesomeIcon icon={faArrowRight} />
-                </Link>
-                <Link
                   href="/story-events"
                   className="inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-300 bg-amber-50 px-4 py-2.5 text-[11px] font-semibold text-slate-800 transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-100 sm:px-5 sm:py-3 sm:text-sm"
                 >
                   사건 타임라인
+                  <FontAwesomeIcon icon={faArrowRight} />
+                </Link>
+                <Link
+                  href="/timeline"
+                  className="inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2.5 text-[11px] font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-400 hover:text-slate-950 sm:px-5 sm:py-3 sm:text-sm"
+                >
+                  연표 보드 열기
                   <FontAwesomeIcon icon={faArrowRight} />
                 </Link>
               </div>

@@ -354,6 +354,26 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const mobileBoardScale = 0.6;
   const mobileTotalScale = mobileBoardScale * zoom;
 
+  function clampPan(nextPan: { x: number; y: number }, scale = zoom) {
+    const viewport = boardViewportRef.current;
+    const viewportWidth = viewport?.clientWidth ?? boardWidth;
+    const viewportHeight = viewport?.clientHeight ?? boardHeight;
+    const scaledBoardWidth = boardWidth * scale;
+    const scaledBoardHeight = boardHeight * scale;
+    const fitsWidth = scaledBoardWidth <= viewportWidth;
+    const fitsHeight = scaledBoardHeight <= viewportHeight;
+
+    const minX = fitsWidth ? (viewportWidth - scaledBoardWidth) / 2 : Math.min(0, viewportWidth - scaledBoardWidth);
+    const maxX = fitsWidth ? (viewportWidth - scaledBoardWidth) / 2 : 0;
+    const minY = fitsHeight ? (viewportHeight - scaledBoardHeight) / 2 : Math.min(0, viewportHeight - scaledBoardHeight);
+    const maxY = fitsHeight ? (viewportHeight - scaledBoardHeight) / 2 : 0;
+
+    return {
+      x: Math.min(maxX, Math.max(minX, nextPan.x)),
+      y: Math.min(maxY, Math.max(minY, nextPan.y)),
+    };
+  }
+
   const connectedRelationships = relationships.filter(
     (relationship) =>
       relationship.fromId === selectedNode?.id || relationship.toId === selectedNode?.id,
@@ -949,12 +969,20 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   }
 
   function updateZoom(nextZoom: number) {
-    setZoom(Math.min(maxZoom, Math.max(minZoom, Number(nextZoom.toFixed(2)))));
+    const clampedZoom = Math.min(maxZoom, Math.max(minZoom, Number(nextZoom.toFixed(2))));
+    setZoom(clampedZoom);
+
+    const viewport = boardViewportRef.current;
+    if (!viewport) {
+      return;
+    }
+
+    setPan((currentPan) => clampPan(currentPan, clampedZoom));
   }
 
   function handleWheelZoom(event: React.WheelEvent<HTMLDivElement>) {
     event.preventDefault();
-    const delta = event.deltaY > 0 ? -0.08 : 0.08;
+    const delta = event.deltaY > 0 ? -0.04 : 0.04;
     updateZoom(zoom + delta);
   }
 
@@ -1107,9 +1135,12 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         longPressTimeoutRef.current = null;
       }
 
-      setPan({
-        x: dragState.startPanX + deltaX,
-        y: dragState.startPanY + deltaY,
+      setPan((currentPan) => {
+        const nextPan = {
+          x: dragState.startPanX + deltaX,
+          y: dragState.startPanY + deltaY,
+        };
+        return clampPan(nextPan, zoom);
       });
     };
 
@@ -1197,7 +1228,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
           <div className="hidden flex-wrap items-center justify-end gap-2 sm:flex">
             <button
               type="button"
-              onClick={() => updateZoom(zoom - 0.1)}
+              onClick={() => updateZoom(zoom - 0.05)}
               className="rounded-full border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600 transition hover:border-slate-400 hover:text-slate-950"
               aria-label="축소"
             >
@@ -1206,7 +1237,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             <span className="min-w-14 text-center text-sm font-medium text-slate-500">{Math.round(zoom * 100)}%</span>
             <button
               type="button"
-              onClick={() => updateZoom(zoom + 0.1)}
+              onClick={() => updateZoom(zoom + 0.05)}
               className="rounded-full border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600 transition hover:border-slate-400 hover:text-slate-950"
               aria-label="확대"
             >
@@ -1450,7 +1481,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             <div className="mt-3 flex items-center justify-between gap-2">
               <button
                 type="button"
-                onClick={() => updateZoom(zoom - 0.1)}
+                onClick={() => updateZoom(zoom - 0.05)}
                 className="flex-1 rounded-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm transition hover:border-slate-400 hover:text-slate-950"
                 aria-label="모바일 축소"
               >
@@ -1458,7 +1489,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               </button>
               <button
                 type="button"
-                onClick={() => updateZoom(zoom + 0.1)}
+                onClick={() => updateZoom(zoom + 0.05)}
                 className="flex-1 rounded-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm transition hover:border-slate-400 hover:text-slate-950"
                 aria-label="모바일 확대"
               >
