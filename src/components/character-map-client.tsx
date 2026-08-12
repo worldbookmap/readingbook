@@ -1092,13 +1092,20 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     }
 
     const handlePanMove = (moveEvent: PointerEvent) => {
+      if (event.pointerType === "touch" && activeTouchRef.current.has(moveEvent.pointerId)) {
+        activeTouchRef.current.set(moveEvent.pointerId, {
+          x: moveEvent.clientX,
+          y: moveEvent.clientY,
+        });
+      }
+
       if (event.pointerType === "touch" && activeTouchRef.current.size >= 2) {
         const touches = Array.from(activeTouchRef.current.values());
         if (touches.length >= 2) {
           const nextDistance = Math.hypot(touches[1].x - touches[0].x, touches[1].y - touches[0].y);
           const startDistance = pinchGestureRef.current?.startDistance ?? nextDistance;
           const startZoom = pinchGestureRef.current?.startZoom ?? zoom;
-          const scaleFactor = nextDistance / startDistance;
+          const scaleFactor = nextDistance / (startDistance || 1);
           const nextZoom = Math.min(
             maxZoom,
             Math.max(minZoom, Number((startZoom * (0.9 + (scaleFactor - 1) * 0.55)).toFixed(2))),
