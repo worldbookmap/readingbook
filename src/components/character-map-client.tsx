@@ -24,6 +24,7 @@ import {
   CharacterRelationship,
   RelationshipType,
 } from "@/lib/types";
+import novelCharData from "../../assets/novelChar.json";
 
 const storageKey = "readingbook-character-map-library";
 const relationOptions: RelationshipType[] = ["친구", "부부", "커플", "자식", "사업", "기타"];
@@ -66,7 +67,20 @@ type Props = {
   library: CharacterMapLibrary;
 };
 
+type NovelCharacterBook = {
+  title: string;
+  title_ko?: string;
+  author?: string;
+  author_ko?: string;
+  major_characters?: Array<{
+    name: string;
+    description_ko?: string;
+  }>;
+};
+
 type SaveState = "idle" | "saving" | "saved" | "error";
+
+const novelCharacterLibrary = novelCharData as { books?: NovelCharacterBook[] };
 
 export function CharacterMapClient({ library }: Props) {
   const [works, setWorks] = useState<CharacterMapLibrary["works"]>(library.works);
@@ -257,6 +271,8 @@ export function CharacterMapClient({ library }: Props) {
 
   const selectedWork = works.find((work) => work.id === selectedWorkId) ?? null;
   const selectedNode = nodes.find((node) => node.id === selectedId) ?? nodes[0] ?? null;
+  const matchedBook = findMatchingBook(newWorkTitle);
+  const selectedBookCharacters = matchedBook?.major_characters ?? [];
   const recentWorks = works.slice(-3);
   const remainingWorks = works.filter((work) => !recentWorks.some((recent) => recent.id === work.id));
   const minimapWidth = boardWidth * minimapScale;
@@ -436,6 +452,21 @@ export function CharacterMapClient({ library }: Props) {
     applyWorkSelection(workId, nextWorks);
   }
 
+  function findMatchingBook(title: string) {
+    const trimmed = title.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const normalized = trimmed.toLowerCase();
+    return (
+      novelCharacterLibrary.books?.find((book) => {
+        const candidates = [book.title, book.title_ko ?? "", book.author ?? "", book.author_ko ?? ""];
+        return candidates.some((value) => value.toLowerCase().includes(normalized));
+      }) ?? null
+    );
+  }
+
   function handleCreateWork(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -444,11 +475,12 @@ export function CharacterMapClient({ library }: Props) {
       return;
     }
 
+    const matchedBook = findMatchingBook(title);
     const nextWork = {
       id: crypto.randomUUID(),
-      title,
-      titleKo: title,
-      author: "새 작품",
+      title: matchedBook?.title ?? title,
+      titleKo: matchedBook?.title_ko ?? title,
+      author: matchedBook?.author_ko ?? matchedBook?.author ?? "새 작품",
       seed: { nodes: [], relationships: [] },
     };
 
@@ -945,7 +977,7 @@ export function CharacterMapClient({ library }: Props) {
                 <input
                   value={newWorkTitle}
                   onChange={(event) => setNewWorkTitle(event.target.value)}
-                  placeholder="새 작품 이름"
+                  placeholder="작품 이름을 입력하거나 선택하세요"
                   className={`${fieldClassName} flex-1 min-w-0`}
                 />
                 <button
@@ -955,6 +987,49 @@ export function CharacterMapClient({ library }: Props) {
                   작품 추가
                 </button>
               </div>
+
+              {matchedBook ? (
+                <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">추천 작품</p>
+                      <p className="mt-1 text-sm font-semibold text-slate-800">{matchedBook.title_ko ?? matchedBook.title}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setNewWorkTitle(matchedBook.title)}
+                      className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-400"
+                    >
+                      선택
+                    </button>
+                  </div>
+
+                  {selectedBookCharacters.length > 0 ? (
+                    <div className="mt-3">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">주요 등장인물</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {selectedBookCharacters.map((character) => (
+                          <button
+                            key={character.name}
+                            type="button"
+                            onClick={() => {
+                              setDraft((current) => ({
+                                ...current,
+                                name: character.name,
+                                summary: character.description_ko ?? current.summary,
+                              }));
+                              setActivePanelTab("add");
+                            }}
+                            className="rounded-full border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-500 hover:text-slate-900"
+                          >
+                            {character.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             </form>
           </div>
         </div>
