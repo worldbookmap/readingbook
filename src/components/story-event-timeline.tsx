@@ -560,10 +560,10 @@ export function StoryEventTimeline() {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-[32px] border border-slate-300/80 bg-white p-5 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
-        <div className="flex flex-col gap-4 border-b border-slate-200/80 pb-4 xl:flex-row xl:items-center xl:justify-between">
+      <section className="rounded-[32px] border border-slate-200 bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.04)]">
+        <div className="flex flex-col gap-4 border-b border-slate-200 pb-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
-            <div className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-700">
+            <div className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-600">
               Story Timeline
             </div>
             <h2 className="mt-2 text-2xl font-semibold text-slate-900">
@@ -573,7 +573,7 @@ export function StoryEventTimeline() {
 
           <div className="flex flex-col gap-3 xl:items-end">
             <div className="flex w-full flex-col gap-2 xl:w-[420px]">
-              <label className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">작품 선택</label>
+              <label className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">작품 선택</label>
               <select
                 value={selectedWorkId}
                 onChange={(event) => {
@@ -585,7 +585,7 @@ export function StoryEventTimeline() {
 
                   setSelectedWorkId(nextValue);
                 }}
-                className="w-full appearance-none rounded-[18px] border border-rose-200 bg-[linear-gradient(135deg,_#fff7fb_0%,_#fffdf9_35%,_#f7f9ff_100%)] px-3 py-2.5 text-sm text-slate-700 shadow-[0_10px_22px_rgba(251,146,60,0.08)] outline-none transition duration-200 hover:border-rose-300 focus:border-rose-300 focus:ring-2 focus:ring-rose-100"
+                className="w-full appearance-none rounded-[18px] border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] outline-none transition duration-200 hover:border-slate-300 focus:border-slate-300 focus:ring-2 focus:ring-slate-100"
               >
                 <option value="__new__">새 작품 추가</option>
                 {works.map((work) => (
@@ -600,7 +600,7 @@ export function StoryEventTimeline() {
               <button
                 type="button"
                 onClick={() => setActiveModal("event")}
-                className="inline-flex items-center rounded-full border border-sky-200 bg-gradient-to-r from-sky-50 to-cyan-50 px-3.5 py-2 text-sm font-medium text-sky-700 shadow-[0_8px_18px_rgba(14,165,233,0.08)] transition hover:-translate-y-0.5 hover:border-sky-300 hover:text-sky-900"
+                className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900"
               >
                 <FontAwesomeIcon icon={faPlus} className="mr-2" />
                 사건 추가
@@ -609,7 +609,7 @@ export function StoryEventTimeline() {
                 type="button"
                 onClick={() => setActiveModal("edit")}
                 disabled={!selectedEvent}
-                className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-[0_8px_18px_rgba(148,163,184,0.08)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm font-medium text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <FontAwesomeIcon icon={faCalendarDays} className="mr-2" />
                 수정하기
@@ -617,7 +617,7 @@ export function StoryEventTimeline() {
               <button
                 type="button"
                 onClick={saveToGithub}
-                className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm font-medium text-slate-700 shadow-[0_8px_18px_rgba(148,163,184,0.08)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-950"
+                className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm font-medium text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900"
               >
                 <FontAwesomeIcon icon={faCloudArrowUp} className="mr-2" />
                 GitHub 저장
@@ -625,7 +625,7 @@ export function StoryEventTimeline() {
               <button
                 type="button"
                 onClick={resetWorks}
-                className="inline-flex items-center rounded-full border border-amber-200 bg-gradient-to-r from-amber-50 to-rose-50 px-3 py-2 text-sm font-medium text-slate-700 shadow-[0_8px_18px_rgba(251,146,60,0.08)] transition hover:-translate-y-0.5 hover:border-amber-300 hover:text-slate-900"
+                className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900"
               >
                 <FontAwesomeIcon icon={faRotateLeft} className="mr-2" />
                 초기화
@@ -634,13 +634,13 @@ export function StoryEventTimeline() {
           </div>
         </div>
 
-        <div className="mt-4 flex flex-col gap-3 rounded-[24px] border border-slate-200 bg-slate-50/80 p-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="mt-4 flex flex-col gap-3 rounded-[24px] border border-slate-200 bg-slate-50 p-3 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-200 text-slate-700">
               <FontAwesomeIcon icon={faBookOpen} />
             </div>
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">작품 연결</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">작품 연결</p>
               <p className="text-sm font-semibold text-slate-800">
                 {linkedCharacterWork ? `인물관계도 연결: ${linkedCharacterWork.titleKo ?? linkedCharacterWork.title}` : "인물관계도 연결 없음"}
               </p>
@@ -658,7 +658,7 @@ export function StoryEventTimeline() {
                 ),
               );
             }}
-            className="w-full appearance-none rounded-[18px] border border-amber-200 bg-[linear-gradient(135deg,_#fffdf7_0%,_#ffffff_40%,_#f7f9ff_100%)] px-3 py-2.5 text-sm text-slate-700 shadow-[0_10px_22px_rgba(251,191,36,0.08)] outline-none transition duration-200 hover:border-amber-300 focus:border-amber-300 focus:ring-2 focus:ring-amber-100 xl:max-w-xs"
+            className="w-full appearance-none rounded-[18px] border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] outline-none transition duration-200 hover:border-slate-300 focus:border-slate-300 focus:ring-2 focus:ring-slate-100 xl:max-w-xs"
           >
             <option value="">연결된 작품 없음</option>
             {characterWorks.map((work) => (
@@ -669,8 +669,8 @@ export function StoryEventTimeline() {
           </select>
         </div>
 
-        <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
-          <div className="rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,_#fffdf7_0%,_#fbfbf8_100%)] p-4">
+        <div className="mt-5">
+          <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-4">
             <div className="mb-3 flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
               <span>타임라인 보드</span>
               <span>{selectedWork?.events.length ?? 0}개 사건</span>
@@ -794,62 +794,6 @@ export function StoryEventTimeline() {
                 })}
               </div>
             </div>
-          </div>
-
-          <div className="rounded-[28px] border border-slate-200 bg-slate-50/80 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-slate-500">선택한 사건</p>
-                <h3 className="text-xl font-semibold text-slate-900">{selectedEvent?.title ?? "사건 없음"}</h3>
-              </div>
-              <button
-                type="button"
-                onClick={deleteSelectedEvent}
-                disabled={!selectedEvent}
-                className="rounded-full border border-slate-300 px-3 py-2 text-sm text-slate-700 transition hover:border-slate-400 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <FontAwesomeIcon icon={faTrash} />
-              </button>
-            </div>
-
-            {linkedCharacterWork ? (
-              <a
-                href={`/characters?workId=${encodeURIComponent(linkedCharacterWork.id)}`}
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-950"
-              >
-                <FontAwesomeIcon icon={faLink} />
-                연결된 인물관계도 열기: {linkedCharacterWork.titleKo ?? linkedCharacterWork.title}
-              </a>
-            ) : null}
-
-            {selectedEvent ? (
-              <div className="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-semibold text-slate-500">제목</span>
-                  <span className="font-medium text-slate-900">{selectedEvent.title}</span>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-semibold text-slate-500">연도</span>
-                  <span>{selectedEvent.yearLabel}</span>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-semibold text-slate-500">챕터</span>
-                  <span>{selectedEvent.chapter}</span>
-                </div>
-                <div className="rounded-xl bg-slate-50 p-3 text-xs leading-6 text-slate-600">
-                  {selectedEvent.summary}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {selectedEvent.tags.map((tag) => (
-                    <span key={tag} className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-medium text-slate-600">
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <p className="mt-4 text-sm text-slate-500">사건을 선택해 상세 내용을 확인하세요.</p>
-            )}
           </div>
         </div>
 
@@ -998,30 +942,40 @@ export function StoryEventTimeline() {
 
             {activeModal === "detail" && detailEvent ? (
               <div className="mt-5 space-y-4">
-                <div className="rounded-[24px] border border-rose-100 bg-rose-50 p-4">
+                <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-center justify-between gap-3">
                     <span className="rounded-full px-2.5 py-1 text-[10px] font-semibold text-white" style={{ backgroundColor: detailEvent.color }}>
                       {detailEvent.yearLabel}
                     </span>
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">{detailEvent.chapter}</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">{detailEvent.chapter}</span>
                   </div>
                   <h4 className="mt-3 text-2xl font-semibold text-slate-900">{detailEvent.title}</h4>
                   <p className="mt-2 text-sm leading-6 text-slate-600">{detailEvent.summary}</p>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">태그</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">태그</p>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
                     {detailEvent.tags.map((tag) => (
-                      <span key={tag} className="rounded-full bg-white px-2.5 py-1 text-[10px] font-medium text-slate-600">
+                      <span key={tag} className="rounded-full bg-slate-100 px-2 py-1 text-[9px] font-medium text-slate-600">
                         #{tag}
                       </span>
                     ))}
                   </div>
                 </div>
 
+                {linkedCharacterWork ? (
+                  <a
+                    href={`/characters?workId=${encodeURIComponent(linkedCharacterWork.id)}`}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-900"
+                  >
+                    <FontAwesomeIcon icon={faLink} />
+                    인물관계도 열기 · {linkedCharacterWork.titleKo ?? linkedCharacterWork.title}
+                  </a>
+                ) : null}
+
                 <div className="flex justify-end gap-2 pt-2">
-                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-2xl border border-rose-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700">닫기</button>
+                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700">닫기</button>
                 </div>
               </div>
             ) : null}
