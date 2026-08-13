@@ -1736,7 +1736,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               </span>
             </div>
 
-            <div className="mt-3 grid grid-cols-3 gap-2">
+            <div className="mt-3 grid grid-cols-4 gap-2">
               <button
                 type="button"
                 onClick={() => updateZoom(zoom - 0.02)}
@@ -1761,6 +1761,13 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                 className="rounded-2xl border border-slate-200 bg-slate-900 px-2.5 py-2.5 text-[11px] font-semibold text-white shadow-[0_6px_18px_rgba(15,23,42,0.12)] transition active:scale-[0.98] hover:bg-slate-800"
               >
                 초기화
+              </button>
+              <button
+                type="button"
+                onClick={saveToGithub}
+                className="rounded-2xl border border-slate-200 bg-emerald-50 px-2.5 py-2.5 text-[11px] font-semibold text-emerald-700 shadow-[0_6px_18px_rgba(16,185,129,0.12)] transition active:scale-[0.98] hover:border-emerald-300 hover:bg-emerald-100"
+              >
+                저장
               </button>
             </div>
 
