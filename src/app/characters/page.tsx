@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
-import characterMapLibrary from "@/data/character-map-library.json";
+import characterMapLibrary from "@/data/character-map.json";
 import { CharacterMapClient } from "@/components/character-map-client";
 import { CharacterMapLibrary } from "@/lib/types";
 

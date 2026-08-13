@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import localCharacterMap from "@/data/character-map-library.json";
+import localCharacterMap from "@/data/character-map.json";
 import { CharacterMapLibrary, CharacterSeed } from "@/lib/types";
 import {
   fetchGithubJsonFile,
