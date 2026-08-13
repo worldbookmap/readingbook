@@ -89,44 +89,6 @@
       }
     },
     {
-      "id": "e430a2cf-ed7d-4c20-a62e-abe378a9781c",
-      "title": "테스트1",
-      "titleKo": "테스트1",
-      "author": "새 작품",
-      "seed": {
-        "nodes": [
-          {
-            "id": "8a1edd12-a220-436d-8327-26967f4d7465",
-            "name": "정진욱",
-            "title": "주인공",
-            "summary": "나르시스트",
-            "majorActions": [],
-            "x": 662,
-            "y": 542.4,
-            "color": "#f97316"
-          },
-          {
-            "id": "aa11bd3d-40db-4358-9c7f-15fe9f7f477f",
-            "name": "구지선",
-            "title": "와이프",
-            "summary": "아직 메모가 없습니다.",
-            "majorActions": [],
-            "x": 720,
-            "y": 698.4,
-            "color": "#f97316"
-          }
-        ],
-        "relationships": [
-          {
-            "id": "a174daaf-3731-47c1-b7c6-eed295f9d177",
-            "fromId": "8a1edd12-a220-436d-8327-26967f4d7465",
-            "toId": "aa11bd3d-40db-4358-9c7f-15fe9f7f477f",
-            "type": "친구"
-          }
-        ]
-      }
-    },
-    {
       "id": "1d05bc8d-2299-487e-8a84-4e90edd3780c",
       "title": "Crime and Punishment",
       "titleKo": "죄와 벌",
@@ -194,6 +156,16 @@
             "type": "커플"
           }
         ]
+      }
+    },
+    {
+      "id": "8649314d-16a4-4e3d-91e1-e835efb7e499",
+      "title": "내 이름은 빨강",
+      "titleKo": "내 이름은 빨강",
+      "author": "새 작품",
+      "seed": {
+        "nodes": [],
+        "relationships": []
       }
     }
   ]
