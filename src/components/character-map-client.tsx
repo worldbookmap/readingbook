@@ -1870,7 +1870,16 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                           role="button"
                           tabIndex={0}
                           data-character-relationship
-                          onClick={() => handleRelationshipSelect(relationship.id, relationship.fromId)}
+                          onPointerDown={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            handleRelationshipSelect(relationship.id, relationship.fromId);
+                          }}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            handleRelationshipSelect(relationship.id, relationship.fromId);
+                          }}
                           onKeyDown={(event) => {
                             if (event.key === "Enter" || event.key === " ") {
                               event.preventDefault();
@@ -1892,8 +1901,19 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                             width="120"
                             height="36"
                             rx="18"
-                            fill="transparent"
-                            style={{ pointerEvents: "auto" }}
+                            fill="rgba(255,255,255,0.01)"
+                            stroke="transparent"
+                            style={{ pointerEvents: "auto", cursor: "pointer" }}
+                            onPointerDown={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              handleRelationshipSelect(relationship.id, relationship.fromId);
+                            }}
+                            onClick={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              handleRelationshipSelect(relationship.id, relationship.fromId);
+                            }}
                           />
                           <text
                             x={curve.labelX}
@@ -1909,6 +1929,45 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                       );
                     })}
                   </svg>
+
+                  {relationships.map((relationship) => {
+                    const from = nodes.find((node) => node.id === relationship.fromId);
+                    const to = nodes.find((node) => node.id === relationship.toId);
+                    if (!from || !to) {
+                      return null;
+                    }
+
+                    const curve = buildCurvePath(from, to);
+                    const label = relationship.label ?? relationship.type;
+
+                    return (
+                      <button
+                        key={`mobile-overlay-${relationship.id}`}
+                        type="button"
+                        onPointerDown={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          handleRelationshipSelect(relationship.id, relationship.fromId);
+                        }}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          handleRelationshipSelect(relationship.id, relationship.fromId);
+                        }}
+                        className="absolute z-10 rounded-full border border-transparent bg-transparent px-2 py-1 text-[10px] font-semibold text-slate-600"
+                        style={{
+                          left: curve.labelX - 60,
+                          top: curve.labelY - 18,
+                          width: 120,
+                          height: 36,
+                          pointerEvents: "auto",
+                        }}
+                        aria-label={`${label} 관계 수정`}
+                      >
+                        <span className="sr-only">{label} 관계 수정</span>
+                      </button>
+                    );
+                  })}
 
                   {selectedRelationship && selectedRelationshipPosition ? (
                     <div
@@ -2175,6 +2234,45 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                 );
               })}
             </svg>
+
+            {relationships.map((relationship) => {
+              const from = nodes.find((node) => node.id === relationship.fromId);
+              const to = nodes.find((node) => node.id === relationship.toId);
+              if (!from || !to) {
+                return null;
+              }
+
+              const curve = buildCurvePath(from, to);
+              const label = relationship.label ?? relationship.type;
+
+              return (
+                <button
+                  key={`desktop-overlay-${relationship.id}`}
+                  type="button"
+                  onPointerDown={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    handleRelationshipSelect(relationship.id, relationship.fromId);
+                  }}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    handleRelationshipSelect(relationship.id, relationship.fromId);
+                  }}
+                  className="absolute z-10 rounded-full border border-transparent bg-transparent px-2 py-1 text-[10px] font-semibold text-slate-600"
+                  style={{
+                    left: curve.labelX - 60,
+                    top: curve.labelY - 18,
+                    width: 120,
+                    height: 36,
+                    pointerEvents: "auto",
+                  }}
+                  aria-label={`${label} 관계 수정`}
+                >
+                  <span className="sr-only">{label} 관계 수정</span>
+                </button>
+              );
+            })}
 
             {selectedRelationship && selectedRelationshipPosition ? (
               <div
