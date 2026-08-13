@@ -23,6 +23,7 @@ import {
   RelationshipType,
 } from "@/lib/types";
 import novelCharData from "../../assets/novelChar.json";
+import { CustomSelect } from "@/components/custom-select";
 
 const storageKey = "readingbook-character-map-library";
 const relationOptions: RelationshipType[] = ["친구", "부부", "커플", "자식", "사업", "기타"];
@@ -1568,33 +1569,18 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             <div className="min-w-0">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">작품 목록</p>
-                {selectedWorkId === latestWorkId ? (
-                  <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700">
-                    최근 생성
-                  </span>
-                ) : null}
               </div>
               <div className="mt-2 flex items-center gap-2">
                 <div className="relative flex-1">
-                  <div
-                    className={`${selectedWorkId === latestWorkId ? "rounded-[20px] border border-amber-200 bg-gradient-to-r from-amber-50 via-white to-orange-50 p-[1px] shadow-[0_10px_30px_rgba(251,191,36,0.12)]" : ""}`}
-                  >
-                    <select
-                      aria-label="작품 선택"
-                      value={selectedWorkId}
-                      onChange={(event) => handleWorkSelect(event.target.value)}
-                      className={`${selectClassName} ${selectedWorkId === latestWorkId ? "border-0 bg-transparent shadow-none" : "shadow-[0_6px_20px_rgba(15,23,42,0.05)]"}`}
-                    >
-                      {orderedWorks.map((work) => (
-                        <option key={work.id} value={work.id}>
-                          {work.id === latestWorkId ? `최근 생성 · ${work.titleKo ?? work.title}` : work.titleKo ?? work.title}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center">
-                    <span className="text-lg font-semibold text-slate-600">▾</span>
-                  </div>
+                  <CustomSelect
+                    value={selectedWorkId}
+                    onChange={(nextValue) => handleWorkSelect(nextValue)}
+                    className="w-full"
+                    options={orderedWorks.map((work) => ({
+                      value: work.id,
+                      label: work.titleKo ?? work.title,
+                    }))}
+                  />
                 </div>
 
                 <button
