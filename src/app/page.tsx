@@ -65,33 +65,34 @@ export default function Home() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#f5f3ee] text-slate-900">
-      <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-4 py-8 sm:px-6 lg:px-8">
-        <section className="relative overflow-hidden rounded-[36px] border border-slate-200/80 bg-[linear-gradient(135deg,_rgba(255,255,255,0.96)_0%,_rgba(250,248,245,0.94)_52%,_rgba(245,240,232,0.9)_100%)] px-6 py-8 shadow-[0_28px_80px_rgba(15,23,42,0.08)] ring-1 ring-white/70 sm:px-8 sm:py-10 lg:px-12 lg:py-14">
+      <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-4 pb-6 pt-8 sm:px-6 lg:px-8">
+        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-[linear-gradient(135deg,_rgba(255,255,255,0.96)_0%,_rgba(250,248,245,0.94)_52%,_rgba(245,240,232,0.9)_100%)] px-5 py-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] ring-1 ring-white/70 sm:px-7 sm:py-8 lg:px-10 lg:py-12">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(15,23,42,0.08),_transparent_32%),radial-gradient(circle_at_bottom_right,_rgba(245,158,11,0.12),_transparent_28%)]" />
           <div className="absolute -left-20 top-10 h-52 w-52 rounded-full bg-amber-200/40 blur-3xl" />
           <div className="absolute bottom-0 right-10 h-40 w-40 rounded-full bg-stone-200/70 blur-3xl" />
 
           <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_360px] lg:items-end">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3.5 py-2 text-xs font-medium text-slate-600 shadow-[0_8px_24px_rgba(15,23,42,0.04)] backdrop-blur-sm sm:text-sm">
+              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-[11px] font-medium text-slate-600 shadow-[0_8px_24px_rgba(15,23,42,0.04)] backdrop-blur-sm sm:text-sm">
                 <FontAwesomeIcon icon={faBookOpenReader} className="text-amber-600" />
                 독서용 기록 웹앱
               </div>
 
-              <h1 className="mt-6 max-w-4xl text-[2.4rem] font-semibold tracking-[-0.05em] text-slate-950 sm:text-5xl lg:text-[4.1rem]">
+              <h1 className="mt-5 max-w-4xl text-[2.2rem] font-semibold tracking-[-0.05em] text-slate-950 sm:text-4xl lg:text-[3.8rem]">
                 읽는 흐름을
                 <span className="block text-slate-700">더 선명하게 남기다</span>
               </h1>
 
-              <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
+              <p className="mt-4 max-w-2xl text-[15px] leading-7 text-slate-600 sm:text-base sm:leading-8">
                 인물 관계, 핵심 사건, 역사 맥락까지 한 곳에서 정리하면서
                 <span className="font-medium text-slate-800"> 책을 읽는 감각을 더 오래 남기세요.</span>
               </p>
 
-              <div className="mt-8 flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 sm:gap-3 [&::-webkit-scrollbar]:hidden">
+              <div className="mt-7 flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 sm:gap-3 [&::-webkit-scrollbar]:hidden">
                 <Link
                   href="/characters"
-                  className="inline-flex shrink-0 items-center gap-2 rounded-full bg-slate-950 px-4 py-2.5 text-[11px] font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-slate-800 sm:px-5 sm:py-3 sm:text-sm"
+                  className="inline-flex shrink-0 items-center gap-2 rounded-full bg-slate-950 px-4 py-2.5 text-[11px] font-semibold text-white shadow-[0_8px_18px_rgba(15,23,42,0.10)] ring-1 ring-slate-900/5 transition duration-200 hover:-translate-y-0.5 hover:bg-slate-800 sm:px-5 sm:py-3 sm:text-sm"
+                  style={{ color: "#ffffff" }}
                 >
                   관계도 시작
                   <FontAwesomeIcon icon={faArrowRight} />
@@ -114,7 +115,7 @@ export default function Home() {
             </div>
 
             <div className="relative">
-              <div className="rounded-[28px] border border-slate-200/80 bg-white/85 p-5 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur-sm">
+              <div className="rounded-[26px] border border-slate-200/80 bg-white/85 p-4 shadow-[0_18px_42px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:p-5">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">Reading flow</p>
@@ -173,7 +174,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="relative mt-8 rounded-[30px] border border-slate-200/80 bg-white/85 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.04)] backdrop-blur-sm sm:p-6">
+        <section className="relative mt-6 rounded-[28px] border border-slate-200/80 bg-white/85 p-4 shadow-[0_10px_28px_rgba(15,23,42,0.04)] backdrop-blur-sm sm:p-5">
           <div className="mb-5 flex items-end justify-between gap-3">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">How it works</p>
@@ -200,7 +201,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="relative mt-8 grid gap-5 lg:grid-cols-3">
+        <section className="relative mt-6 grid gap-4 lg:grid-cols-3">
           {featureCards.map((card) => (
             <Link
               key={card.href}
