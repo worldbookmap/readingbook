@@ -52,6 +52,14 @@ const defaultEventDraft: EventDraft = {
   tags: "",
 };
 
+const inputClassName =
+  "w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-2.5 text-sm text-slate-800 shadow-[0_2px_8px_rgba(15,23,42,0.03)] outline-none transition-all duration-200 placeholder:text-slate-400 hover:border-slate-300 focus:border-slate-700 focus:ring-4 focus:ring-slate-200/80 invalid:border-rose-300 invalid:text-rose-700 invalid:focus:ring-rose-100";
+const textareaClassName = `${inputClassName} min-h-[110px] resize-y`;
+const secondaryButtonClassName =
+  "inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200/80 disabled:cursor-not-allowed disabled:opacity-50";
+const checkboxClassName =
+  "h-4 w-4 rounded border-slate-300 bg-white text-slate-900 shadow-sm accent-slate-900 transition focus:ring-4 focus:ring-slate-200";
+
 function parseYear(yearLabel: string) {
   const cleaned = yearLabel.trim().toUpperCase();
   if (cleaned.startsWith("BC")) {
@@ -517,7 +525,7 @@ export function StoryEventTimeline() {
 
   async function saveToGithub() {
     setSaveState("saving");
-    setSaveMessage(remoteEnabled ? "GitHub에 저장 중..." : "환경변수 확인 필요");
+    setSaveMessage(remoteEnabled ? "저장 중..." : "브라우저 로컬 저장 중");
 
     try {
       const response = await fetch("/api/story-events", {
@@ -895,13 +903,13 @@ export function StoryEventTimeline() {
                   value={workDraft.title}
                   onChange={(event) => setWorkDraft((current) => ({ ...current, title: event.target.value }))}
                   placeholder="소설 제목"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                  className={inputClassName}
                 />
                 <input
                   value={workDraft.author}
                   onChange={(event) => setWorkDraft((current) => ({ ...current, author: event.target.value }))}
                   placeholder="작가명(선택)"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                  className={inputClassName}
                 />
                 <CustomSelect
                   value={workDraft.linkedCharacterWorkId}
@@ -931,31 +939,31 @@ export function StoryEventTimeline() {
                   value={eventDraft.title}
                   onChange={(event) => setEventDraft((current) => ({ ...current, title: event.target.value }))}
                   placeholder="사건 제목"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                  className={inputClassName}
                 />
                 <input
                   value={eventDraft.yearLabel}
                   onChange={(event) => setEventDraft((current) => ({ ...current, yearLabel: event.target.value }))}
                   placeholder="예: 1776 또는 BC 3000"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                  className={inputClassName}
                 />
                 <input
                   value={eventDraft.chapter}
                   onChange={(event) => setEventDraft((current) => ({ ...current, chapter: event.target.value }))}
                   placeholder="장면 or 챕터"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                  className={inputClassName}
                 />
                 <textarea
                   value={eventDraft.summary}
                   onChange={(event) => setEventDraft((current) => ({ ...current, summary: event.target.value }))}
                   placeholder="사건 설명"
-                  className="h-24 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                  className={textareaClassName}
                 />
                 <input
                   value={eventDraft.tags}
                   onChange={(event) => setEventDraft((current) => ({ ...current, tags: event.target.value }))}
                   placeholder="태그를 쉼표로 구분"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                  className={inputClassName}
                 />
                 <div className="flex justify-end gap-2 pt-2">
                   <button type="button" onClick={() => setActiveModal(null)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700">취소</button>
@@ -969,29 +977,29 @@ export function StoryEventTimeline() {
                 <input
                   value={selectedEvent.title}
                   onChange={(event) => updateSelectedEvent("title", event.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                  className={inputClassName}
                 />
                 <input
                   value={selectedEvent.yearLabel}
                   onChange={(event) => updateSelectedEvent("yearLabel", event.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                  className={inputClassName}
                 />
                 <input
                   value={selectedEvent.chapter ?? ""}
                   onChange={(event) => updateSelectedEvent("chapter", event.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                  className={inputClassName}
                 />
                 <textarea
                   value={selectedEvent.summary}
                   onChange={(event) => updateSelectedEvent("summary", event.target.value)}
-                  className="h-24 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                  className={textareaClassName}
                 />
                 <input
                   value={selectedEvent.tags.join(", ")}
                   onChange={(event) =>
                     updateSelectedEvent("tags", event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean))
                   }
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                  className={inputClassName}
                 />
                 <div className="flex justify-end gap-2 pt-2">
                   <button type="button" onClick={() => setActiveModal(null)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700">닫기</button>
@@ -1022,29 +1030,29 @@ export function StoryEventTimeline() {
                   <input
                     value={detailEvent.title}
                     onChange={(event) => updateSelectedEvent("title", event.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                    className={inputClassName}
                   />
                   <input
                     value={detailEvent.yearLabel}
                     onChange={(event) => updateSelectedEvent("yearLabel", event.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                    className={inputClassName}
                   />
                   <input
                     value={detailEvent.chapter ?? ""}
                     onChange={(event) => updateSelectedEvent("chapter", event.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                    className={inputClassName}
                   />
                   <textarea
                     value={detailEvent.summary}
                     onChange={(event) => updateSelectedEvent("summary", event.target.value)}
-                    className="h-24 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                    className={textareaClassName}
                   />
                   <input
                     value={detailEvent.tags.join(", ")}
                     onChange={(event) =>
                       updateSelectedEvent("tags", event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean))
                     }
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                    className={inputClassName}
                   />
                 </div>
 
@@ -1062,7 +1070,7 @@ export function StoryEventTimeline() {
                 {linkedCharacterWork ? (
                   <a
                     href={`/characters?workId=${encodeURIComponent(linkedCharacterWork.id)}`}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-900"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200/80"
                   >
                     <FontAwesomeIcon icon={faLink} />
                     인물관계도 열기 · {linkedCharacterWork.titleKo ?? linkedCharacterWork.title}

@@ -58,9 +58,11 @@ const defaultDraft: DraftState = {
 };
 
 const fieldClassName =
-  "w-full rounded-2xl border border-slate-300 bg-white/90 px-4 py-3 text-sm text-slate-800 shadow-[0_1px_2px_rgba(15,23,42,0.04)] outline-none transition placeholder:text-slate-400 hover:border-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-200";
+  "w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-800 shadow-[0_2px_8px_rgba(15,23,42,0.03)] outline-none transition-all duration-200 placeholder:text-slate-400 hover:border-slate-300 focus:border-slate-700 focus:ring-4 focus:ring-slate-200/80 invalid:border-rose-300 invalid:text-rose-700 invalid:focus:ring-rose-100";
 const textareaClassName = `${fieldClassName} min-h-[100px] resize-y`;
 const selectClassName = `${fieldClassName} appearance-none pr-10`;
+const checkboxClassName =
+  "h-4 w-4 rounded border-slate-300 bg-white text-slate-900 shadow-sm accent-slate-900 transition focus:ring-4 focus:ring-slate-200";
 
 type Props = {
   library: CharacterMapLibrary;
@@ -221,8 +223,8 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         setRemoteSha(payload.sha);
         setSaveMessage(
           payload.remoteEnabled
-            ? "GitHub 저장소와 연결됨"
-            : "환경변수 미설정: 브라우저 로컬 저장 사용 중",
+            ? "연결됨"
+            : "브라우저 로컬 저장 모드",
         );
       });
       return payload;
@@ -1463,7 +1465,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
 
   async function saveToGithub() {
     setSaveState("saving");
-    setSaveMessage(remoteEnabled ? "저장 중..." : "환경변수 확인 필요");
+    setSaveMessage(remoteEnabled ? "저장 중..." : "브라우저 로컬 저장 중");
 
     try {
       const nextLibrary: CharacterMapLibrary = { works };
@@ -3117,7 +3119,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                             relationshipType: event.target.checked ? "선택 없음" : current.relationshipType,
                           }))
                         }
-                        className="h-4 w-4 rounded border-slate-300 bg-white text-slate-900 accent-slate-900"
+                        className={checkboxClassName}
                       />
                       현재 인물과 연결하지 않고 독립 인물로 추가
                     </label>

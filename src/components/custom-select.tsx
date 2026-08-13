@@ -15,6 +15,7 @@ type CustomSelectProps = {
   placeholder?: string;
   className?: string;
   menuClassName?: string;
+  hasError?: boolean;
 };
 
 export function CustomSelect({
@@ -24,6 +25,7 @@ export function CustomSelect({
   placeholder = "선택",
   className = "",
   menuClassName = "",
+  hasError = false,
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -50,7 +52,11 @@ export function CustomSelect({
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}
-        className="flex w-full items-center justify-between gap-3 rounded-[18px] border border-slate-200 bg-slate-50 px-3 py-2.5 text-left text-sm text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] outline-none transition duration-200 hover:border-slate-300 focus:border-slate-300 focus:ring-2 focus:ring-slate-100"
+        className={`flex w-full items-center justify-between gap-3 rounded-[18px] border px-3 py-2.5 text-left text-sm shadow-[0_8px_18px_rgba(15,23,42,0.04)] outline-none transition-all duration-200 focus-visible:ring-4 focus-visible:ring-slate-200/80 ${
+          hasError
+            ? "border-rose-300 bg-rose-50/70 text-rose-700 hover:border-rose-400"
+            : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300"
+        }`}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
@@ -78,10 +84,10 @@ export function CustomSelect({
                   onChange(option.value);
                   setIsOpen(false);
                 }}
-                className={`flex w-full items-center justify-between gap-2 rounded-[14px] px-3 py-2.5 text-left text-sm transition ${
+                className={`flex w-full items-center justify-between gap-2 rounded-[14px] px-3 py-2.5 text-left text-sm transition-all duration-150 ${
                   option.value === value
                     ? "bg-slate-900 text-white shadow-[0_12px_25px_rgba(15,23,42,0.12)]"
-                    : "text-slate-700 hover:bg-slate-100"
+                    : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                 } ${option.disabled ? "cursor-not-allowed opacity-40" : ""}`}
                 role="option"
                 aria-selected={option.value === value}

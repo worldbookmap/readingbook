@@ -116,6 +116,14 @@ const defaultDraft: DraftCard = {
   tags: "",
 };
 
+const inputClassName =
+  "w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-800 shadow-[0_2px_8px_rgba(15,23,42,0.03)] outline-none transition-all duration-200 placeholder:text-slate-400 hover:border-slate-300 focus:border-slate-700 focus:ring-4 focus:ring-slate-200/80 invalid:border-rose-300 invalid:text-rose-700 invalid:focus:ring-rose-100";
+const textareaClassName = `${inputClassName} h-28`;
+const secondaryButtonClassName =
+  "inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200/80";
+const checkboxClassName =
+  "h-4 w-4 rounded border-slate-300 bg-white text-slate-900 shadow-sm accent-slate-900 transition focus:ring-4 focus:ring-slate-200";
+
 type Props = {
   initialCards: TimelineCard[];
 };
@@ -178,8 +186,8 @@ export function TimelineBoard({ initialCards }: Props) {
           setRemoteSha(payload.sha);
           setSaveMessage(
             payload.remoteEnabled
-              ? "GitHub 저장소와 연결됨"
-              : "환경변수 미설정: 브라우저 로컬 저장 사용 중",
+              ? "연결됨"
+              : "브라우저 로컬 저장 모드",
           );
         });
       } catch {
@@ -429,7 +437,7 @@ export function TimelineBoard({ initialCards }: Props) {
 
   async function saveToGithub() {
     setSaveState("saving");
-    setSaveMessage(remoteEnabled ? "GitHub 저장 중..." : "환경변수 확인 필요");
+    setSaveMessage(remoteEnabled ? "저장 중..." : "브라우저 로컬 저장 중");
 
     try {
       const response = await fetch("/api/timeline", {
@@ -498,7 +506,7 @@ export function TimelineBoard({ initialCards }: Props) {
                 <input
                   value={modalDraft.title}
                   onChange={(event) => setModalDraft((current) => (current ? { ...current, title: event.target.value } : current))}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                  className={inputClassName}
                 />
               </div>
 
@@ -508,7 +516,7 @@ export function TimelineBoard({ initialCards }: Props) {
                   <input
                     value={modalDraft.yearLabel}
                     onChange={(event) => setModalDraft((current) => (current ? { ...current, yearLabel: event.target.value } : current))}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                    className={inputClassName}
                   />
                 </div>
                 <div>
@@ -531,7 +539,7 @@ export function TimelineBoard({ initialCards }: Props) {
                 <textarea
                   value={modalDraft.description}
                   onChange={(event) => setModalDraft((current) => (current ? { ...current, description: event.target.value } : current))}
-                  className="h-28 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                  className={textareaClassName}
                 />
               </div>
 
@@ -541,7 +549,7 @@ export function TimelineBoard({ initialCards }: Props) {
                   value={modalDraft.tags}
                   onChange={(event) => setModalDraft((current) => (current ? { ...current, tags: event.target.value } : current))}
                   placeholder="태그를 쉼표로 구분"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                  className={inputClassName}
                 />
               </div>
             </div>
@@ -585,7 +593,7 @@ export function TimelineBoard({ initialCards }: Props) {
               value={draft.title}
               onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
               placeholder="사건 제목"
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+              className={inputClassName}
             />
             <input
               value={draft.yearLabel}
@@ -593,7 +601,7 @@ export function TimelineBoard({ initialCards }: Props) {
                 setDraft((current) => ({ ...current, yearLabel: event.target.value }))
               }
               placeholder="연도 예: BC 3000, 1776"
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+              className={inputClassName}
             />
             <CustomSelect
               value={draft.region}
@@ -611,12 +619,12 @@ export function TimelineBoard({ initialCards }: Props) {
                 value={newRegionName}
                 onChange={(event) => setNewRegionName(event.target.value)}
                 placeholder="새 카테고리 이름"
-                className="w-full rounded-2xl border border-slate-300 bg-slate-50/80 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
+                className={inputClassName}
               />
               <button
                 type="button"
                 onClick={createRegion}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
+                className={secondaryButtonClassName}
               >
                 <FontAwesomeIcon icon={faPlus} />
                 카테고리 추가
@@ -628,13 +636,13 @@ export function TimelineBoard({ initialCards }: Props) {
                 setDraft((current) => ({ ...current, description: event.target.value }))
               }
               placeholder="설명"
-              className="h-24 w-full rounded-2xl border border-slate-300 bg-slate-50/80 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
+              className={textareaClassName}
             />
             <input
               value={draft.tags}
               onChange={(event) => setDraft((current) => ({ ...current, tags: event.target.value }))}
               placeholder="태그를 쉼표로 구분"
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+              className={inputClassName}
             />
             <button
               type="submit"
@@ -650,7 +658,7 @@ export function TimelineBoard({ initialCards }: Props) {
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm font-semibold text-sky-700 transition hover:border-sky-400 hover:bg-sky-50"
             >
               <FontAwesomeIcon icon={faCloudArrowUp} />
-              GitHub에 저장
+              저장
             </button>
 
             <p
@@ -922,7 +930,7 @@ export function TimelineBoard({ initialCards }: Props) {
                 value={summarySearch}
                 onChange={(event) => setSummarySearch(event.target.value)}
                 placeholder="제목 또는 연도 검색"
-                className="w-full max-w-56 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none transition focus:border-sky-300 max-sm:max-w-none"
+                className="w-full max-w-56 rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-2.5 text-sm text-slate-800 shadow-[0_2px_8px_rgba(15,23,42,0.03)] outline-none transition-all duration-200 placeholder:text-slate-400 hover:border-slate-300 focus:border-slate-700 focus:ring-4 focus:ring-slate-200/80 max-sm:max-w-none"
               />
               <CustomSelect
                 value={eraFilter}
