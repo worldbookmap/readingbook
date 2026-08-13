@@ -1033,8 +1033,6 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     element.addEventListener("pointerup", end as EventListener, { once: true });
     window.addEventListener("pointermove", move as EventListener);
     window.addEventListener("pointerup", end as EventListener, { once: true });
-    document.addEventListener("mousemove", move as EventListener);
-    document.addEventListener("mouseup", end as EventListener, { once: true });
   }
 
   function handleMouseDown(event: React.MouseEvent<HTMLElement>, nodeId: string, displayScale = zoom) {
@@ -1258,6 +1256,12 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             maxZoom,
             Math.max(minZoom, Number((startZoom * (0.9 + (scaleFactor - 1) * 0.55)).toFixed(2))),
           );
+
+          if (longPressTimeoutRef.current) {
+            window.clearTimeout(longPressTimeoutRef.current);
+            longPressTimeoutRef.current = null;
+          }
+
           setZoom(nextZoom);
           setPan((currentPan) => clampPan(currentPan, nextZoom));
         }
@@ -1301,8 +1305,6 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       viewportDragRef.current = null;
       boardElement.removeEventListener("pointermove", handlePanMove as EventListener);
       boardElement.removeEventListener("pointerup", handlePanEnd as EventListener);
-      document.removeEventListener("mousemove", handlePanMove as EventListener);
-      document.removeEventListener("mouseup", handlePanEnd as EventListener);
       if (longPressTimeoutRef.current) {
         window.clearTimeout(longPressTimeoutRef.current);
         longPressTimeoutRef.current = null;
@@ -1332,8 +1334,6 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       };
       boardElement.addEventListener("pointermove", handlePanMove as EventListener);
       boardElement.addEventListener("pointerup", handlePanEnd as EventListener, { once: true });
-      document.addEventListener("mousemove", handlePanMove as EventListener);
-      document.addEventListener("mouseup", handlePanEnd as EventListener, { once: true });
       return;
     }
 
@@ -1362,6 +1362,15 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       const localX = (event.clientX - boardRect.left) / boardScale;
       const localY = (event.clientY - boardRect.top) / boardScale;
 
+      if (viewportDragRef.current) {
+        const dragState = viewportDragRef.current;
+        const movedEnough = Math.abs(event.clientX - dragState.startX) > 8 || Math.abs(event.clientY - dragState.startY) > 8;
+        if (movedEnough) {
+          return;
+        }
+      }
+
+      viewportDragRef.current = null;
       setQuickCreatePosition({
         x: Math.min(boardWidth - nodeWidth - 40, Math.max(40, localX)),
         y: Math.min(boardHeight - nodeHeight - 40, Math.max(40, localY)),
@@ -1373,8 +1382,6 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
 
     boardElement.addEventListener("pointermove", handlePanMove as EventListener);
     boardElement.addEventListener("pointerup", handlePanEnd as EventListener, { once: true });
-    document.addEventListener("mousemove", handlePanMove as EventListener);
-    document.addEventListener("mouseup", handlePanEnd as EventListener, { once: true });
   }
 
   function handleBoardBackgroundMouseDown(event: React.MouseEvent<HTMLDivElement>) {
