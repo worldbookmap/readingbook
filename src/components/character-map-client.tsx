@@ -117,6 +117,8 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const [quickCreateName, setQuickCreateName] = useState("");
   const [activePanelTab, setActivePanelTab] = useState<"add" | "info">("add");
   const [selectedRecommendedBook, setSelectedRecommendedBook] = useState<NovelCharacterBook | null>(null);
+  const [nodeEditModalId, setNodeEditModalId] = useState<string | null>(null);
+  const [showNodeDetails, setShowNodeDetails] = useState(false);
   const [existingConnectionTargetId, setExistingConnectionTargetId] = useState<string>("");
   const [existingConnectionSearch, setExistingConnectionSearch] = useState("");
   const [existingConnectionType, setExistingConnectionType] = useState<RelationshipType>("친구");
@@ -135,6 +137,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     startPan: { x: number; y: number };
   } | null>(null);
   const activeTouchRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const nodeLongPressTimerRef = useRef<number | null>(null);
   const [relationshipDeleteConfirm, setRelationshipDeleteConfirm] = useState<string | null>(null);
   const [deleteModal, setDeleteModal] = useState<{
     kind: "work" | "node";
@@ -529,6 +532,18 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         return { ...node, [field]: value };
       }),
     );
+  }
+
+  function openNodeEditModal(nodeId: string) {
+    const nextNode = nodes.find((node) => node.id === nodeId);
+    if (!nextNode) {
+      return;
+    }
+
+    setSelectedId(nodeId);
+    setNodeEditModalId(nodeId);
+    setShowNodeDetails(true);
+    setActivePanelTab("info");
   }
 
   function handleNodeHoverStart(nodeId: string) {
@@ -960,6 +975,13 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     }
 
     setSelectedId(nodeId);
+    if (nodeLongPressTimerRef.current) {
+      window.clearTimeout(nodeLongPressTimerRef.current);
+    }
+    nodeLongPressTimerRef.current = window.setTimeout(() => {
+      openNodeEditModal(nodeId);
+    }, 550);
+
     dragRef.current = {
       id: nodeId,
       pointerId: event.pointerId,
@@ -983,6 +1005,10 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       const deltaY = moveEvent.clientY - event.clientY;
       if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
         activeDrag.moved = true;
+        if (nodeLongPressTimerRef.current) {
+          window.clearTimeout(nodeLongPressTimerRef.current);
+          nodeLongPressTimerRef.current = null;
+        }
       }
 
       const hoveredNodeId = findNodeIdAtPoint(moveEvent.clientX, moveEvent.clientY, nodeId);
@@ -1005,6 +1031,11 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
 
       if (releaseEvent instanceof PointerEvent && releaseEvent.pointerId !== activeDrag.pointerId) {
         return;
+      }
+
+      if (nodeLongPressTimerRef.current) {
+        window.clearTimeout(nodeLongPressTimerRef.current);
+        nodeLongPressTimerRef.current = null;
       }
 
       dragRef.current = null;
@@ -1465,7 +1496,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       setRemoteEnabled(refreshedPayload?.remoteEnabled ?? remoteEnabled);
       setRemoteSha(payload.sha);
       setSaveState("saved");
-      setSaveMessage("GitHub 저장소에 반영되었습니다. 최신 데이터를 다시 불러왔습니다.");
+      setSaveMessage("저장 완료! 최신 데이터가 반영되었습니다.");
     } catch (error) {
       setSaveState("error");
       setSaveMessage(error instanceof Error ? error.message : "GitHub 저장에 실패했습니다.");
@@ -1727,20 +1758,20 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
           ) : null}
         </div>
 
-        <div className="border-b border-slate-200/80 px-4 py-4 sm:px-6 lg:hidden">
-          <div className="rounded-[24px] border border-slate-300 bg-[linear-gradient(180deg,_#ffffff_0%,_#f8f8f6_100%)] p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-slate-700">모바일 마인드맵</p>
-              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-500 shadow-sm">
+        <div className="border-b border-slate-200/80 px-0 py-0 sm:px-0 lg:hidden">
+          <div className="rounded-none bg-[linear-gradient(180deg,_#ffffff_0%,_#f8f8f6_100%)] p-0 shadow-none">
+            <div className="flex items-center justify-between gap-3 px-2 pt-2">
+              <p className="text-xs font-semibold text-slate-700">모바일 마인드맵</p>
+              <span className="rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold text-slate-500 shadow-sm ring-1 ring-slate-200/80">
                 {Math.round(zoom * 100)}%
               </span>
             </div>
 
-            <div className="mt-3 grid grid-cols-4 gap-2">
+            <div className="mt-2 grid grid-cols-4 gap-1.5 px-2 pb-2">
               <button
                 type="button"
                 onClick={() => updateZoom(zoom - 0.02)}
-                className="inline-flex items-center justify-center gap-1 rounded-2xl border border-slate-200 bg-white px-2.5 py-2.5 text-[11px] font-semibold text-slate-700 shadow-[0_4px_12px_rgba(15,23,42,0.05)] transition active:scale-[0.98] hover:border-slate-300 hover:text-slate-950"
+                className="inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white px-1.5 py-2 text-[10px] font-semibold text-slate-700 shadow-[0_4px_12px_rgba(15,23,42,0.05)] transition active:scale-[0.98] hover:border-slate-300 hover:text-slate-950"
                 aria-label="모바일 축소"
               >
                 <FontAwesomeIcon icon={faMagnifyingGlassMinus} />
@@ -1749,7 +1780,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               <button
                 type="button"
                 onClick={() => updateZoom(zoom + 0.02)}
-                className="inline-flex items-center justify-center gap-1 rounded-2xl border border-slate-200 bg-white px-2.5 py-2.5 text-[11px] font-semibold text-slate-700 shadow-[0_4px_12px_rgba(15,23,42,0.05)] transition active:scale-[0.98] hover:border-slate-300 hover:text-slate-950"
+                className="inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white px-1.5 py-2 text-[10px] font-semibold text-slate-700 shadow-[0_4px_12px_rgba(15,23,42,0.05)] transition active:scale-[0.98] hover:border-slate-300 hover:text-slate-950"
                 aria-label="모바일 확대"
               >
                 <FontAwesomeIcon icon={faMagnifyingGlassPlus} />
@@ -1758,21 +1789,21 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               <button
                 type="button"
                 onClick={resetSeed}
-                className="rounded-2xl border border-slate-200 bg-slate-900 px-2.5 py-2.5 text-[11px] font-semibold text-white shadow-[0_6px_18px_rgba(15,23,42,0.12)] transition active:scale-[0.98] hover:bg-slate-800"
+                className="rounded-xl border border-slate-200 bg-slate-900 px-1.5 py-2 text-[10px] font-semibold text-white shadow-[0_6px_18px_rgba(15,23,42,0.12)] transition active:scale-[0.98] hover:bg-slate-800"
               >
                 초기화
               </button>
               <button
                 type="button"
                 onClick={saveToGithub}
-                className="rounded-2xl border border-slate-200 bg-emerald-50 px-2.5 py-2.5 text-[11px] font-semibold text-emerald-700 shadow-[0_6px_18px_rgba(16,185,129,0.12)] transition active:scale-[0.98] hover:border-emerald-300 hover:bg-emerald-100"
+                className="rounded-xl border border-slate-200 bg-emerald-50 px-1.5 py-2 text-[10px] font-semibold text-emerald-700 shadow-[0_6px_18px_rgba(16,185,129,0.12)] transition active:scale-[0.98] hover:border-emerald-300 hover:bg-emerald-100"
               >
                 저장
               </button>
             </div>
 
-            <div className="mt-4 overflow-auto rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
-              <div ref={mobileBoardViewportRef} className="relative h-[420px] min-w-[320px] px-3">
+            <div className="overflow-auto rounded-none bg-white/70 shadow-none">
+              <div ref={mobileBoardViewportRef} className="relative h-[420px] min-w-[320px] px-0">
                 <div
                   className="relative"
                   data-character-board
@@ -1935,6 +1966,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                               setHideNodeInfoPopup(false);
                               handlePointerDown(event, node.id, mobileTotalScale);
                             }}
+                            onDoubleClick={() => openNodeEditModal(node.id)}
                             onClick={() => {
                               setHideNodeInfoPopup(false);
                               setSelectedId(node.id);
@@ -2191,6 +2223,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                         setHideNodeInfoPopup(false);
                         handlePointerDown(event, node.id);
                       }}
+                      onDoubleClick={() => openNodeEditModal(node.id)}
                       onMouseEnter={() => handleNodeHoverStart(node.id)}
                       onMouseLeave={() => handleNodeHoverEnd(node.id)}
                       onFocus={() => handleNodeHoverStart(node.id)}
@@ -2306,6 +2339,102 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
           </div>
         </div>
       </section>
+
+      {nodeEditModalId && selectedNode ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/18 p-3 backdrop-blur-[1.5px]">
+          <div className="w-full max-w-sm overflow-hidden rounded-[24px] border border-slate-200/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] shadow-[0_24px_60px_rgba(15,23,42,0.14)] ring-1 ring-slate-200/80">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-200/80 bg-white/70 px-3.5 py-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 text-[11px] text-white shadow-[0_8px_18px_rgba(15,23,42,0.18)]">
+                  <FontAwesomeIcon icon={faUser} />
+                </div>
+                <div>
+                  <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-500">character</p>
+                  <h4 className="text-sm font-semibold text-slate-900">인물 수정</h4>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setNodeEditModalId(null)}
+                className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-medium text-slate-600 transition hover:border-slate-300 hover:bg-white"
+              >
+                닫기
+              </button>
+            </div>
+
+            <div className="px-3.5 pb-3 pt-3">
+              <div className="flex gap-1 rounded-2xl bg-slate-100 p-1">
+                <button
+                  type="button"
+                  onClick={() => setShowNodeDetails((current) => !current)}
+                  className={`flex-1 rounded-xl px-2 py-1.5 text-[11px] font-semibold transition ${
+                    showNodeDetails
+                      ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  세부정보
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNodeEditModalId(null);
+                    void saveToGithub();
+                  }}
+                  className="flex-1 rounded-xl bg-slate-900 px-2 py-1.5 text-[11px] font-semibold text-white shadow-[0_8px_18px_rgba(15,23,42,0.14)] transition hover:bg-slate-800"
+                >
+                  저장
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNodeEditModalId(null);
+                    handleDeleteSelectedNode();
+                  }}
+                  className="flex-1 rounded-xl border border-rose-200 bg-rose-50 px-2 py-1.5 text-[11px] font-semibold text-rose-700 transition hover:bg-rose-100"
+                >
+                  삭제
+                </button>
+              </div>
+
+              <div className="mt-3 space-y-2.5 rounded-[18px] border border-slate-200 bg-white/90 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+                <label className="block">
+                  <span className="mb-1 block text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">name</span>
+                  <input
+                    value={selectedNode.name}
+                    onChange={(event) => handleNodePatch("name", event.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-300 focus:bg-white"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">title</span>
+                  <input
+                    value={selectedNode.title}
+                    onChange={(event) => handleNodePatch("title", event.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-300 focus:bg-white"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">summary</span>
+                  <textarea
+                    value={selectedNode.summary}
+                    onChange={(event) => handleNodePatch("summary", event.target.value)}
+                    className="h-20 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-300 focus:bg-white"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">actions</span>
+                  <textarea
+                    value={selectedNode.majorActions.join("\n")}
+                    onChange={(event) => handleNodePatch("majorActions", event.target.value)}
+                    className="h-20 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-300 focus:bg-white"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {deleteModal ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm">
@@ -2941,7 +3070,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                         saveState === "error"
                           ? "text-rose-500"
                           : saveState === "saved"
-                            ? "text-slate-600"
+                            ? "text-emerald-600"
                             : "text-slate-500"
                       }`}
                     >

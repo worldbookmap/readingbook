@@ -93,6 +93,7 @@ export function StoryEventTimeline() {
   const [detailEventId, setDetailEventId] = useState<string | null>(null);
   const [boardPan, setBoardPan] = useState({ x: 0, y: 0 });
   const boardRef = useRef<HTMLDivElement | null>(null);
+  const longPressTimerRef = useRef<number | null>(null);
   const dragRef = useRef<{
     id: string;
     startPointerX: number;
@@ -402,9 +403,17 @@ export function StoryEventTimeline() {
       startCardY: card.y,
     };
 
+    longPressTimerRef.current = window.setTimeout(() => {
+      openDetailModal(cardId);
+    }, 500);
+
     setSelectedEventId(cardId);
 
     const handleMove = (moveEvent: PointerEvent) => {
+      if (longPressTimerRef.current !== null) {
+        window.clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
       if (!dragRef.current || dragRef.current.id !== cardId) {
         return;
       }
@@ -445,6 +454,7 @@ export function StoryEventTimeline() {
     };
 
     const handleUp = () => {
+      clearLongPressTimer();
       dragRef.current = null;
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
@@ -515,12 +525,42 @@ export function StoryEventTimeline() {
       }
 
       const payload = (await response.json()) as { ok: true; sha: string };
-      setSaveState("saved");
+      const refreshed = await fetch("/api/story-events", { cache: "no-store" });
+      const refreshedPayload = refreshed.ok
+        ? ((await refreshed.json()) as {
+            data: StoryTimelineLibrary;
+            remoteEnabled: boolean;
+            sha: string | null;
+          })
+        : null;
+
+      const loadedWorks = refreshedPayload?.data.works ?? works;
+      setWorks(loadedWorks);
+      setSelectedWorkId((current) => {
+        const nextSelected = loadedWorks.find((work) => work.id === current)?.id ?? loadedWorks[0]?.id ?? "";
+        setSelectedEventId(loadedWorks.find((work) => work.id === nextSelected)?.events[0]?.id ?? null);
+        return nextSelected;
+      });
+      setRemoteEnabled(refreshedPayload?.remoteEnabled ?? remoteEnabled);
       setRemoteSha(payload.sha);
-      setSaveMessage("GitHub 저장소에 반영되었습니다.");
+      setSaveState("saved");
+      setSaveMessage("저장 완료! 최신 데이터가 반영되었습니다.");
     } catch (error) {
       setSaveState("error");
       setSaveMessage(error instanceof Error ? error.message : "GitHub 저장에 실패했습니다.");
+    }
+  }
+
+  function openDetailModal(eventId: string) {
+    setSelectedEventId(eventId);
+    setDetailEventId(eventId);
+    setActiveModal("detail");
+  }
+
+  function clearLongPressTimer() {
+    if (longPressTimerRef.current !== null) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
     }
   }
 
@@ -530,6 +570,12 @@ export function StoryEventTimeline() {
       return clamp(nextValue, 0.7, 1.6);
     });
   }
+
+  useEffect(() => {
+    return () => {
+      clearLongPressTimer();
+    };
+  }, []);
 
   const boardMetrics = {
     width: isCompact ? Math.max(320, Math.min(boardViewport.width, 420)) : boardWidth,
@@ -745,6 +791,11 @@ export function StoryEventTimeline() {
                               key={event.id}
                               data-card-root="true"
                               onPointerDown={(pointerEvent) => beginDrag(pointerEvent, event.id)}
+                              onDoubleClick={() => openDetailModal(event.id)}
+                              onContextMenu={(pointerEvent) => {
+                                pointerEvent.preventDefault();
+                                openDetailModal(event.id);
+                              }}
                               onClick={() => setSelectedEventId(event.id)}
                               className="absolute z-20 touch-none select-none rounded-[26px] border bg-white p-4 text-left shadow-[0_22px_45px_rgba(15,23,42,0.08)] transition hover:-translate-y-1"
                               style={{
@@ -778,17 +829,6 @@ export function StoryEventTimeline() {
                                   </span>
                                 ))}
                               </div>
-                              <button
-                                type="button"
-                                onClick={(pointerEvent) => {
-                                  pointerEvent.stopPropagation();
-                                  setDetailEventId(event.id);
-                                  setActiveModal("detail");
-                                }}
-                                className="mt-3 inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-semibold text-rose-700"
-                              >
-                                세부정보
-                              </button>
                             </div>
                           );
                         })
@@ -809,18 +849,18 @@ export function StoryEventTimeline() {
       </section>
 
       {activeModal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-rose-50/60 p-4 backdrop-blur-[2px]">
-          <div className="w-full max-w-lg rounded-[32px] border border-rose-100 bg-[linear-gradient(180deg,_#fff9fb_0%,_#ffffff_100%)] p-5 shadow-[0_32px_80px_rgba(244,114,182,0.18)]">
-            <div className="flex items-center justify-between gap-3 border-b border-rose-100 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-200 via-amber-100 to-sky-100 text-lg text-slate-700">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/15 p-3 backdrop-blur-[1px]">
+          <div className="w-full max-w-md rounded-[24px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.12)]">
+            <div className="flex items-center justify-between gap-3 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-sm text-slate-700">
                   {activeModal === "work" ? "📚" : activeModal === "event" ? "✨" : "📝"}
                 </div>
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
                     {activeModal === "work" ? "new work" : activeModal === "event" ? "new event" : "edit event"}
                   </p>
-                  <h3 className="text-xl font-semibold text-slate-900">
+                  <h3 className="text-lg font-semibold text-slate-900">
                     {activeModal === "work" ? "소설 추가" : activeModal === "event" ? "이벤트 카드 생성" : "선택한 사건 수정"}
                   </h3>
                 </div>
@@ -828,7 +868,7 @@ export function StoryEventTimeline() {
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="rounded-full border border-rose-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm"
+                className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-600"
               >
                 닫기
               </button>
@@ -840,20 +880,20 @@ export function StoryEventTimeline() {
                   value={workDraft.title}
                   onChange={(event) => setWorkDraft((current) => ({ ...current, title: event.target.value }))}
                   placeholder="소설 제목"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-amber-300"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
                 />
                 <input
                   value={workDraft.author}
                   onChange={(event) => setWorkDraft((current) => ({ ...current, author: event.target.value }))}
                   placeholder="작가명(선택)"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-amber-300"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
                 />
                 <select
                   value={workDraft.linkedCharacterWorkId}
                   onChange={(event) =>
                     setWorkDraft((current) => ({ ...current, linkedCharacterWorkId: event.target.value }))
                   }
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-amber-300"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
                 >
                   <option value="">인물관계도와 연결하지 않음</option>
                   {characterWorks.map((work) => (
@@ -864,8 +904,8 @@ export function StoryEventTimeline() {
                 </select>
 
                 <div className="flex justify-end gap-2 pt-2">
-                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-2xl border border-rose-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700">취소</button>
-                  <button type="submit" className="rounded-2xl bg-gradient-to-r from-rose-300 via-amber-300 to-sky-300 px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-[0_8px_20px_rgba(251,191,36,0.2)]">추가하기</button>
+                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700">취소</button>
+                  <button type="submit" className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white">추가하기</button>
                 </div>
               </form>
             ) : null}
@@ -876,35 +916,35 @@ export function StoryEventTimeline() {
                   value={eventDraft.title}
                   onChange={(event) => setEventDraft((current) => ({ ...current, title: event.target.value }))}
                   placeholder="사건 제목"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
                 />
                 <input
                   value={eventDraft.yearLabel}
                   onChange={(event) => setEventDraft((current) => ({ ...current, yearLabel: event.target.value }))}
                   placeholder="예: 1776 또는 BC 3000"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
                 />
                 <input
                   value={eventDraft.chapter}
                   onChange={(event) => setEventDraft((current) => ({ ...current, chapter: event.target.value }))}
                   placeholder="장면 or 챕터"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
                 />
                 <textarea
                   value={eventDraft.summary}
                   onChange={(event) => setEventDraft((current) => ({ ...current, summary: event.target.value }))}
                   placeholder="사건 설명"
-                  className="h-28 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                  className="h-24 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
                 />
                 <input
                   value={eventDraft.tags}
                   onChange={(event) => setEventDraft((current) => ({ ...current, tags: event.target.value }))}
                   placeholder="태그를 쉼표로 구분"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
                 />
                 <div className="flex justify-end gap-2 pt-2">
-                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-2xl border border-rose-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700">취소</button>
-                  <button type="submit" className="rounded-2xl bg-gradient-to-r from-sky-300 via-cyan-300 to-emerald-200 px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-[0_8px_20px_rgba(125,211,252,0.2)]">추가하기</button>
+                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700">취소</button>
+                  <button type="submit" className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white">추가하기</button>
                 </div>
               </form>
             ) : null}
@@ -914,52 +954,82 @@ export function StoryEventTimeline() {
                 <input
                   value={selectedEvent.title}
                   onChange={(event) => updateSelectedEvent("title", event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
                 />
                 <input
                   value={selectedEvent.yearLabel}
                   onChange={(event) => updateSelectedEvent("yearLabel", event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
                 />
                 <input
                   value={selectedEvent.chapter ?? ""}
                   onChange={(event) => updateSelectedEvent("chapter", event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
                 />
                 <textarea
                   value={selectedEvent.summary}
                   onChange={(event) => updateSelectedEvent("summary", event.target.value)}
-                  className="h-28 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                  className="h-24 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
                 />
                 <input
                   value={selectedEvent.tags.join(", ")}
                   onChange={(event) =>
                     updateSelectedEvent("tags", event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean))
                   }
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
                 />
                 <div className="flex justify-end gap-2 pt-2">
-                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-2xl border border-rose-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700">닫기</button>
+                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700">닫기</button>
                 </div>
               </div>
             ) : null}
 
             {activeModal === "detail" && detailEvent ? (
               <div className="mt-5 space-y-4">
-                <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+                <div className="rounded-[18px] border border-slate-200 bg-slate-50 p-3">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="rounded-full px-2.5 py-1 text-[10px] font-semibold text-white" style={{ backgroundColor: detailEvent.color }}>
+                    <span className="rounded-full px-2 py-1 text-[10px] font-semibold text-white" style={{ backgroundColor: detailEvent.color }}>
                       {detailEvent.yearLabel}
                     </span>
                     <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">{detailEvent.chapter}</span>
                   </div>
-                  <h4 className="mt-3 text-2xl font-semibold text-slate-900">{detailEvent.title}</h4>
+                  <h4 className="mt-3 text-xl font-semibold text-slate-900">{detailEvent.title}</h4>
                   <p className="mt-2 text-sm leading-6 text-slate-600">{detailEvent.summary}</p>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">태그</p>
-                  <div className="mt-3 flex flex-wrap gap-1.5">
+                <div className="space-y-2.5">
+                  <input
+                    value={detailEvent.title}
+                    onChange={(event) => updateSelectedEvent("title", event.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                  />
+                  <input
+                    value={detailEvent.yearLabel}
+                    onChange={(event) => updateSelectedEvent("yearLabel", event.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                  />
+                  <input
+                    value={detailEvent.chapter ?? ""}
+                    onChange={(event) => updateSelectedEvent("chapter", event.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                  />
+                  <textarea
+                    value={detailEvent.summary}
+                    onChange={(event) => updateSelectedEvent("summary", event.target.value)}
+                    className="h-24 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                  />
+                  <input
+                    value={detailEvent.tags.join(", ")}
+                    onChange={(event) =>
+                      updateSelectedEvent("tags", event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean))
+                    }
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
+                  />
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">태그 미리보기</p>
+                  <div className="mt-2.5 flex flex-wrap gap-1.5">
                     {detailEvent.tags.map((tag) => (
                       <span key={tag} className="rounded-full bg-slate-100 px-2 py-1 text-[9px] font-medium text-slate-600">
                         #{tag}
@@ -978,8 +1048,28 @@ export function StoryEventTimeline() {
                   </a>
                 ) : null}
 
-                <div className="flex justify-end gap-2 pt-2">
-                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700">닫기</button>
+                <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      deleteSelectedEvent();
+                      setActiveModal(null);
+                    }}
+                    className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100"
+                  >
+                    삭제
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveModal(null);
+                      void saveToGithub();
+                    }}
+                    className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
+                  >
+                    저장
+                  </button>
+                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700">닫기</button>
                 </div>
               </div>
             ) : null}

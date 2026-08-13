@@ -136,6 +136,15 @@ export function TimelineBoard({ initialCards }: Props) {
   const [saveMessage, setSaveMessage] = useState("브라우저 로컬 저장 사용 중");
   const [remoteEnabled, setRemoteEnabled] = useState(false);
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
+  const [isCardModalOpen, setIsCardModalOpen] = useState(false);
+  const [modalDraft, setModalDraft] = useState<{
+    id: string;
+    title: string;
+    yearLabel: string;
+    description: string;
+    tags: string;
+    region: TimelineRegion;
+  } | null>(null);
   const didMountRef = useRef(false);
 
   useEffect(() => {
@@ -294,14 +303,63 @@ export function TimelineBoard({ initialCards }: Props) {
     window.localStorage.removeItem(storageKey);
   }
 
-  function deleteActiveCard() {
-    if (!activeCard) {
+  function deleteActiveCard(targetId?: string) {
+    const nextTargetId = targetId ?? activeCard?.id;
+    if (!nextTargetId) {
       return;
     }
 
-    const nextCards = normalizeCards(cards.filter((card) => card.id !== activeCard.id), regionNames);
+    const nextCards = normalizeCards(cards.filter((card) => card.id !== nextTargetId), regionNames);
     setCards(nextCards);
     setActiveId(nextCards[0]?.id ?? "");
+    setIsCardModalOpen(false);
+    setModalDraft(null);
+  }
+
+  function openCardModal(cardId: string) {
+    const targetCard = cards.find((card) => card.id === cardId);
+    if (!targetCard) {
+      return;
+    }
+
+    setActiveId(cardId);
+    setModalDraft({
+      id: targetCard.id,
+      title: targetCard.title,
+      yearLabel: targetCard.yearLabel,
+      description: targetCard.description,
+      tags: targetCard.tags.join(", "),
+      region: targetCard.region,
+    });
+    setIsCardModalOpen(true);
+  }
+
+  function saveModalChanges() {
+    if (!modalDraft) {
+      return;
+    }
+
+    const nextYear = parseYear(modalDraft.yearLabel);
+    setCards((current) =>
+      current.map((card) =>
+        card.id !== modalDraft.id
+          ? card
+          : {
+              ...card,
+              title: modalDraft.title.trim() || card.title,
+              yearLabel: modalDraft.yearLabel.trim() || card.yearLabel,
+              year: nextYear,
+              description: modalDraft.description.trim(),
+              region: modalDraft.region,
+              tags: modalDraft.tags
+                .split(",")
+                .map((tag) => tag.trim())
+                .filter(Boolean),
+            },
+      ),
+    );
+    setIsCardModalOpen(false);
+    setModalDraft(null);
   }
 
   function createRegion() {
@@ -387,10 +445,24 @@ export function TimelineBoard({ initialCards }: Props) {
       }
 
       const payload = (await response.json()) as { ok: true; sha: string };
+      const refreshed = await fetch("/api/timeline", { cache: "no-store" });
+      const refreshedPayload = refreshed.ok
+        ? ((await refreshed.json()) as {
+            data: { cards: TimelineCard[] };
+            remoteEnabled: boolean;
+            sha: string | null;
+          })
+        : null;
 
-      setSaveState("saved");
+      const nextCards = refreshedPayload ? normalizeCards(refreshedPayload.data.cards, buildRegionOrder(refreshedPayload.data.cards)) : cards;
+      const nextRegionOrder = refreshedPayload ? buildRegionOrder(refreshedPayload.data.cards) : regionNames;
+      setCards(nextCards);
+      setRegionNames(nextRegionOrder);
+      setActiveId((current) => nextCards.find((card) => card.id === current)?.id ?? nextCards[0]?.id ?? "");
+      setRemoteEnabled(refreshedPayload?.remoteEnabled ?? remoteEnabled);
       setRemoteSha(payload.sha);
-      setSaveMessage("GitHub 저장소에 반영되었습니다.");
+      setSaveState("saved");
+      setSaveMessage("저장 완료! 최신 데이터가 반영되었습니다.");
     } catch (error) {
       setSaveState("error");
       setSaveMessage(error instanceof Error ? error.message : "GitHub 저장에 실패했습니다.");
@@ -398,7 +470,108 @@ export function TimelineBoard({ initialCards }: Props) {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
+    <>
+      {isCardModalOpen && modalDraft ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_28px_80px_rgba(15,23,42,0.2)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">카드 수정</p>
+                <h3 className="mt-2 text-2xl font-semibold text-slate-900">{modalDraft.title || "새 카드"}</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCardModalOpen(false);
+                  setModalDraft(null);
+                }}
+                className="rounded-full border border-slate-200 px-3 py-1.5 text-sm text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+              >
+                닫기
+              </button>
+            </div>
+
+            <div className="mt-5 space-y-4">
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">제목</label>
+                <input
+                  value={modalDraft.title}
+                  onChange={(event) => setModalDraft((current) => (current ? { ...current, title: event.target.value } : current))}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">연도</label>
+                  <input
+                    value={modalDraft.yearLabel}
+                    onChange={(event) => setModalDraft((current) => (current ? { ...current, yearLabel: event.target.value } : current))}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">지역</label>
+                  <select
+                    value={modalDraft.region}
+                    onChange={(event) =>
+                      setModalDraft((current) =>
+                        current ? { ...current, region: event.target.value as TimelineRegion } : current,
+                      )
+                    }
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                  >
+                    {regionNames.map((region) => (
+                      <option key={region} value={region}>
+                        {region}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">설명</label>
+                <textarea
+                  value={modalDraft.description}
+                  onChange={(event) => setModalDraft((current) => (current ? { ...current, description: event.target.value } : current))}
+                  className="h-28 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">태그</label>
+                <input
+                  value={modalDraft.tags}
+                  onChange={(event) => setModalDraft((current) => (current ? { ...current, tags: event.target.value } : current))}
+                  placeholder="태그를 쉼표로 구분"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => deleteActiveCard(modalDraft.id)}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100"
+              >
+                <FontAwesomeIcon icon={faTrash} />
+                삭제
+              </button>
+              <button
+                type="button"
+                onClick={saveModalChanges}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
+              >
+                저장하기
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
       <aside className="space-y-6">
         <section className="rounded-[28px] border border-slate-300/80 bg-white p-6 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
           <div className="flex items-center gap-3">
@@ -507,7 +680,7 @@ export function TimelineBoard({ initialCards }: Props) {
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm text-slate-600">선택한 카드</p>
-              <h3 className="text-xl font-semibold">{activeCard?.title}</h3>
+              <h3 className="text-xl font-semibold">{activeCard?.title ?? "카드를 선택해 주세요"}</h3>
             </div>
             <button
               type="button"
@@ -519,29 +692,35 @@ export function TimelineBoard({ initialCards }: Props) {
           </div>
 
           <div className="mt-4 space-y-3">
-            <input
-              value={activeCard?.title ?? ""}
-              onChange={(event) => patchActiveCard("title", event.target.value)}
-              className="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm outline-none placeholder:text-emerald-300 focus:border-emerald-300"
-            />
-            <input
-              value={activeCard?.yearLabel ?? ""}
-              onChange={(event) => patchActiveCard("yearLabel", event.target.value)}
-              className="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm outline-none placeholder:text-emerald-300 focus:border-emerald-300"
-            />
-            <textarea
-              value={activeCard?.description ?? ""}
-              onChange={(event) => patchActiveCard("description", event.target.value)}
-              className="h-24 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none placeholder:text-slate-400 focus:border-slate-400"
-            />
-            <input
-              value={activeCard?.tags.join(", ") ?? ""}
-              onChange={(event) => patchActiveCard("tags", event.target.value)}
-              className="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm outline-none placeholder:text-emerald-300 focus:border-emerald-300"
-            />
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
+              {activeCard ? (
+                <div className="space-y-2">
+                  <p>
+                    <span className="font-semibold text-slate-900">연도:</span> {activeCard.yearLabel}
+                  </p>
+                  <p>
+                    <span className="font-semibold text-slate-900">지역:</span> {activeCard.region}
+                  </p>
+                  <p className="line-clamp-3">{activeCard.description || "설명이 아직 없습니다."}</p>
+                </div>
+              ) : (
+                <p className="text-slate-400">선택된 카드가 없습니다.</p>
+              )}
+            </div>
+
             <button
               type="button"
-              onClick={deleteActiveCard}
+              onClick={() => activeCard && openCardModal(activeCard.id)}
+              disabled={!activeCard}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <FontAwesomeIcon icon={faTable} />
+              수정하기
+            </button>
+
+            <button
+              type="button"
+              onClick={() => activeCard && deleteActiveCard(activeCard.id)}
               disabled={!activeCard}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -602,7 +781,7 @@ export function TimelineBoard({ initialCards }: Props) {
                             <button
                               key={card.id}
                               type="button"
-                              onClick={() => setActiveId(card.id)}
+                              onClick={() => openCardModal(card.id)}
                               className="block w-full rounded-[20px] border bg-white p-4 text-left shadow-sm transition active:scale-[0.99]"
                               style={{
                                 borderColor: isActive ? "#38bdf8" : "rgba(226,232,240,1)",
@@ -697,7 +876,7 @@ export function TimelineBoard({ initialCards }: Props) {
                             setDraggedId(null);
                           }
                         }}
-                        onClick={() => setActiveId(card.id)}
+                        onClick={() => openCardModal(card.id)}
                         className="block w-full rounded-[24px] border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1"
                         style={{
                           borderColor: isActive ? "#111827" : "rgba(226,232,240,1)",
@@ -798,7 +977,7 @@ export function TimelineBoard({ initialCards }: Props) {
                                 <button
                                   key={card.id}
                                   type="button"
-                                  onClick={() => setActiveId(card.id)}
+                                  onClick={() => openCardModal(card.id)}
                                   className="block rounded-2xl bg-slate-50 px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100"
                                 >
                                   {card.title}
@@ -833,7 +1012,7 @@ export function TimelineBoard({ initialCards }: Props) {
                           <button
                             key={card.id}
                             type="button"
-                            onClick={() => setActiveId(card.id)}
+                            onClick={() => openCardModal(card.id)}
                             className="flex w-full items-center justify-between gap-3 rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-left shadow-sm"
                           >
                             <div>
@@ -868,5 +1047,6 @@ export function TimelineBoard({ initialCards }: Props) {
         </div>
       </section>
     </div>
+    </>
   );
 }

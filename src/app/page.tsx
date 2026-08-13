@@ -18,7 +18,7 @@ const featureCards = [
     title: "소설 인물 관계도",
     description:
       "중심 인물을 만들고 친구, 부부, 자식, 사업, 기타 관계로 연결해 가며 사건 메모를 남기는 읽기용 마인드맵입니다.",
-    accent: "from-slate-100 to-white",
+    accent: "from-stone-100 via-white to-rose-50",
   },
   {
     href: "/story-events",
@@ -27,7 +27,7 @@ const featureCards = [
     title: "소설 사건 타임라인",
     description:
       "소설마다 핵심 사건을 드래그 가능한 카드로 정리하고 겹쳐지는 흐름까지 자연스럽게 보관할 수 있습니다.",
-    accent: "from-amber-50 to-white",
+    accent: "from-amber-50 via-white to-orange-50",
   },
   {
     href: "/timeline",
@@ -36,7 +36,7 @@ const featureCards = [
     title: "세계사 역사 연표",
     description:
       "서유럽, 동유럽, 아시아, 미국, 남미, 기타 지역으로 나눈 카드형 타임라인 보드입니다. 연도 카드 추가와 이동이 가능합니다.",
-    accent: "from-slate-100 to-white",
+    accent: "from-slate-100 via-white to-stone-50",
   },
 ];
 
@@ -66,7 +66,7 @@ export default function Home() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#f5f3ee] text-slate-900">
       <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-4 py-8 sm:px-6 lg:px-8">
-        <section className="relative overflow-hidden rounded-[36px] border border-slate-200/80 bg-[linear-gradient(135deg,_rgba(255,255,255,0.94)_0%,_rgba(250,249,247,0.92)_48%,_rgba(247,243,235,0.88)_100%)] px-6 py-8 shadow-[0_28px_80px_rgba(15,23,42,0.08)] ring-1 ring-white/70 sm:px-8 sm:py-10 lg:px-12 lg:py-14">
+        <section className="relative overflow-hidden rounded-[36px] border border-slate-200/80 bg-[linear-gradient(135deg,_rgba(255,255,255,0.96)_0%,_rgba(250,248,245,0.94)_52%,_rgba(245,240,232,0.9)_100%)] px-6 py-8 shadow-[0_28px_80px_rgba(15,23,42,0.08)] ring-1 ring-white/70 sm:px-8 sm:py-10 lg:px-12 lg:py-14">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(15,23,42,0.08),_transparent_32%),radial-gradient(circle_at_bottom_right,_rgba(245,158,11,0.12),_transparent_28%)]" />
           <div className="absolute -left-20 top-10 h-52 w-52 rounded-full bg-amber-200/40 blur-3xl" />
           <div className="absolute bottom-0 right-10 h-40 w-40 rounded-full bg-stone-200/70 blur-3xl" />
