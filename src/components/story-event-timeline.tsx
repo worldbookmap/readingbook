@@ -107,6 +107,7 @@ export function StoryEventTimeline() {
   const characterWorks = (characterMapLibrary as { works?: Array<{ id: string; title: string; titleKo?: string }> }).works ?? [];
 
   const orderedWorks = works;
+  const latestWorkId = orderedWorks[0]?.id ?? "";
   const selectedWork = works.find((work) => work.id === selectedWorkId) ?? works[0] ?? null;
   const selectedEvent = selectedWork?.events.find((event) => event.id === selectedEventId) ?? selectedWork?.events[0] ?? null;
   const detailEvent = selectedWork?.events.find((event) => event.id === detailEventId) ?? null;
@@ -607,27 +608,38 @@ export function StoryEventTimeline() {
 
           <div className="flex flex-col gap-3 xl:items-end">
             <div className="flex w-full flex-col gap-2 xl:w-[420px]">
-              <label className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">작품 선택</label>
-              <select
-                value={selectedWorkId}
-                onChange={(event) => {
-                  const nextValue = event.target.value;
-                  if (nextValue === "__new__") {
-                    setActiveModal("work");
-                    return;
-                  }
-
-                  setSelectedWorkId(nextValue);
-                }}
-                className="w-full appearance-none rounded-[18px] border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] outline-none transition duration-200 hover:border-slate-300 focus:border-slate-300 focus:ring-2 focus:ring-slate-100"
+              <div className="flex items-center justify-between gap-2">
+                <label className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">작품 선택</label>
+                {selectedWorkId === latestWorkId ? (
+                  <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-amber-700">
+                    최근 생성
+                  </span>
+                ) : null}
+              </div>
+              <div
+                className={`${selectedWorkId === latestWorkId ? "rounded-[20px] border border-amber-200 bg-gradient-to-r from-amber-50 via-white to-orange-50 p-[1px] shadow-[0_10px_30px_rgba(251,191,36,0.12)]" : ""}`}
               >
-                <option value="__new__">새 작품 추가</option>
-                {orderedWorks.map((work) => (
-                  <option key={work.id} value={work.id}>
-                    {work.titleKo ?? work.title}
-                  </option>
-                ))}
-              </select>
+                <select
+                  value={selectedWorkId}
+                  onChange={(event) => {
+                    const nextValue = event.target.value;
+                    if (nextValue === "__new__") {
+                      setActiveModal("work");
+                      return;
+                    }
+
+                    setSelectedWorkId(nextValue);
+                  }}
+                  className={`w-full appearance-none rounded-[18px] border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] outline-none transition duration-200 hover:border-slate-300 focus:border-slate-300 focus:ring-2 focus:ring-slate-100 ${selectedWorkId === latestWorkId ? "border-0 bg-transparent shadow-none" : ""}`}
+                >
+                  <option value="__new__">새 작품 추가</option>
+                  {orderedWorks.map((work) => (
+                    <option key={work.id} value={work.id}>
+                      {work.id === latestWorkId ? `최근 생성 · ${work.titleKo ?? work.title}` : work.titleKo ?? work.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="flex flex-row flex-nowrap items-center justify-start gap-2 overflow-x-auto pb-1 xl:justify-end [&::-webkit-scrollbar]:hidden">

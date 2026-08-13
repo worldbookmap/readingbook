@@ -357,6 +357,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   }, [selectedId]);
 
   const orderedWorks = works;
+  const latestWorkId = orderedWorks[0]?.id ?? "";
   const selectedWork = works.find((work) => work.id === selectedWorkId) ?? null;
   const selectedNode = nodes.find((node) => node.id === selectedId) ?? nodes[0] ?? null;
   const matchedBooks = findMatchingBooks(newWorkTitle);
@@ -1565,21 +1566,32 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         <div className="border-b border-slate-200/80 bg-slate-50/70 px-4 py-4 sm:px-6">
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">작품 목록</p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">작품 목록</p>
+                {selectedWorkId === latestWorkId ? (
+                  <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700">
+                    최근 생성
+                  </span>
+                ) : null}
+              </div>
               <div className="mt-2 flex items-center gap-2">
                 <div className="relative flex-1">
-                  <select
-                    aria-label="작품 선택"
-                    value={selectedWorkId}
-                    onChange={(event) => handleWorkSelect(event.target.value)}
-                    className={`${selectClassName} shadow-[0_6px_20px_rgba(15,23,42,0.05)]`}
+                  <div
+                    className={`${selectedWorkId === latestWorkId ? "rounded-[20px] border border-amber-200 bg-gradient-to-r from-amber-50 via-white to-orange-50 p-[1px] shadow-[0_10px_30px_rgba(251,191,36,0.12)]" : ""}`}
                   >
-                    {orderedWorks.map((work) => (
-                      <option key={work.id} value={work.id}>
-                        {work.titleKo ?? work.title}
-                      </option>
-                    ))}
-                  </select>
+                    <select
+                      aria-label="작품 선택"
+                      value={selectedWorkId}
+                      onChange={(event) => handleWorkSelect(event.target.value)}
+                      className={`${selectClassName} ${selectedWorkId === latestWorkId ? "border-0 bg-transparent shadow-none" : "shadow-[0_6px_20px_rgba(15,23,42,0.05)]"}`}
+                    >
+                      {orderedWorks.map((work) => (
+                        <option key={work.id} value={work.id}>
+                          {work.id === latestWorkId ? `최근 생성 · ${work.titleKo ?? work.title}` : work.titleKo ?? work.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center">
                     <span className="text-lg font-semibold text-slate-600">▾</span>
                   </div>
