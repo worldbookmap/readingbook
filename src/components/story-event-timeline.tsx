@@ -122,7 +122,10 @@ export function StoryEventTimeline() {
     null;
 
   const yearBounds = useMemo(() => {
-    const years = selectedWork?.events.map((event) => event.year) ?? [];
+    const years = (selectedWork?.events ?? [])
+      .filter((event) => (event.yearLabel ?? "").trim().length > 0)
+      .map((event) => event.year);
+
     if (years.length === 0) {
       return { min: 0, max: 1 };
     }
@@ -259,12 +262,13 @@ export function StoryEventTimeline() {
 
   function addEvent(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selectedWork || !eventDraft.title.trim() || !eventDraft.yearLabel.trim()) {
+    if (!selectedWork || !eventDraft.title.trim()) {
       return;
     }
 
     const nextIndex = selectedWork.events.length;
-    const year = parseYear(eventDraft.yearLabel);
+    const yearLabel = eventDraft.yearLabel.trim();
+    const year = parseYear(yearLabel);
     const xRange = boardWidth - cardWidth - 100;
     const yRange = boardHeight - cardHeight - 80;
 
@@ -272,7 +276,7 @@ export function StoryEventTimeline() {
       id: crypto.randomUUID(),
       title: eventDraft.title.trim(),
       year,
-      yearLabel: eventDraft.yearLabel.trim(),
+      yearLabel,
       chapter: eventDraft.chapter.trim() || `챕터 ${nextIndex + 1}`,
       summary: eventDraft.summary.trim() || "사건 설명을 입력해 주세요.",
       tags: eventDraft.tags
@@ -753,7 +757,7 @@ export function StoryEventTimeline() {
                   const year = Math.round(yearBounds.min + (yearBounds.max - yearBounds.min) * ratio);
                   const y = 70 + ratio * (boardMetrics.height - 120);
                   return (
-                    <div key={`${year}-tick`} className="absolute left-0 right-0" style={{ top: y }}>
+                    <div key={`${year}-tick-${index}`} className="absolute left-0 right-0" style={{ top: y }}>
                       <div className="absolute left-0 h-px w-[calc(50%-10px)] bg-slate-200" />
                       <div className="absolute right-0 h-px w-[calc(50%-10px)] bg-slate-200" />
                       <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 text-[10px] font-semibold text-slate-500">
@@ -808,12 +812,16 @@ export function StoryEventTimeline() {
                               }}
                             >
                               <div className="flex items-center justify-between gap-2">
-                                <span
-                                  className="rounded-full px-2.5 py-1 text-[10px] font-semibold text-white"
-                                  style={{ backgroundColor: event.color }}
-                                >
-                                  {event.yearLabel}
-                                </span>
+                                {event.yearLabel ? (
+                                  <span
+                                    className="rounded-full px-2.5 py-1 text-[10px] font-semibold text-white"
+                                    style={{ backgroundColor: event.color }}
+                                  >
+                                    {event.yearLabel}
+                                  </span>
+                                ) : (
+                                  <span className="h-6 w-10 rounded-full bg-slate-100" aria-label="연도 없음" />
+                                )}
                                 <span className="inline-flex items-center gap-1 text-[10px] text-slate-400">
                                   <FontAwesomeIcon icon={faGripVertical} />
                                   drag
@@ -988,9 +996,15 @@ export function StoryEventTimeline() {
               <div className="mt-5 space-y-4">
                 <div className="rounded-[18px] border border-slate-200 bg-slate-50 p-3">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="rounded-full px-2 py-1 text-[10px] font-semibold text-white" style={{ backgroundColor: detailEvent.color }}>
-                      {detailEvent.yearLabel}
-                    </span>
+                    {detailEvent.yearLabel ? (
+                      <span className="rounded-full px-2 py-1 text-[10px] font-semibold text-white" style={{ backgroundColor: detailEvent.color }}>
+                        {detailEvent.yearLabel}
+                      </span>
+                    ) : (
+                      <span className="rounded-full border border-dashed border-slate-300 bg-white px-2 py-1 text-[10px] font-medium text-slate-500">
+                        연도 없음
+                      </span>
+                    )}
                     <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">{detailEvent.chapter}</span>
                   </div>
                   <h4 className="mt-3 text-xl font-semibold text-slate-900">{detailEvent.title}</h4>
