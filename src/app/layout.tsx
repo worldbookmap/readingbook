@@ -17,8 +17,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <div className="flex min-h-screen flex-col">
           <div className="flex-1">{children}</div>
 
-          <footer className="border-t border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.74),rgba(248,245,240,0.9))] backdrop-blur-sm">
-            <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-1.5 px-4 py-4 text-center text-[11px] text-slate-500 sm:flex-row sm:gap-4 sm:text-[12px]">
+          <footer className="border-t border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.75),rgba(248,245,240,0.92))] backdrop-blur-sm">
+            <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-1.5 px-4 py-4 text-center text-[11px] text-slate-500 sm:flex-row sm:gap-5 sm:text-[12px]">
               <span className="font-medium tracking-[-0.02em] text-slate-700">제작자: 정진욱</span>
               <a
                 href="mailto:rootack@gmail.com"
