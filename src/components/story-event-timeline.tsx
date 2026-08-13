@@ -685,26 +685,26 @@ export function StoryEventTimeline() {
             </div>
           </div>
 
-          <select
+          <CustomSelect
             value={selectedWork?.linkedCharacterWorkId ?? ""}
-            onChange={(event) => {
+            onChange={(nextValue) => {
               setWorks((current) =>
                 current.map((work) =>
                   work.id === selectedWorkId
-                    ? { ...work, linkedCharacterWorkId: event.target.value || undefined }
+                    ? { ...work, linkedCharacterWorkId: nextValue || undefined }
                     : work,
                 ),
               );
             }}
-            className="w-full appearance-none rounded-[18px] border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] outline-none transition duration-200 hover:border-slate-300 focus:border-slate-300 focus:ring-2 focus:ring-slate-100 xl:max-w-xs"
-          >
-            <option value="">연결된 작품 없음</option>
-            {characterWorks.map((work) => (
-              <option key={work.id} value={work.id}>
-                {work.titleKo ?? work.title}
-              </option>
-            ))}
-          </select>
+            className="w-full xl:max-w-xs"
+            options={[
+              { value: "", label: "연결된 작품 없음" },
+              ...characterWorks.map((work) => ({
+                value: work.id,
+                label: work.titleKo ?? work.title,
+              })),
+            ]}
+          />
         </div>
 
         <div className="mt-5">
@@ -903,20 +903,20 @@ export function StoryEventTimeline() {
                   placeholder="작가명(선택)"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
                 />
-                <select
+                <CustomSelect
                   value={workDraft.linkedCharacterWorkId}
-                  onChange={(event) =>
-                    setWorkDraft((current) => ({ ...current, linkedCharacterWorkId: event.target.value }))
+                  onChange={(nextValue) =>
+                    setWorkDraft((current) => ({ ...current, linkedCharacterWorkId: nextValue }))
                   }
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-slate-300"
-                >
-                  <option value="">인물관계도와 연결하지 않음</option>
-                  {characterWorks.map((work) => (
-                    <option key={work.id} value={work.id}>
-                      {work.titleKo ?? work.title}
-                    </option>
-                  ))}
-                </select>
+                  className="w-full"
+                  options={[
+                    { value: "", label: "인물관계도와 연결하지 않음" },
+                    ...characterWorks.map((work) => ({
+                      value: work.id,
+                      label: work.titleKo ?? work.title,
+                    })),
+                  ]}
+                />
 
                 <div className="flex justify-end gap-2 pt-2">
                   <button type="button" onClick={() => setActiveModal(null)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700">취소</button>

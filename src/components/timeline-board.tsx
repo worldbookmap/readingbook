@@ -14,6 +14,7 @@ import {
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { TimelineCard, TimelineRegion } from "@/lib/types";
+import { CustomSelect } from "@/components/custom-select";
 
 const defaultRegions: TimelineRegion[] = ["서유럽", "동유럽", "아시아", "미국", "남미", "기타"];
 const storageKey = "readingbook-timeline";
@@ -512,21 +513,16 @@ export function TimelineBoard({ initialCards }: Props) {
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">지역</label>
-                  <select
+                  <CustomSelect
                     value={modalDraft.region}
-                    onChange={(event) =>
+                    onChange={(nextValue) =>
                       setModalDraft((current) =>
-                        current ? { ...current, region: event.target.value as TimelineRegion } : current,
+                        current ? { ...current, region: nextValue as TimelineRegion } : current,
                       )
                     }
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
-                  >
-                    {regionNames.map((region) => (
-                      <option key={region} value={region}>
-                        {region}
-                      </option>
-                    ))}
-                  </select>
+                    className="w-full"
+                    options={regionNames.map((region) => ({ value: region, label: region }))}
+                  />
                 </div>
               </div>
 
@@ -599,22 +595,17 @@ export function TimelineBoard({ initialCards }: Props) {
               placeholder="연도 예: BC 3000, 1776"
               className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
             />
-            <select
+            <CustomSelect
               value={draft.region}
-              onChange={(event) =>
+              onChange={(nextValue) =>
                 setDraft((current) => ({
                   ...current,
-                  region: event.target.value as TimelineRegion,
+                  region: nextValue as TimelineRegion,
                 }))
               }
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-300"
-            >
-              {regionNames.map((region) => (
-                <option key={region} value={region}>
-                  {region}
-                </option>
-              ))}
-            </select>
+              className="w-full"
+              options={regionNames.map((region) => ({ value: region, label: region }))}
+            />
             <div className="space-y-2">
               <input
                 value={newRegionName}
@@ -933,17 +924,12 @@ export function TimelineBoard({ initialCards }: Props) {
                 placeholder="제목 또는 연도 검색"
                 className="w-full max-w-56 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none transition focus:border-sky-300 max-sm:max-w-none"
               />
-              <select
+              <CustomSelect
                 value={eraFilter}
-                onChange={(event) => setEraFilter(event.target.value as (typeof eraOptions)[number])}
-                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none transition focus:border-sky-300"
-              >
-                {eraOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+                onChange={(nextValue) => setEraFilter(nextValue as (typeof eraOptions)[number])}
+                className="min-w-[140px]"
+                options={eraOptions.map((option) => ({ value: option, label: option }))}
+              />
             </div>
           </div>
 

@@ -1991,17 +1991,12 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                       <div className="mt-3 space-y-3">
                         <div>
                           <label className="text-[11px] font-semibold text-slate-600">종류</label>
-                          <select
+                          <CustomSelect
                             value={selectedRelationship.type}
-                            onChange={(event) => handleRelationshipPatch("type", event.target.value as RelationshipType)}
-                            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-2.5 py-2 text-xs text-slate-700 outline-none focus:border-slate-400"
-                          >
-                            {relationOptions.map((option) => (
-                              <option key={option} value={option}>
-                                {option}
-                              </option>
-                            ))}
-                          </select>
+                            onChange={(nextValue) => handleRelationshipPatch("type", nextValue as RelationshipType)}
+                            className="mt-1"
+                            options={relationOptions.map((option) => ({ value: option, label: option }))}
+                          />
                         </div>
                         <div>
                           <label className="text-[11px] font-semibold text-slate-600">라벨</label>
@@ -2296,17 +2291,12 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                 <div className="mt-3 space-y-3">
                   <div>
                     <label className="text-[11px] font-semibold text-slate-600">종류</label>
-                    <select
+                    <CustomSelect
                       value={selectedRelationship.type}
-                      onChange={(event) => handleRelationshipPatch("type", event.target.value as RelationshipType)}
-                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-2.5 py-2 text-xs text-slate-700 outline-none focus:border-slate-400"
-                    >
-                      {relationOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(nextValue) => handleRelationshipPatch("type", nextValue as RelationshipType)}
+                      className="mt-1"
+                      options={relationOptions.map((option) => ({ value: option, label: option }))}
+                    />
                   </div>
                   <div>
                     <label className="text-[11px] font-semibold text-slate-600">라벨</label>
@@ -2717,21 +2707,16 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             <div className="mt-3 space-y-3">
               <div>
                 <label className="text-[9px] font-semibold text-slate-600">관계 종류</label>
-                <select
+                <CustomSelect
                   value={dragConnectDraft.type}
-                  onChange={(event) =>
+                  onChange={(nextValue) =>
                     setDragConnectDraft((current) =>
-                      current ? { ...current, type: event.target.value as RelationshipType } : current,
+                      current ? { ...current, type: nextValue as RelationshipType } : current,
                     )
                   }
-                  className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-2.5 py-2 text-[10px] text-slate-700 outline-none focus:border-slate-400"
-                >
-                  {relationOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
+                  className="mt-1"
+                  options={relationOptions.map((option) => ({ value: option, label: option }))}
+                />
               </div>
 
               {dragConnectDraft.type === "기타" ? (
@@ -2937,17 +2922,12 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                       <div className="mt-3 space-y-3">
                         <div>
                           <label className="text-xs font-semibold text-slate-600">관계 종류</label>
-                          <select
+                          <CustomSelect
                             value={selectedRelationship.type}
-                            onChange={(event) => handleRelationshipPatch("type", event.target.value as RelationshipType)}
-                            className={`${selectClassName} mt-2`}
-                          >
-                            {relationOptions.map((option) => (
-                              <option key={option} value={option}>
-                                {option}
-                              </option>
-                            ))}
-                          </select>
+                            onChange={(nextValue) => handleRelationshipPatch("type", nextValue as RelationshipType)}
+                            className="mt-2"
+                            options={relationOptions.map((option) => ({ value: option, label: option }))}
+                          />
                         </div>
 
                         <div>
@@ -3046,17 +3026,12 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
 
                       <div>
                         <label className="text-xs font-semibold text-slate-600">관계 종류</label>
-                        <select
+                        <CustomSelect
                           value={existingConnectionType}
-                          onChange={(event) => setExistingConnectionType(event.target.value as RelationshipType)}
-                          className={`${selectClassName} mt-2`}
-                        >
-                          {relationOptions.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(nextValue) => setExistingConnectionType(nextValue as RelationshipType)}
+                          className="mt-2"
+                          options={relationOptions.map((option) => ({ value: option, label: option }))}
+                        />
                       </div>
 
                       {existingConnectionType === "기타" ? (
@@ -3146,23 +3121,17 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                       />
                       현재 인물과 연결하지 않고 독립 인물로 추가
                     </label>
-                    <select
-                      disabled={draft.linkedToSelected === false}
+                    <CustomSelect
                       value={draft.relationshipType}
-                      onChange={(event) =>
+                      onChange={(nextValue) =>
                         setDraft((current) => ({
                           ...current,
-                          relationshipType: event.target.value as RelationshipType | "선택 없음",
+                          relationshipType: nextValue as RelationshipType | "선택 없음",
                         }))
                       }
-                      className={`${selectClassName} disabled:cursor-not-allowed disabled:opacity-50`}
-                    >
-                      {relationshipSelectionOptions.map((option) => (
-                        <option key={option} value={option} className="text-slate-900">
-                          {option}
-                        </option>
-                      ))}
-                    </select>
+                      className={draft.linkedToSelected === false ? "pointer-events-none opacity-50" : ""}
+                      options={relationshipSelectionOptions.map((option) => ({ value: option, label: option }))}
+                    />
 
                     {draft.linkedToSelected && draft.relationshipType === "기타" ? (
                       <input
