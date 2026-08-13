@@ -1894,7 +1894,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                   {nodes.map((node) => {
                     const isSelected = node.id === selectedNode?.id;
                     const isHovered = hoveredNodeId === node.id;
-                    const showInfo = !hideNodeInfoPopup && (isHovered || (!hoveredNodeId && isSelected));
+                    const showInfo = !hideNodeInfoPopup && isHovered;
                     const couplePair = getCouplePair(node.id);
                     const isPaired = Boolean(couplePair && couplePair.pairedId);
 
@@ -2149,7 +2149,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             {nodes.map((node) => {
               const isSelected = node.id === selectedNode?.id;
               const isHovered = hoveredNodeId === node.id;
-              const showInfo = !hideNodeInfoPopup && (isHovered || (!hoveredNodeId && isSelected));
+              const showInfo = !hideNodeInfoPopup && isHovered;
               const couplePair = getCouplePair(node.id);
               const isPaired = Boolean(couplePair && couplePair.pairedId);
 
