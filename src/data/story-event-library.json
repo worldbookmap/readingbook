@@ -62,7 +62,20 @@
       "title": "내 이름은 빨강",
       "titleKo": "내 이름은 빨강",
       "author": "오르한 파묵",
-      "events": []
+      "events": [
+        {
+          "id": "969b6c14-df0a-4616-b0b6-c4026f39a7b1",
+          "title": "주인공 사망",
+          "year": 0,
+          "yearLabel": "",
+          "chapter": "1권",
+          "summary": "사건 설명을 입력해 주세요.",
+          "tags": [],
+          "x": 80.203125,
+          "y": 70,
+          "color": "#f59e0b"
+        }
+      ]
     }
   ]
 }
