@@ -1005,15 +1005,6 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
           findNodeIdAtPoint(releaseEvent.clientX, releaseEvent.clientY, nodeId, boardScope) ||
           findNodeIdAtPoint((event.clientX + releaseEvent.clientX) / 2, (event.clientY + releaseEvent.clientY) / 2, nodeId, boardScope);
 
-        console.log("DRAG_DEBUG", {
-          sourceNodeId: nodeId,
-          hoveredTargetId: activeDrag.hoveredTargetId,
-          release: { x: releaseEvent.clientX, y: releaseEvent.clientY },
-          midpoint: { x: (event.clientX + releaseEvent.clientX) / 2, y: (event.clientY + releaseEvent.clientY) / 2 },
-          targetNodeId,
-          boardScope: Boolean(boardScope),
-        });
-
         if (targetNodeId && targetNodeId !== nodeId) {
           setDragConnectDraft({
             sourceNodeId: nodeId,
@@ -1903,7 +1894,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                   {nodes.map((node) => {
                     const isSelected = node.id === selectedNode?.id;
                     const isHovered = hoveredNodeId === node.id;
-                    const showInfo = !hideNodeInfoPopup && (isSelected || isHovered);
+                    const showInfo = !hideNodeInfoPopup && (isHovered || (!hoveredNodeId && isSelected));
                     const couplePair = getCouplePair(node.id);
                     const isPaired = Boolean(couplePair && couplePair.pairedId);
 
@@ -2158,7 +2149,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             {nodes.map((node) => {
               const isSelected = node.id === selectedNode?.id;
               const isHovered = hoveredNodeId === node.id;
-              const showInfo = !hideNodeInfoPopup && (isSelected || isHovered);
+              const showInfo = !hideNodeInfoPopup && (isHovered || (!hoveredNodeId && isSelected));
               const couplePair = getCouplePair(node.id);
               const isPaired = Boolean(couplePair && couplePair.pairedId);
 
