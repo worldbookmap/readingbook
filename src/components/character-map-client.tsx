@@ -109,7 +109,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const [hideNodeInfoPopup, setHideNodeInfoPopup] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
-  const [saveMessage, setSaveMessage] = useState("Vercel → GitHub 저장 준비 중");
+  const [saveMessage, setSaveMessage] = useState("저장 준비 중");
   const [remoteEnabled, setRemoteEnabled] = useState(false);
   const [newWorkTitle, setNewWorkTitle] = useState("");
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
@@ -1457,7 +1457,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
 
   async function saveToGithub() {
     setSaveState("saving");
-    setSaveMessage(remoteEnabled ? "Vercel → GitHub 동기화 중..." : "환경변수 확인 필요");
+    setSaveMessage(remoteEnabled ? "저장 중..." : "환경변수 확인 필요");
 
     try {
       const nextLibrary: CharacterMapLibrary = { works };
@@ -1499,7 +1499,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       setSaveMessage("저장 완료! 최신 데이터가 반영되었습니다.");
     } catch (error) {
       setSaveState("error");
-      setSaveMessage(error instanceof Error ? error.message : "GitHub 저장에 실패했습니다.");
+      setSaveMessage(error instanceof Error ? error.message : "저장에 실패했습니다.");
     }
   }
 
@@ -1538,7 +1538,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-600 transition hover:border-slate-400 hover:text-slate-950"
             >
               <FontAwesomeIcon icon={faCloudArrowUp} className="mr-2" />
-              GitHub 저장
+              저장
             </button>
             <button
               type="button"
@@ -1820,7 +1820,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                     margin: 0,
                   }}
                 >
-                  <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">
+                  <svg className="absolute inset-0 h-full w-full overflow-visible" style={{ pointerEvents: "auto" }}>
                     {coupleRelationships.map((relationship) => {
                       const from = nodes.find((node) => node.id === relationship.fromId);
                       const to = nodes.find((node) => node.id === relationship.toId);
@@ -1941,6 +1941,13 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                             className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-2.5 py-2 text-xs text-slate-700 outline-none focus:border-slate-400"
                           />
                         </div>
+                        <button
+                          type="button"
+                          onClick={handleDeleteSelectedRelationship}
+                          className="inline-flex w-full items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100"
+                        >
+                          관계 삭제
+                        </button>
                       </div>
                     </div>
                   ) : null}
@@ -3062,7 +3069,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                       className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-800 transition hover:border-slate-700 hover:bg-slate-50"
                     >
                       <FontAwesomeIcon icon={faCloudArrowUp} />
-                      Vercel → GitHub 저장
+                      저장
                     </button>
 
                     <p
