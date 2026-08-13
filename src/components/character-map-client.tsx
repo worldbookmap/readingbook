@@ -1535,10 +1535,10 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             <button
               type="button"
               onClick={saveToGithub}
-              className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-600 transition hover:border-slate-400 hover:text-slate-950"
+              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(15,23,42,0.12)] transition hover:bg-slate-700"
             >
               <FontAwesomeIcon icon={faCloudArrowUp} className="mr-2" />
-              저장
+              저장하기
             </button>
             <button
               type="button"
@@ -1796,9 +1796,9 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               <button
                 type="button"
                 onClick={saveToGithub}
-                className="rounded-xl border border-slate-200 bg-emerald-50 px-1.5 py-2 text-[10px] font-semibold text-emerald-700 shadow-[0_6px_18px_rgba(16,185,129,0.12)] transition active:scale-[0.98] hover:border-emerald-300 hover:bg-emerald-100"
+                className="rounded-xl bg-slate-900 px-1.5 py-2 text-[10px] font-semibold text-white shadow-[0_6px_18px_rgba(15,23,42,0.12)] transition active:scale-[0.98] hover:bg-slate-700"
               >
-                저장
+                저장하기
               </button>
             </div>
 
@@ -1886,12 +1886,22 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                             strokeWidth={selectedRelationshipId === relationship.id ? 3.2 : 2.5}
                             fill="none"
                           />
+                          <rect
+                            x={curve.labelX - 60}
+                            y={curve.labelY - 18}
+                            width="120"
+                            height="36"
+                            rx="18"
+                            fill="transparent"
+                            style={{ pointerEvents: "auto" }}
+                          />
                           <text
                             x={curve.labelX}
                             y={curve.labelY + 5}
                             textAnchor="middle"
                             fontSize="11"
                             fill={selectedRelationshipId === relationship.id ? "#111827" : "#475569"}
+                            style={{ pointerEvents: "none" }}
                           >
                             {relationship.label ?? relationship.type}
                           </text>
@@ -2142,12 +2152,22 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                       rx="12"
                       fill={selectedRelationshipId === relationship.id ? "rgba(255,255,255,0.98)" : "rgba(255,255,255,0.88)"}
                     />
+                    <rect
+                      x={curve.labelX - 60}
+                      y={curve.labelY - 18}
+                      width="120"
+                      height="36"
+                      rx="18"
+                      fill="transparent"
+                      style={{ pointerEvents: "auto" }}
+                    />
                     <text
                       x={curve.labelX}
                       y={curve.labelY + 5}
                       textAnchor="middle"
                       fontSize="11"
                       fill={selectedRelationshipId === relationship.id ? "#111827" : "#475569"}
+                      style={{ pointerEvents: "none" }}
                     >
                       {relationship.label ?? relationship.type}
                     </text>
