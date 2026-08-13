@@ -106,7 +106,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
-  const [hideNodeInfoPopup, setHideNodeInfoPopup] = useState(false);
+  const [hideNodeInfoPopup, setHideNodeInfoPopup] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [saveMessage, setSaveMessage] = useState("Vercel → GitHub 저장 준비 중");
@@ -529,6 +529,22 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         return { ...node, [field]: value };
       }),
     );
+  }
+
+  function handleNodeHoverStart(nodeId: string) {
+    setHideNodeInfoPopup(false);
+    setHoveredNodeId(nodeId);
+  }
+
+  function handleNodeHoverEnd(nodeId: string) {
+    setHoveredNodeId((current) => {
+      if (current !== nodeId) {
+        return current;
+      }
+
+      setHideNodeInfoPopup(true);
+      return null;
+    });
   }
 
   function handleRelationshipSelect(relationshipId: string, nodeId?: string) {
@@ -1917,10 +1933,10 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                               setSelectedId(node.id);
                               setSelectedRelationshipId(null);
                             }}
-                            onMouseEnter={() => setHoveredNodeId(node.id)}
-                            onMouseLeave={() => setHoveredNodeId(null)}
-                            onFocus={() => setHoveredNodeId(node.id)}
-                            onBlur={() => setHoveredNodeId(null)}
+                            onMouseEnter={() => handleNodeHoverStart(node.id)}
+                            onMouseLeave={() => handleNodeHoverEnd(node.id)}
+                            onFocus={() => handleNodeHoverStart(node.id)}
+                            onBlur={() => handleNodeHoverEnd(node.id)}
                             onKeyDown={(event) => {
                               if (event.key === "Enter" || event.key === " ") {
                                 event.preventDefault();
@@ -2168,13 +2184,10 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                         setHideNodeInfoPopup(false);
                         handlePointerDown(event, node.id);
                       }}
-                      onMouseEnter={() => {
-                        setHideNodeInfoPopup(false);
-                        setHoveredNodeId(node.id);
-                      }}
-                      onMouseLeave={() => setHoveredNodeId(null)}
-                      onFocus={() => setHoveredNodeId(node.id)}
-                      onBlur={() => setHoveredNodeId(null)}
+                      onMouseEnter={() => handleNodeHoverStart(node.id)}
+                      onMouseLeave={() => handleNodeHoverEnd(node.id)}
+                      onFocus={() => handleNodeHoverStart(node.id)}
+                      onBlur={() => handleNodeHoverEnd(node.id)}
                       onKeyDown={(event) => {
                         if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();
