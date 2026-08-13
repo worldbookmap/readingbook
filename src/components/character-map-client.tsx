@@ -92,15 +92,16 @@ type DeleteHistoryItem = {
 const novelCharacterLibrary = novelCharData as { books?: NovelCharacterBook[] };
 
 export function CharacterMapClient({ library, defaultWorkId }: Props) {
+  const latestWork = library.works.at(-1) ?? library.works[0] ?? null;
   const [works, setWorks] = useState<CharacterMapLibrary["works"]>(library.works);
   const [selectedWorkId, setSelectedWorkId] = useState<string>(
     defaultWorkId && library.works.some((work) => work.id === defaultWorkId)
       ? defaultWorkId
-      : library.works[0]?.id ?? "",
+      : latestWork?.id ?? "",
   );
-  const [nodes, setNodes] = useState<CharacterNode[]>(library.works[0]?.seed.nodes ?? []);
-  const [relationships, setRelationships] = useState<CharacterRelationship[]>(library.works[0]?.seed.relationships ?? []);
-  const [selectedId, setSelectedId] = useState<string>(library.works[0]?.seed.nodes[0]?.id ?? "");
+  const [nodes, setNodes] = useState<CharacterNode[]>(latestWork?.seed.nodes ?? []);
+  const [relationships, setRelationships] = useState<CharacterRelationship[]>(latestWork?.seed.relationships ?? []);
+  const [selectedId, setSelectedId] = useState<string>(latestWork?.seed.nodes[0]?.id ?? "");
   const [selectedRelationshipId, setSelectedRelationshipId] = useState<string | null>(null);
   const [draft, setDraft] = useState<DraftState>(defaultDraft);
   const [zoom, setZoom] = useState(1);
@@ -233,9 +234,10 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       const parsed = JSON.parse(saved) as CharacterMapLibrary;
       startTransition(() => {
         const nextWorks = parsed.works;
+        const latestWorkFromStorage = nextWorks.at(-1) ?? nextWorks[0] ?? null;
         setWorks(nextWorks);
-        setSelectedWorkId(nextWorks[0]?.id ?? "");
-        const firstWork = nextWorks[0] ?? null;
+        setSelectedWorkId(latestWorkFromStorage?.id ?? "");
+        const firstWork = latestWorkFromStorage ?? null;
         const firstNodes = firstWork?.seed.nodes ?? [];
         const firstRelationships = firstWork?.seed.relationships ?? [];
         setSelectedId(getPreferredNodeId(firstNodes, firstRelationships));
@@ -258,7 +260,8 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
 
       startTransition(() => {
         const nextWorks = payload.data.works;
-        const selected = nextWorks.find((work) => work.id === selectedWorkId) ?? nextWorks[0] ?? null;
+        const latestWorkFromRemote = nextWorks.at(-1) ?? nextWorks[0] ?? null;
+        const selected = nextWorks.find((work) => work.id === selectedWorkId) ?? latestWorkFromRemote ?? null;
         setWorks(nextWorks);
         setSelectedWorkId(selected?.id ?? "");
         const selectedNodes = selected?.seed.nodes ?? [];
@@ -353,6 +356,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     setExistingConnectionSearch("");
   }, [selectedId]);
 
+  const orderedWorks = works;
   const selectedWork = works.find((work) => work.id === selectedWorkId) ?? null;
   const selectedNode = nodes.find((node) => node.id === selectedId) ?? nodes[0] ?? null;
   const matchedBooks = findMatchingBooks(newWorkTitle);
@@ -864,7 +868,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       seed: { nodes: [], relationships: [] },
     };
 
-    const nextWorks = [...works, nextWork];
+    const nextWorks = [nextWork, ...works.filter((work) => work.id !== nextWork.id)];
     setWorks(nextWorks);
     applyWorkSelection(nextWork.id, nextWorks);
     setNewWorkTitle("");
@@ -1570,7 +1574,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                     onChange={(event) => handleWorkSelect(event.target.value)}
                     className={`${selectClassName} shadow-[0_6px_20px_rgba(15,23,42,0.05)]`}
                   >
-                    {works.map((work) => (
+                    {orderedWorks.map((work) => (
                       <option key={work.id} value={work.id}>
                         {work.titleKo ?? work.title}
                       </option>

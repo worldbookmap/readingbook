@@ -76,9 +76,10 @@ function buildInitialWorks(): StoryTimelineWork[] {
 }
 
 export function StoryEventTimeline() {
+  const latestInitialWork = buildInitialWorks().at(-1) ?? buildInitialWorks()[0] ?? null;
   const [works, setWorks] = useState<StoryTimelineWork[]>(buildInitialWorks);
-  const [selectedWorkId, setSelectedWorkId] = useState<string>(buildInitialWorks()[0]?.id ?? "");
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(buildInitialWorks()[0]?.events[0]?.id ?? null);
+  const [selectedWorkId, setSelectedWorkId] = useState<string>(latestInitialWork?.id ?? "");
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(latestInitialWork?.events[0]?.id ?? null);
   const [workDraft, setWorkDraft] = useState<WorkDraft>(defaultWorkDraft);
   const [eventDraft, setEventDraft] = useState<EventDraft>(defaultEventDraft);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -105,6 +106,7 @@ export function StoryEventTimeline() {
 
   const characterWorks = (characterMapLibrary as { works?: Array<{ id: string; title: string; titleKo?: string }> }).works ?? [];
 
+  const orderedWorks = works;
   const selectedWork = works.find((work) => work.id === selectedWorkId) ?? works[0] ?? null;
   const selectedEvent = selectedWork?.events.find((event) => event.id === selectedEventId) ?? selectedWork?.events[0] ?? null;
   const detailEvent = selectedWork?.events.find((event) => event.id === detailEventId) ?? null;
@@ -177,9 +179,10 @@ export function StoryEventTimeline() {
     try {
       const parsed = JSON.parse(saved) as StoryTimelineLibrary;
       if (parsed.works?.length) {
+        const latestWork = parsed.works.at(-1) ?? parsed.works[0];
         setWorks(parsed.works);
-        setSelectedWorkId(parsed.works[0].id);
-        setSelectedEventId(parsed.works[0].events[0]?.id ?? null);
+        setSelectedWorkId(latestWork.id);
+        setSelectedEventId(latestWork.events[0]?.id ?? null);
       }
     } catch {
       // ignore invalid local cache
@@ -254,7 +257,7 @@ export function StoryEventTimeline() {
       events: [],
     };
 
-    setWorks((current) => [...current, nextWork]);
+    setWorks((current) => [nextWork, ...current.filter((work) => work.id !== nextWork.id)]);
     setSelectedWorkId(nextWork.id);
     setSelectedEventId(null);
     setWorkDraft(defaultWorkDraft);
@@ -619,7 +622,7 @@ export function StoryEventTimeline() {
                 className="w-full appearance-none rounded-[18px] border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] outline-none transition duration-200 hover:border-slate-300 focus:border-slate-300 focus:ring-2 focus:ring-slate-100"
               >
                 <option value="__new__">새 작품 추가</option>
-                {works.map((work) => (
+                {orderedWorks.map((work) => (
                   <option key={work.id} value={work.id}>
                     {work.titleKo ?? work.title}
                   </option>
