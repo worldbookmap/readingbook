@@ -1,98 +1,132 @@
 "use client";
 
-import { FormEvent, startTransition, useEffect, useRef, useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useEffect, useMemo, useState } from "react";
 import {
-  faArrowsUpDownLeftRight,
-  faBookOpen,
-  faCloudArrowUp,
-  faCompress,
-  faExpand,
-  faLink,
-  faLocationCrosshairs,
-  faMagnifyingGlassMinus,
-  faMagnifyingGlassPlus,
-  faPlus,
-  faUser,
-  faWandSparkles,
-} from "@fortawesome/free-solid-svg-icons";
-import {
-  CharacterMapLibrary,
-  CharacterNode,
-  CharacterRelationship,
-  RelationshipType,
-} from "@/lib/types";
-import novelCharData from "../../assets/novelChar.json";
+  Background,
+  Connection,
+  Controls,
+  Edge,
+  Handle,
+  MarkerType,
+  MiniMap,
+  Node,
+  NodeProps,
+  NodeTypes,
+  Position,
+  ReactFlow,
+  useEdgesState,
+  useNodesState,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import { CharacterMapLibrary, CharacterNode, CharacterRelationship, RelationshipType } from "@/lib/types";
 import { CustomSelect } from "@/components/custom-select";
 
 const storageKey = "readingbook-character-map-library";
 const relationOptions: RelationshipType[] = ["친구", "부부", "커플", "자식", "사업", "기타"];
-const relationshipSelectionOptions: Array<RelationshipType | "선택 없음"> = ["선택 없음", ...relationOptions];
-const boardWidth = 920;
-const boardHeight = 920;
-const nodeWidth = 160;
-const nodeHeight = 140;
-const iconNodeSize = 56;
-const minZoom = 0.7;
-const maxZoom = 1.5;
-const minimapScale = 0.18;
 
-type DraftState = {
-  name: string;
-  title: string;
+type CharacterFlowNodeData = {
+  label: string;
+  subtitle: string;
   summary: string;
-  majorActions: string;
-  relationshipType: RelationshipType | "선택 없음";
-  customRelationship: string;
-  linkedToSelected: boolean;
+  color: string;
 };
 
-const defaultDraft: DraftState = {
-  name: "",
-  title: "",
-  summary: "",
-  majorActions: "",
-  relationshipType: "선택 없음",
-  customRelationship: "",
-  linkedToSelected: true,
-};
-
-const fieldClassName =
-  "w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-800 shadow-[0_2px_8px_rgba(15,23,42,0.03)] outline-none transition-all duration-200 placeholder:text-slate-400 hover:border-slate-300 focus:border-slate-700 focus:ring-4 focus:ring-slate-200/80 invalid:border-rose-300 invalid:text-rose-700 invalid:focus:ring-rose-100";
-const textareaClassName = `${fieldClassName} min-h-[100px] resize-y`;
-const selectClassName = `${fieldClassName} appearance-none pr-10`;
-const checkboxClassName =
-  "h-4 w-4 rounded border-slate-300 bg-white text-slate-900 shadow-sm accent-slate-900 transition focus:ring-4 focus:ring-slate-200";
+type CharacterFlowNode = Node<CharacterFlowNodeData, "characterNode">;
+type CharacterFlowEdge = Edge<{ type: RelationshipType; label?: string }>;
 
 type Props = {
   library: CharacterMapLibrary;
   defaultWorkId?: string;
 };
 
-type NovelCharacterBook = {
-  title: string;
-  title_ko?: string;
-  author?: string;
-  author_ko?: string;
-  major_characters?: Array<{
-    name: string;
-    description_ko?: string;
-  }>;
+const colorPalette = ["#fdf2f8", "#eff6ff", "#ecfeff", "#fef3c7", "#f5f3ff", "#dcfce7", "#fee2e2"];
+
+function toReactNodes(nodes: CharacterNode[]): CharacterFlowNode[] {
+  return nodes.map((node, index) => ({
+    id: node.id,
+    type: "characterNode",
+    position: { x: node.x, y: node.y },
+    data: {
+      label: node.name,
+      subtitle: node.title,
+      summary: node.summary || "설명을 추가해 보세요.",
+      color: node.color || colorPalette[index % colorPalette.length],
+    },
+  }));
+}
+
+function toCharacterNodes(nodes: CharacterFlowNode[]): CharacterNode[] {
+  return nodes.map((node) => ({
+    id: node.id,
+    name: node.data.label,
+    title: node.data.subtitle,
+    summary: node.data.summary,
+    majorActions: [],
+    x: Math.round(node.position.x),
+    y: Math.round(node.position.y),
+    color: node.data.color,
+  }));
+}
+
+function toReactEdges(relationships: CharacterRelationship[]): CharacterFlowEdge[] {
+  return relationships.map((relationship) => ({
+    id: relationship.id,
+    source: relationship.fromId,
+    target: relationship.toId,
+    label: relationship.label ?? relationship.type,
+    type: "smoothstep",
+    animated: true,
+    data: {
+      type: relationship.type,
+      label: relationship.label ?? relationship.type,
+    },
+    style: {
+      stroke: relationship.type === "부부" ? "#f472b6" : relationship.type === "사업" ? "#f59e0b" : relationship.type === "자식" ? "#22c55e" : relationship.type === "커플" ? "#8b5cf6" : relationship.type === "친구" ? "#3b82f6" : "#64748b",
+    },
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      color: relationship.type === "부부" ? "#f472b6" : relationship.type === "사업" ? "#f59e0b" : relationship.type === "자식" ? "#22c55e" : relationship.type === "커플" ? "#8b5cf6" : relationship.type === "친구" ? "#3b82f6" : "#64748b",
+    },
+  }));
+}
+
+function toCharacterRelationships(edges: CharacterFlowEdge[]): CharacterRelationship[] {
+  return edges.map((edge) => ({
+    id: edge.id,
+    fromId: edge.source,
+    toId: edge.target,
+    type: (edge.data?.type as RelationshipType) ?? "기타",
+    label: typeof edge.label === "string" ? edge.label : edge.data?.label ?? undefined,
+  }));
+}
+
+function CharacterNodeCard({ data, selected }: NodeProps<CharacterFlowNode>) {
+  return (
+    <div
+      className="relative w-[210px] rounded-[24px] border-2 bg-white p-3 shadow-[0_18px_36px_rgba(15,23,42,0.08)]"
+      style={{
+        background: `linear-gradient(180deg, ${data.color} 0%, rgba(255,255,255,0.88) 58%)`,
+        borderColor: selected ? "#1f2937" : "rgba(148, 163, 184, 0.42)",
+      }}
+    >
+      <Handle type="target" position={Position.Left} className="!h-3 !w-3 !border-2 !border-white !bg-slate-700" />
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="rounded-full bg-white/80 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-700">
+          person
+        </span>
+        <span className="h-2.5 w-2.5 rounded-full bg-slate-900" />
+      </div>
+      <h3 className="text-sm font-semibold tracking-[-0.03em] text-slate-900">{data.label}</h3>
+      <p className="mt-1 text-[10px] font-medium text-slate-500">{data.subtitle}</p>
+      <p className="mt-2 text-[11px] leading-5 text-slate-600">{data.summary}</p>
+      <Handle type="source" position={Position.Right} className="!h-3 !w-3 !border-2 !border-white !bg-slate-700" />
+    </div>
+  );
+}
+
+const nodeTypes: NodeTypes = {
+  characterNode: CharacterNodeCard,
 };
-
-type SaveState = "idle" | "saving" | "saved" | "error";
-
-type DeleteHistoryItem = {
-  id: string;
-  kind: "work" | "node";
-  label: string;
-  createdAt: number;
-  work?: CharacterMapLibrary["works"][number];
-  node?: CharacterNode;
-  relatedRelationships?: CharacterRelationship[];
-};
-
-const novelCharacterLibrary = novelCharData as { books?: NovelCharacterBook[] };
 
 export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const latestWork = library.works.at(-1) ?? library.works[0] ?? null;
@@ -102,220 +136,143 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       ? defaultWorkId
       : latestWork?.id ?? "",
   );
-  const [nodes, setNodes] = useState<CharacterNode[]>(latestWork?.seed.nodes ?? []);
-  const [relationships, setRelationships] = useState<CharacterRelationship[]>(latestWork?.seed.relationships ?? []);
-  const [selectedId, setSelectedId] = useState<string>(latestWork?.seed.nodes[0]?.id ?? "");
-  const [selectedRelationshipId, setSelectedRelationshipId] = useState<string | null>(null);
-  const [draft, setDraft] = useState<DraftState>(defaultDraft);
-  const [zoom, setZoom] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
-  const [isBoardDragging, setIsBoardDragging] = useState(false);
-  const [hideNodeInfoPopup, setHideNodeInfoPopup] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [saveState, setSaveState] = useState<SaveState>("idle");
-  const [saveMessage, setSaveMessage] = useState("저장 준비 중");
-  const [remoteEnabled, setRemoteEnabled] = useState(false);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [newWorkTitle, setNewWorkTitle] = useState("");
-  const [remoteSha, setRemoteSha] = useState<string | null>(null);
-  const [quickCreatePosition, setQuickCreatePosition] = useState<{ x: number; y: number } | null>(null);
-  const [quickCreateName, setQuickCreateName] = useState("");
-  const [activePanelTab, setActivePanelTab] = useState<"add" | "info">("add");
-  const [selectedRecommendedBook, setSelectedRecommendedBook] = useState<NovelCharacterBook | null>(null);
-  const [nodeEditModalId, setNodeEditModalId] = useState<string | null>(null);
-  const [showNodeDetails, setShowNodeDetails] = useState(false);
-  const [existingConnectionTargetId, setExistingConnectionTargetId] = useState<string>("");
-  const [existingConnectionSearch, setExistingConnectionSearch] = useState("");
-  const [existingConnectionType, setExistingConnectionType] = useState<RelationshipType>("친구");
-  const [existingConnectionLabel, setExistingConnectionLabel] = useState("");
-  const [showQuickConnectHint, setShowQuickConnectHint] = useState(true);
-  const [dragConnectDraft, setDragConnectDraft] = useState<{
-    sourceNodeId: string;
-    targetNodeId: string;
-    type: RelationshipType;
-    label: string;
-  } | null>(null);
-  const [lastCreatedRelationshipId, setLastCreatedRelationshipId] = useState<string | null>(null);
-  const pinchGestureRef = useRef<{
-    startDistance: number;
-    startZoom: number;
-    startPan: { x: number; y: number };
-  } | null>(null);
-  const activeTouchRef = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const nodeLongPressTimerRef = useRef<number | null>(null);
-  const [relationshipDeleteConfirm, setRelationshipDeleteConfirm] = useState<string | null>(null);
-  const [deleteModal, setDeleteModal] = useState<{
-    kind: "work" | "node";
-    label: string;
-    workId?: string;
-    nodeId?: string;
-  } | null>(null);
-  const [deleteHistory, setDeleteHistory] = useState<DeleteHistoryItem[]>([]);
-  const didMountRef = useRef(false);
-  const mapViewportRef = useRef<HTMLDivElement | null>(null);
-  const boardViewportRef = useRef<HTMLDivElement | null>(null);
-  const mobileBoardViewportRef = useRef<HTMLDivElement | null>(null);
-  const boardContentRef = useRef<HTMLDivElement | null>(null);
-  const boardExportRef = useRef<HTMLDivElement | null>(null);
-  const focusFrameRef = useRef<number | null>(null);
-  const dragRef = useRef<{
-    id: string;
-    pointerId: number;
-    offsetX: number;
-    offsetY: number;
-    moved: boolean;
-    hoveredTargetId: string | null;
-  } | null>(null);
-  const viewportDragRef = useRef<{
-    startX: number;
-    startY: number;
-    startPanX: number;
-    startPanY: number;
-  } | null>(null);
-  const longPressTimeoutRef = useRef<number | null>(null);
+  const [draftRelationType, setDraftRelationType] = useState<RelationshipType>("기타");
 
-  function getPreferredNodeId(workNodes: CharacterNode[], workRelationships: CharacterRelationship[]) {
-    const heroNode = workNodes.find((node) => node.name.includes("주인공") || node.title.includes("주인공"));
-    if (heroNode) {
-      return heroNode.id;
-    }
+  const selectedWork = useMemo(
+    () => works.find((work) => work.id === selectedWorkId) ?? works[0] ?? null,
+    [selectedWorkId, works],
+  );
 
-    const ranked = workNodes
-      .map((node) => ({
-        node,
-        score: workRelationships.filter(
-          (relationship) => relationship.fromId === node.id || relationship.toId === node.id,
-        ).length,
-      }))
-      .sort((a, b) => b.score - a.score);
-
-    return ranked[0]?.node.id ?? workNodes[0]?.id ?? "";
-  }
-
-  async function loadCharacterMap() {
-    try {
-      const response = await fetch("/api/character-map", { cache: "no-store" });
-      if (!response.ok) {
-        throw new Error("failed to load character map");
-      }
-
-      const payload = (await response.json()) as {
-        data: CharacterMapLibrary;
-        remoteEnabled: boolean;
-        sha: string | null;
-      };
-
-      startTransition(() => {
-        const nextWorks = payload.data.works;
-        setWorks(nextWorks);
-        setSelectedWorkId((current) => {
-          const nextWorkId = nextWorks.some((work) => work.id === current)
-            ? current
-            : nextWorks[0]?.id ?? "";
-          const nextWork = nextWorks.find((work) => work.id === nextWorkId) ?? nextWorks[0] ?? null;
-          const nextWorkNodes = nextWork?.seed.nodes ?? [];
-          const nextWorkRelationships = nextWork?.seed.relationships ?? [];
-          setSelectedId(getPreferredNodeId(nextWorkNodes, nextWorkRelationships));
-          setNodes(nextWorkNodes);
-          setRelationships(nextWorkRelationships);
-          return nextWorkId;
-        });
-        setRemoteEnabled(payload.remoteEnabled);
-        setRemoteSha(payload.sha);
-        setSaveMessage(
-          payload.remoteEnabled
-            ? "연결됨"
-            : "브라우저 로컬 저장 모드",
-        );
-      });
-      return payload;
-    } catch {
-      const saved = window.localStorage.getItem(storageKey);
-      if (!saved) {
-        return null;
-      }
-
-      const parsed = JSON.parse(saved) as CharacterMapLibrary;
-      startTransition(() => {
-        const nextWorks = parsed.works;
-        const latestWorkFromStorage = nextWorks.at(-1) ?? nextWorks[0] ?? null;
-        setWorks(nextWorks);
-        setSelectedWorkId(latestWorkFromStorage?.id ?? "");
-        const firstWork = latestWorkFromStorage ?? null;
-        const firstNodes = firstWork?.seed.nodes ?? [];
-        const firstRelationships = firstWork?.seed.relationships ?? [];
-        setSelectedId(getPreferredNodeId(firstNodes, firstRelationships));
-        setNodes(firstNodes);
-        setRelationships(firstRelationships);
-        setSaveMessage("API 연결 실패: 브라우저 로컬 저장 데이터 복원됨");
-      });
-      return { data: parsed, remoteEnabled: false, sha: null } as const;
-    }
-  }
+  const [nodes, setNodes, onNodesChange] = useNodesState<CharacterFlowNode>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<CharacterFlowEdge>([]);
 
   useEffect(() => {
-    let cancelled = false;
+    const saved = window.localStorage.getItem(storageKey);
+    if (!saved) return;
 
-    async function hydrate() {
-      const payload = await loadCharacterMap();
-      if (cancelled || !payload) {
-        return;
+    try {
+      const parsed = JSON.parse(saved) as CharacterMapLibrary;
+      if (parsed.works?.length) {
+        setWorks(parsed.works);
+        const nextSelected = parsed.works.some((work) => work.id === selectedWorkId)
+          ? selectedWorkId
+          : parsed.works[0]?.id ?? "";
+        setSelectedWorkId(nextSelected);
       }
-
-      startTransition(() => {
-        const nextWorks = payload.data.works;
-        const latestWorkFromRemote = nextWorks.at(-1) ?? nextWorks[0] ?? null;
-        const selected = nextWorks.find((work) => work.id === selectedWorkId) ?? latestWorkFromRemote ?? null;
-        setWorks(nextWorks);
-        setSelectedWorkId(selected?.id ?? "");
-        const selectedNodes = selected?.seed.nodes ?? [];
-        const selectedRelationships = selected?.seed.relationships ?? [];
-        setSelectedId(getPreferredNodeId(selectedNodes, selectedRelationships));
-        setNodes(selectedNodes);
-        setRelationships(selectedRelationships);
-        setRemoteEnabled(payload.remoteEnabled);
-        setRemoteSha(payload.sha ?? null);
-      });
+    } catch {
+      // ignore invalid cached data
     }
-
-    hydrate();
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   useEffect(() => {
-    if (!didMountRef.current) {
-      didMountRef.current = true;
+    if (!selectedWork) {
+      setNodes([]);
+      setEdges([]);
       return;
     }
 
+    const nextNodes = toReactNodes(selectedWork.seed.nodes);
+    const nextEdges = toReactEdges(selectedWork.seed.relationships);
+
+    setNodes((current) => {
+      if (
+        current.length === nextNodes.length &&
+        current.every((node, index) => {
+          const nextNode = nextNodes[index];
+          if (!nextNode) return false;
+          return (
+            node.id === nextNode.id &&
+            node.position.x === nextNode.position.x &&
+            node.position.y === nextNode.position.y &&
+            node.data.label === nextNode.data.label &&
+            node.data.subtitle === nextNode.data.subtitle &&
+            node.data.summary === nextNode.data.summary &&
+            node.data.color === nextNode.data.color
+          );
+        })
+      ) {
+        return current;
+      }
+
+      return nextNodes;
+    });
+
+    setEdges((current) => {
+      if (
+        current.length === nextEdges.length &&
+        current.every((edge, index) => {
+          const nextEdge = nextEdges[index];
+          if (!nextEdge) return false;
+          return (
+            edge.id === nextEdge.id &&
+            edge.source === nextEdge.source &&
+            edge.target === nextEdge.target &&
+            edge.label === nextEdge.label &&
+            edge.data?.type === nextEdge.data?.type &&
+            edge.data?.label === nextEdge.data?.label
+          );
+        })
+      ) {
+        return current;
+      }
+
+      return nextEdges;
+    });
+
+    setSelectedNodeId((current) => current && nextNodes.some((node) => node.id === current) ? current : nextNodes[0]?.id ?? null);
+    setSelectedEdgeId(null);
+  }, [selectedWork]);
+
+  useEffect(() => {
     window.localStorage.setItem(storageKey, JSON.stringify({ works }));
   }, [works]);
 
-  useEffect(() => {
-    if (!defaultWorkId) {
-      return;
-    }
+  const selectedNode = useMemo(
+    () => nodes.find((node) => node.id === selectedNodeId) ?? null,
+    [nodes, selectedNodeId],
+  );
 
-    if (library.works.some((work) => work.id === defaultWorkId)) {
-      setSelectedWorkId(defaultWorkId);
-      const nextWork = library.works.find((work) => work.id === defaultWorkId) ?? library.works[0] ?? null;
-      const nextNodes = nextWork?.seed.nodes ?? [];
-      const nextRelationships = nextWork?.seed.relationships ?? [];
-      setNodes(nextNodes);
-      setRelationships(nextRelationships);
-      setSelectedId(getPreferredNodeId(nextNodes, nextRelationships));
-      setSelectedRelationshipId(null);
-      setDraft(defaultDraft);
-    }
-  }, [defaultWorkId, library.works]);
+  const selectedEdge = useMemo(
+    () => edges.find((edge) => edge.id === selectedEdgeId) ?? null,
+    [edges, selectedEdgeId],
+  );
 
-  useEffect(() => {
-    if (!selectedWorkId) {
-      return;
-    }
+  function createNewWork() {
+    const title = newWorkTitle.trim();
+    if (!title) return;
+
+    const nextWork = {
+      id: crypto.randomUUID(),
+      title,
+      titleKo: title,
+      author: "새 작품",
+      seed: {
+        nodes: [
+          {
+            id: crypto.randomUUID(),
+            name: "주인공",
+            title: "중심 인물",
+            summary: "이 인물이 이야기에 어떤 위치를 차지하는지 적어보세요.",
+            majorActions: [],
+            x: 220,
+            y: 180,
+            color: colorPalette[0],
+          },
+        ],
+        relationships: [],
+      },
+    };
+
+    setWorks((current) => [nextWork, ...current]);
+    setSelectedWorkId(nextWork.id);
+    setNewWorkTitle("");
+  }
+
+  function updateSelectedWorkSeed(nextNodes: CharacterFlowNode[], nextEdges: CharacterFlowEdge[]) {
+    if (!selectedWorkId) return;
 
     setWorks((current) =>
       current.map((work) =>
@@ -323,2885 +280,349 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
           ? {
               ...work,
               seed: {
-                nodes,
-                relationships,
+                nodes: toCharacterNodes(nextNodes),
+                relationships: toCharacterRelationships(nextEdges),
               },
             }
           : work,
       ),
     );
-  }, [nodes, relationships, selectedWorkId]);
+  }
 
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement));
+  function addNode() {
+    if (!selectedWork) return;
+
+    const nextId = crypto.randomUUID();
+    const nextNode: CharacterFlowNode = {
+      id: nextId,
+      type: "characterNode",
+      position: {
+        x: 180 + (nodes.length % 4) * 180,
+        y: 140 + (nodes.length % 3) * 150,
+      },
+      data: {
+        label: `인물 ${nodes.length + 1}`,
+        subtitle: "새 인물",
+        summary: "이 인물의 역할을 적어보세요.",
+        color: colorPalette[nodes.length % colorPalette.length],
+      },
     };
 
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!lastCreatedRelationshipId) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      setLastCreatedRelationshipId(null);
-    }, 1400);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [lastCreatedRelationshipId]);
-
-  useEffect(() => {
-    setExistingConnectionTargetId("");
-    setExistingConnectionSearch("");
-  }, [selectedId]);
-
-  const orderedWorks = works;
-  const latestWorkId = orderedWorks[0]?.id ?? "";
-  const selectedWork = works.find((work) => work.id === selectedWorkId) ?? null;
-  const selectedNode = nodes.find((node) => node.id === selectedId) ?? nodes[0] ?? null;
-  const matchedBooks = findMatchingBooks(newWorkTitle);
-  const matchedBook = matchedBooks[0] ?? null;
-  const selectedWorkKnownBook =
-    findMatchingBook(selectedWork?.titleKo ?? selectedWork?.title ?? "") ?? selectedRecommendedBook ?? null;
-  const selectedBookCharacters = selectedRecommendedBook?.major_characters ?? matchedBook?.major_characters ?? selectedWorkKnownBook?.major_characters ?? [];
-  const recentWorks = works.slice(-3);
-  const remainingWorks = works.filter((work) => !recentWorks.some((recent) => recent.id === work.id));
-  const minimapWidth = boardWidth * minimapScale;
-  const minimapHeight = boardHeight * minimapScale;
-  const viewportWidth = Math.min(boardWidth, 920 / zoom);
-  const viewportHeight = Math.min(boardHeight, 760 / zoom);
-  const mobileBoardScale = 0.56;
-  const mobileTotalScale = mobileBoardScale * zoom;
-
-  function getBoardScale(currentZoom = zoom) {
-    return window.innerWidth < 1024 ? mobileBoardScale * currentZoom : currentZoom;
-  }
-
-  function clampPan(nextPan: { x: number; y: number }, scale = zoom) {
-    const isMobile = window.innerWidth < 1024;
-    const viewport = isMobile ? mobileBoardViewportRef.current : boardViewportRef.current;
-    const viewportWidth = viewport?.clientWidth ?? boardWidth;
-    const viewportHeight = viewport?.clientHeight ?? boardHeight;
-    const effectiveScale = getBoardScale(scale);
-    const scaledBoardWidth = boardWidth * effectiveScale;
-    const scaledBoardHeight = boardHeight * effectiveScale;
-    const fitsWidth = scaledBoardWidth <= viewportWidth;
-    const fitsHeight = scaledBoardHeight <= viewportHeight;
-
-    const minX = fitsWidth ? (viewportWidth - scaledBoardWidth) / 2 : Math.min(0, viewportWidth - scaledBoardWidth);
-    const maxX = fitsWidth ? (viewportWidth - scaledBoardWidth) / 2 : 0;
-    const minY = fitsHeight ? (viewportHeight - scaledBoardHeight) / 2 : Math.min(0, viewportHeight - scaledBoardHeight);
-    const maxY = fitsHeight ? (viewportHeight - scaledBoardHeight) / 2 : 0;
-
-    return {
-      x: Math.min(maxX, Math.max(minX, nextPan.x)),
-      y: Math.min(maxY, Math.max(minY, nextPan.y)),
-    };
-  }
-
-  const connectedRelationships = relationships.filter(
-    (relationship) =>
-      relationship.fromId === selectedNode?.id || relationship.toId === selectedNode?.id,
-  );
-  const selectedRelationship = relationships.find(
-    (relationship) => relationship.id === selectedRelationshipId,
-  ) ?? null;
-  const filteredExistingConnectionNodes = nodes.filter((node) => {
-    if (node.id === selectedNode?.id) {
-      return false;
-    }
-
-    const normalizedQuery = existingConnectionSearch.trim().toLowerCase();
-    if (!normalizedQuery) {
-      return true;
-    }
-
-    return (
-      node.name.toLowerCase().includes(normalizedQuery) ||
-      node.title.toLowerCase().includes(normalizedQuery) ||
-      node.summary.toLowerCase().includes(normalizedQuery)
-    );
-  });
-  const selectedExistingConnectionNode =
-    nodes.find((node) => node.id === existingConnectionTargetId) ?? null;
-  const canQuickConnect = Boolean(selectedNode) && nodes.length > 1;
-  const selectedRelationshipPosition = selectedRelationship
-    ? (() => {
-        const from = nodes.find((node) => node.id === selectedRelationship.fromId);
-        const to = nodes.find((node) => node.id === selectedRelationship.toId);
-
-        if (!from || !to) {
-          return null;
-        }
-
-        const curve = buildCurvePath(from, to);
-        const cardWidth = 220;
-        const cardHeight = 180;
-
-        return {
-          left: Math.min(boardWidth - cardWidth - 18, Math.max(18, curve.labelX - cardWidth / 2)),
-          top: Math.min(boardHeight - cardHeight - 18, Math.max(18, curve.labelY - cardHeight / 2)),
-        };
-      })()
-    : null;
-  const coupleRelationships = relationships.filter(
-    (relationship) => relationship.type === "부부" || relationship.type === "커플",
-  );
-
-  function createCharacterAtPosition(position: { x: number; y: number }, nameOverride?: string) {
-    const nextName = (nameOverride ?? quickCreateName ?? draft.name).trim() || "새 인물";
-    const nextTitle = draft.title.trim() || "새 인물";
-    const nextSummary = draft.summary.trim() || "아직 메모가 없습니다.";
-    const nextMajorActions = draft.majorActions
-      .split("\n")
-      .map((item) => item.trim())
-      .filter(Boolean);
-
-    const nextNode: CharacterNode = {
-      id: crypto.randomUUID(),
-      name: nextName,
-      title: nextTitle,
-      summary: nextSummary,
-      majorActions: nextMajorActions,
-      x: Math.min(boardWidth - nodeWidth - 40, Math.max(40, position.x)),
-      y: Math.min(boardHeight - nodeHeight - 40, Math.max(40, position.y)),
-      color: ["#f97316", "#0f766e", "#2563eb", "#7c3aed", "#dc2626"][nodes.length % 5],
-    };
-
-    const shouldLinkToSelected =
-      draft.linkedToSelected && Boolean(selectedNode) && draft.relationshipType !== "선택 없음";
-    const selectedRelationshipType =
-      shouldLinkToSelected && draft.relationshipType !== "선택 없음" ? draft.relationshipType : null;
-
-    const nextRelationship =
-      selectedRelationshipType && selectedNode
-        ? {
-            id: crypto.randomUUID(),
-            fromId: selectedNode.id,
-            toId: nextNode.id,
-            type: selectedRelationshipType,
-            label:
-              selectedRelationshipType === "기타"
-                ? draft.customRelationship.trim() || "직접 입력 관계"
-                : undefined,
-          }
-        : null;
-
-    setNodes((current) => [...current, nextNode]);
-    if (nextRelationship) {
-      setRelationships((current) => [...current, nextRelationship]);
-    }
-    setSelectedId(nextNode.id);
-    setDraft(defaultDraft);
-    setQuickCreateName("");
-    setQuickCreatePosition(null);
-  }
-
-  function handleCreateCharacter(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!draft.name.trim()) {
-      return;
-    }
-
-    const fallbackPosition = {
-      x: boardWidth * 0.55,
-      y: boardHeight * 0.42,
-    };
-
-    createCharacterAtPosition(quickCreatePosition ?? fallbackPosition, draft.name);
-  }
-
-  function handleNodePatch(field: "name" | "title" | "summary" | "majorActions", value: string) {
-    if (!selectedNode) {
-      return;
-    }
-
-    setNodes((current) =>
-      current.map((node) => {
-        if (node.id !== selectedNode.id) {
-          return node;
-        }
-
-        if (field === "majorActions") {
-          return {
-            ...node,
-            majorActions: value
-              .split("\n")
-              .map((item) => item.trim())
-              .filter(Boolean),
-          };
-        }
-
-        return { ...node, [field]: value };
-      }),
-    );
-  }
-
-  function openNodeEditModal(nodeId: string) {
-    const nextNode = nodes.find((node) => node.id === nodeId);
-    if (!nextNode) {
-      return;
-    }
-
-    setSelectedId(nodeId);
-    setNodeEditModalId(nodeId);
-    setShowNodeDetails(true);
-    setActivePanelTab("info");
-  }
-
-  function handleNodeHoverStart(nodeId: string) {
-    setHideNodeInfoPopup(false);
-    setHoveredNodeId(nodeId);
-  }
-
-  function handleNodeHoverEnd(nodeId: string) {
-    setHoveredNodeId((current) => {
-      if (current !== nodeId) {
-        return current;
-      }
-
-      setHideNodeInfoPopup(true);
-      return null;
-    });
-  }
-
-  function handleRelationshipSelect(relationshipId: string, nodeId?: string) {
-    setSelectedRelationshipId(relationshipId);
-    setActivePanelTab("info");
-    if (nodeId) {
-      setSelectedId(nodeId);
-    }
-  }
-
-  function handleRelationshipPatch(field: "type" | "label", value: RelationshipType | string) {
-    if (!selectedRelationship) {
-      return;
-    }
-
-    setRelationships((current) =>
-      current.map((relationship) =>
-        relationship.id === selectedRelationship.id
-          ? {
-              ...relationship,
-              [field]: value,
-            }
-          : relationship,
-      ),
-    );
-  }
-
-  function addRelationshipBetweenExistingNodes(
-    fromNodeId: string,
-    toNodeId: string,
-    nextType: RelationshipType,
-    nextLabel?: string,
-  ) {
-    const sourceNode = nodes.find((node) => node.id === fromNodeId);
-    const targetNode = nodes.find((node) => node.id === toNodeId);
-
-    if (!sourceNode || !targetNode || sourceNode.id === targetNode.id) {
-      return null;
-    }
-
-    const duplicate = relationships.some(
-      (relationship) =>
-        (relationship.fromId === fromNodeId && relationship.toId === toNodeId) ||
-        (relationship.fromId === toNodeId && relationship.toId === fromNodeId),
-    );
-
-    if (duplicate) {
-      return null;
-    }
-
-    const nextRelationship: CharacterRelationship = {
-      id: crypto.randomUUID(),
-      fromId: fromNodeId,
-      toId: toNodeId,
-      type: nextType,
-      label: nextType === "기타" ? nextLabel?.trim() || "직접 입력 관계" : undefined,
-    };
-
-    setRelationships((current) => [...current, nextRelationship]);
-    setSelectedRelationshipId(nextRelationship.id);
-    setLastCreatedRelationshipId(nextRelationship.id);
-    setActivePanelTab("info");
-    return nextRelationship;
-  }
-
-  function handleConnectSelectedNodeToExisting() {
-    if (!selectedNode || !existingConnectionTargetId) {
-      return;
-    }
-
-    const targetNode = nodes.find((node) => node.id === existingConnectionTargetId);
-    if (!targetNode) {
-      return;
-    }
-
-    const created = addRelationshipBetweenExistingNodes(
-      selectedNode.id,
-      targetNode.id,
-      existingConnectionType,
-      existingConnectionType === "기타" ? existingConnectionLabel : undefined,
-    );
-
-    if (!created) {
-      return;
-    }
-
-    setExistingConnectionTargetId("");
-    setExistingConnectionSearch("");
-    setExistingConnectionType("친구");
-    setExistingConnectionLabel("");
-  }
-
-  function handleDeleteSelectedRelationship() {
-    if (!selectedRelationship) {
-      return;
-    }
-
-    setRelationshipDeleteConfirm(selectedRelationship.id);
-  }
-
-  function confirmDeleteRelationship() {
-    if (!selectedRelationship) {
-      return;
-    }
-
-    setRelationships((current) => current.filter((relationship) => relationship.id !== selectedRelationship.id));
-    setSelectedRelationshipId(null);
-    setRelationshipDeleteConfirm(null);
-    setSaveState("idle");
-    setSaveMessage(`관계 "${selectedRelationship.label ?? selectedRelationship.type}"이(가) 삭제되었습니다. 저장 버튼을 눌러 반영하세요.`);
-  }
-
-  function applyWorkSelection(workId: string, nextWorks: CharacterMapLibrary["works"]) {
-    const nextWork = nextWorks.find((work) => work.id === workId) ?? nextWorks[0] ?? null;
-
-    setSelectedWorkId(workId);
-    if (!nextWork) {
-      setNodes([]);
-      setRelationships([]);
-      setSelectedId("");
-      setSelectedRelationshipId(null);
-      setDraft(defaultDraft);
-      return;
-    }
-
-    const nextNodes = nextWork.seed.nodes;
-    const nextRelationships = nextWork.seed.relationships;
-    setNodes(nextNodes);
-    setRelationships(nextRelationships);
-    setSelectedId(getPreferredNodeId(nextNodes, nextRelationships));
-    setSelectedRelationshipId(null);
-    setDraft(defaultDraft);
-  }
-
-  function handleWorkSelect(workId: string) {
-    const nextWorks = works;
-    applyWorkSelection(workId, nextWorks);
-    const nextSelectedWork = nextWorks.find((work) => work.id === workId) ?? null;
-    const matched = nextSelectedWork
-      ? findMatchingBook(nextSelectedWork.titleKo ?? nextSelectedWork.title ?? "")
-      : null;
-    setSelectedRecommendedBook(matched ?? null);
-  }
-
-  function handleDeleteSelectedWork() {
-    if (!selectedWorkId) {
-      return;
-    }
-
-    const targetWork = works.find((work) => work.id === selectedWorkId);
-    if (!targetWork) {
-      return;
-    }
-
-    setDeleteModal({
-      kind: "work",
-      label: targetWork.titleKo ?? targetWork.title ?? "현재 작품",
-      workId: targetWork.id,
-    });
-  }
-
-  function handleDeleteSelectedNode() {
-    if (!selectedNode) {
-      return;
-    }
-
-    setDeleteModal({
-      kind: "node",
-      label: selectedNode.name,
-      nodeId: selectedNode.id,
-    });
-  }
-
-  function confirmDeleteModal() {
-    if (!deleteModal) {
-      return;
-    }
-
-    if (deleteModal.kind === "work" && deleteModal.workId) {
-      const targetWork = works.find((work) => work.id === deleteModal.workId);
-      if (!targetWork) {
-        setDeleteModal(null);
-        return;
-      }
-
-      const nextWorks = works.filter((work) => work.id !== targetWork.id);
-      const nextHistoryItem: DeleteHistoryItem = {
-        id: `work-${targetWork.id}`,
-        kind: "work",
-        label: targetWork.titleKo ?? targetWork.title ?? "작품",
-        createdAt: Date.now(),
-        work: targetWork,
-      };
-      setDeleteHistory((current) => [nextHistoryItem, ...current].slice(0, 8));
-      setWorks(nextWorks);
-      setDeleteModal(null);
-      setSaveState("idle");
-      setSaveMessage(`작품 "${targetWork.titleKo ?? targetWork.title ?? "작품"}"이(가) 삭제되었습니다. 저장 버튼을 눌러 반영하세요.`);
-
-      if (nextWorks.length === 0) {
-        setSelectedWorkId("");
-        setNodes([]);
-        setRelationships([]);
-        setSelectedId("");
-        setSelectedRelationshipId(null);
-        setDraft(defaultDraft);
-        return;
-      }
-
-      applyWorkSelection(nextWorks[0].id, nextWorks);
-      return;
-    }
-
-    if (deleteModal.kind === "node" && deleteModal.nodeId) {
-      const targetNode = nodes.find((node) => node.id === deleteModal.nodeId);
-      if (!targetNode) {
-        setDeleteModal(null);
-        return;
-      }
-
-      const relatedRelationships = relationships.filter(
-        (relationship) => relationship.fromId === targetNode.id || relationship.toId === targetNode.id,
-      );
-      const nextNodes = nodes.filter((node) => node.id !== targetNode.id);
-      const nextRelationships = relationships.filter(
-        (relationship) => relationship.fromId !== targetNode.id && relationship.toId !== targetNode.id,
-      );
-
-      const nextHistoryItem: DeleteHistoryItem = {
-        id: `node-${targetNode.id}`,
-        kind: "node",
-        label: targetNode.name,
-        createdAt: Date.now(),
-        node: targetNode,
-        relatedRelationships,
-      };
-      setDeleteHistory((current) => [nextHistoryItem, ...current].slice(0, 8));
-
-      setNodes(nextNodes);
-      setRelationships(nextRelationships);
-      setSelectedRelationshipId(null);
-      setSelectedId(nextNodes[0]?.id ?? "");
-      setActivePanelTab("add");
-      setDeleteModal(null);
-      setSaveState("idle");
-      setSaveMessage(`인물 "${targetNode.name}"이(가) 삭제되었습니다. 저장 버튼을 눌러 반영하세요.`);
-    }
-  }
-
-  function restoreDeleteItem(item: DeleteHistoryItem) {
-    if (item.kind === "work" && item.work) {
-      const nextWorks = [...works, item.work];
-      setWorks(nextWorks);
-      applyWorkSelection(item.work.id, nextWorks);
-      setDeleteHistory((current) => current.filter((entry) => entry.id !== item.id));
-      setSaveState("idle");
-      setSaveMessage(`작품 "${item.label}"이(가) 복구되었습니다. 저장 버튼을 눌러 반영하세요.`);
-      return;
-    }
-
-    if (item.kind === "node" && item.node) {
-      setNodes((current) => [...current, item.node!]);
-      setRelationships((current) => [...current, ...(item.relatedRelationships ?? [])]);
-      setSelectedId(item.node.id);
-      setDeleteHistory((current) => current.filter((entry) => entry.id !== item.id));
-      setSaveState("idle");
-      setSaveMessage(`인물 "${item.label}"이(가) 복구되었습니다. 저장 버튼을 눌러 반영하세요.`);
-    }
-  }
-
-  function findMatchingBooks(title: string) {
-    const trimmed = title.trim();
-    if (!trimmed) {
-      return [] as NovelCharacterBook[];
-    }
-
-    const normalized = trimmed.toLowerCase();
-    return (novelCharacterLibrary.books ?? []).filter((book) => {
-      const candidates = [book.title, book.title_ko ?? "", book.author ?? "", book.author_ko ?? ""];
-      return candidates.some((value) => value.toLowerCase().includes(normalized));
-    }).slice(0, 4);
-  }
-
-  function findMatchingBook(title: string) {
-    return findMatchingBooks(title)[0] ?? null;
-  }
-
-  function handleCreateWork(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const title = newWorkTitle.trim();
-    if (!title) {
-      return;
-    }
-
-    const matchedBook = findMatchingBook(title);
-    const nextWork = {
-      id: crypto.randomUUID(),
-      title: matchedBook?.title ?? title,
-      titleKo: matchedBook?.title_ko ?? title,
-      author: matchedBook?.author_ko ?? matchedBook?.author ?? "새 작품",
-      seed: { nodes: [], relationships: [] },
-    };
-
-    const nextWorks = [nextWork, ...works.filter((work) => work.id !== nextWork.id)];
-    setWorks(nextWorks);
-    applyWorkSelection(nextWork.id, nextWorks);
-    setNewWorkTitle("");
-  }
-
-  function resetSeed() {
-    const nextWork = works.find((work) => work.id === selectedWorkId) ?? works[0];
-
-    if (!nextWork) {
-      return;
-    }
-
-    setNodes([]);
-    setRelationships([]);
-    setSelectedId("");
-    setSelectedRelationshipId(null);
-    setDraft(defaultDraft);
-    setSaveState("idle");
-    setSaveMessage(`작품 "${nextWork.titleKo ?? nextWork.title}"이(가) 초기화되었습니다. 저장 버튼을 눌러 반영하세요.`);
-  }
-
-  function updateNodePosition(nodeId: string, x: number, y: number) {
     setNodes((current) => {
-      const currentNode = current.find((node) => node.id === nodeId);
-      if (!currentNode) {
-        return current;
-      }
-
-      const nextX = Math.min(Math.max(20, x), boardWidth - nodeWidth - 20);
-      const nextY = Math.min(Math.max(20, y), boardHeight - nodeHeight - 20);
-
-      if (nodeId === selectedId) {
-        const deltaX = nextX - currentNode.x;
-        const deltaY = nextY - currentNode.y;
-        setPan((currentPan) => ({
-          x: currentPan.x - deltaX * zoom,
-          y: currentPan.y - deltaY * zoom,
-        }));
-      }
-
-      return current.map((node) =>
-        node.id === nodeId
-          ? {
-              ...node,
-              x: nextX,
-              y: nextY,
-            }
-          : node,
-      );
+      const updated = [...current, nextNode];
+      updateSelectedWorkSeed(updated, edges);
+      return updated;
     });
+    setSelectedNodeId(nextId);
+    setSelectedEdgeId(null);
   }
 
-  function findNodeIdAtPoint(clientX: number, clientY: number, ignoreNodeId?: string, boardElement?: HTMLElement | null) {
-    const candidateNodes = (
-      boardElement
-        ? Array.from(boardElement.querySelectorAll<HTMLElement>("[data-node-id]"))
-        : Array.from(document.querySelectorAll<HTMLElement>("[data-node-id]"))
-    ).filter((element) => {
-      const candidateId = element.getAttribute("data-node-id");
-      if (!candidateId || candidateId === ignoreNodeId) {
-        return false;
-      }
-
-      const rect = element.getBoundingClientRect();
-      return rect.width > 0 && rect.height > 0;
-    });
-
-    const hitElement = document.elementsFromPoint(clientX, clientY).find((element) => {
-      const candidateNode = (element as HTMLElement).closest("[data-node-id]");
-      return Boolean(candidateNode && candidateNodes.some((node) => node === candidateNode));
-    });
-
-    if (hitElement) {
-      const candidateId = (hitElement as HTMLElement).closest("[data-node-id]")?.getAttribute("data-node-id");
-      if (candidateId && candidateId !== ignoreNodeId) {
-        return candidateId;
-      }
+  function removeSelected() {
+    if (selectedNodeId) {
+      const nextNodes = nodes.filter((node) => node.id !== selectedNodeId);
+      const nextEdges = edges.filter((edge) => edge.source !== selectedNodeId && edge.target !== selectedNodeId);
+      setNodes(nextNodes);
+      setEdges(nextEdges);
+      updateSelectedWorkSeed(nextNodes, nextEdges);
+      setSelectedNodeId(null);
+      return;
     }
 
-    const fallback = candidateNodes.find((element) => {
-      const rect = element.getBoundingClientRect();
-      return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
-    });
-
-    return fallback?.getAttribute("data-node-id") ?? null;
+    if (selectedEdgeId) {
+      const nextEdges = edges.filter((edge) => edge.id !== selectedEdgeId);
+      setEdges(nextEdges);
+      updateSelectedWorkSeed(nodes, nextEdges);
+      setSelectedEdgeId(null);
+    }
   }
 
-  function handlePointerDown(event: React.PointerEvent<HTMLElement>, nodeId: string, displayScale = zoom) {
-    if (dragRef.current && dragRef.current.id === nodeId) {
-      return;
-    }
+  function handleConnect(connection: Connection) {
+    if (!connection.source || !connection.target) return;
 
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (event.button !== 0 && event.pointerType === "mouse") {
-      return;
-    }
-
-    const element = event.currentTarget as HTMLElement;
-    element.setPointerCapture?.(event.pointerId);
-
-    const boardElement = element.closest("[data-character-board]") as HTMLDivElement | null;
-    const boardBounds = boardElement?.getBoundingClientRect();
-    const bounds = element.getBoundingClientRect();
-    if (!boardBounds) {
-      return;
-    }
-
-    setSelectedId(nodeId);
-    if (nodeLongPressTimerRef.current) {
-      window.clearTimeout(nodeLongPressTimerRef.current);
-    }
-    nodeLongPressTimerRef.current = window.setTimeout(() => {
-      openNodeEditModal(nodeId);
-    }, 550);
-
-    dragRef.current = {
-      id: nodeId,
-      pointerId: event.pointerId,
-      offsetX: (event.clientX - bounds.left) / displayScale,
-      offsetY: (event.clientY - bounds.top) / displayScale,
-      moved: false,
-      hoveredTargetId: null,
+    const newEdge: CharacterFlowEdge = {
+      id: `edge-${Date.now()}`,
+      source: connection.source,
+      target: connection.target,
+      label: draftRelationType,
+      type: "smoothstep",
+      animated: true,
+      data: {
+        type: draftRelationType,
+        label: draftRelationType,
+      },
+      style: { stroke: draftRelationType === "부부" ? "#f472b6" : draftRelationType === "사업" ? "#f59e0b" : draftRelationType === "자식" ? "#22c55e" : draftRelationType === "커플" ? "#8b5cf6" : draftRelationType === "친구" ? "#3b82f6" : "#64748b" },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: draftRelationType === "부부" ? "#f472b6" : draftRelationType === "사업" ? "#f59e0b" : draftRelationType === "자식" ? "#22c55e" : draftRelationType === "커플" ? "#8b5cf6" : draftRelationType === "친구" ? "#3b82f6" : "#64748b",
+      },
     };
 
-    const move = (moveEvent: MouseEvent | PointerEvent) => {
-      const activeDrag = dragRef.current;
-      if (!activeDrag || activeDrag.id !== nodeId) {
-        return;
-      }
-
-      if (moveEvent instanceof PointerEvent && moveEvent.pointerId !== activeDrag.pointerId) {
-        return;
-      }
-
-      const deltaX = moveEvent.clientX - event.clientX;
-      const deltaY = moveEvent.clientY - event.clientY;
-      if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
-        activeDrag.moved = true;
-        if (nodeLongPressTimerRef.current) {
-          window.clearTimeout(nodeLongPressTimerRef.current);
-          nodeLongPressTimerRef.current = null;
-        }
-      }
-
-      const hoveredNodeId = findNodeIdAtPoint(moveEvent.clientX, moveEvent.clientY, nodeId);
-      if (hoveredNodeId) {
-        activeDrag.hoveredTargetId = hoveredNodeId;
-      }
-
-      updateNodePosition(
-        nodeId,
-        (moveEvent.clientX - boardBounds.left) / displayScale - activeDrag.offsetX,
-        (moveEvent.clientY - boardBounds.top) / displayScale - activeDrag.offsetY,
-      );
-    };
-
-    const end = (releaseEvent: MouseEvent | PointerEvent) => {
-      const activeDrag = dragRef.current;
-      if (!activeDrag || activeDrag.id !== nodeId) {
-        return;
-      }
-
-      if (releaseEvent instanceof PointerEvent && releaseEvent.pointerId !== activeDrag.pointerId) {
-        return;
-      }
-
-      if (nodeLongPressTimerRef.current) {
-        window.clearTimeout(nodeLongPressTimerRef.current);
-        nodeLongPressTimerRef.current = null;
-      }
-
-      dragRef.current = null;
-      element.releasePointerCapture?.(activeDrag.pointerId);
-      element.removeEventListener("pointermove", move as EventListener);
-      element.removeEventListener("pointerup", end as EventListener);
-      window.removeEventListener("pointermove", move as EventListener);
-      window.removeEventListener("pointerup", end as EventListener);
-
-      if (activeDrag.moved) {
-        const boardScope = element.closest("[data-character-board]") as HTMLElement | null;
-        const targetNodeId =
-          activeDrag.hoveredTargetId ||
-          findNodeIdAtPoint(releaseEvent.clientX, releaseEvent.clientY, nodeId, boardScope) ||
-          findNodeIdAtPoint((event.clientX + releaseEvent.clientX) / 2, (event.clientY + releaseEvent.clientY) / 2, nodeId, boardScope);
-
-        if (targetNodeId && targetNodeId !== nodeId) {
-          setDragConnectDraft({
-            sourceNodeId: nodeId,
-            targetNodeId,
-            type: existingConnectionType,
-            label: existingConnectionType === "기타" ? existingConnectionLabel || "" : "",
-          });
-        }
-      }
-
-      if (!activeDrag.moved) {
-        setSelectedId(nodeId);
-      }
-    };
-
-    element.addEventListener("pointermove", move as EventListener);
-    element.addEventListener("pointerup", end as EventListener, { once: true });
-    window.addEventListener("pointermove", move as EventListener);
-    window.addEventListener("pointerup", end as EventListener, { once: true });
+    const nextEdges = [...edges, newEdge];
+    setEdges(nextEdges);
+    updateSelectedWorkSeed(nodes, nextEdges);
+    setSelectedEdgeId(newEdge.id);
+    setSelectedNodeId(null);
   }
 
-  function handleMouseDown(event: React.MouseEvent<HTMLElement>, nodeId: string, displayScale = zoom) {
-    if (dragRef.current && dragRef.current.id === nodeId) {
-      return;
-    }
-    if (event.button !== 0) {
-      return;
-    }
-    handlePointerDown({
-      ...event,
-      pointerType: "mouse",
-      pointerId: 1,
-      button: 0,
-      preventDefault: event.preventDefault,
-      stopPropagation: event.stopPropagation,
-      currentTarget: event.currentTarget,
-      target: event.target,
-    } as unknown as React.PointerEvent<HTMLElement>, nodeId, displayScale);
-  }
+  function handleNodeFieldChange(field: "label" | "subtitle" | "summary", value: string) {
+    if (!selectedNodeId) return;
 
-  function getNodeAnchor(node: CharacterNode) {
-    return {
-      x: node.x + iconNodeSize / 2,
-      y: node.y + iconNodeSize / 2,
-    };
-  }
-
-  function getCouplePair(nodeId: string) {
-    const relationship = relationships.find(
-      (item) =>
-        (item.fromId === nodeId || item.toId === nodeId) &&
-        (item.type === "부부" || item.type === "커플"),
-    );
-
-    if (!relationship) {
-      return null;
-    }
-
-    const pairedId = relationship.fromId === nodeId ? relationship.toId : relationship.fromId;
-    return { pairedId, relationId: relationship.id };
-  }
-
-  function buildCurvePath(from: CharacterNode, to: CharacterNode) {
-    const start = getNodeAnchor(from);
-    const end = getNodeAnchor(to);
-    const startX = start.x;
-    const startY = start.y;
-    const endX = end.x;
-    const endY = end.y;
-    const controlX = (startX + endX) / 2;
-    const controlY = Math.min(startY, endY) - Math.abs(endX - startX) * 0.18 - 28;
-
-    return {
-      path: `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`,
-      labelX: startX * 0.25 + controlX * 0.5 + endX * 0.25,
-      labelY: startY * 0.25 + controlY * 0.5 + endY * 0.25,
-    };
-  }
-
-  function updateZoom(nextZoom: number) {
-    const clampedZoom = Math.min(maxZoom, Math.max(minZoom, Number(nextZoom.toFixed(2))));
-    setZoom(clampedZoom);
-    setPan((currentPan) => clampPan(currentPan, clampedZoom));
-  }
-
-  function handleWheelZoom(event: React.WheelEvent<HTMLDivElement>) {
-    event.preventDefault();
-    const delta = event.deltaY > 0 ? -0.018 : 0.018;
-    updateZoom(zoom + delta);
-  }
-
-  function getFocusNode() {
-    const heroNode = nodes.find((node) => node.name.includes("주인공") || node.title.includes("주인공"));
-    if (heroNode) {
-      return heroNode;
-    }
-
-    const nodeScores = nodes.map((node) => {
-      const relatedCount = relationships.filter(
-        (relationship) => relationship.fromId === node.id || relationship.toId === node.id,
-      ).length;
-      return { node, score: relatedCount };
-    });
-
-    return nodeScores.reduce<{ node: CharacterNode | null; score: number }>(
-      (best, current) => (current.score > best.score ? current : best),
-      { node: nodes[0] ?? null, score: -1 },
-    ).node;
-  }
-
-  useEffect(() => {
-    const isMobile = window.innerWidth < 1024;
-    const viewport = isMobile ? mobileBoardViewportRef.current : boardViewportRef.current;
-    if (!viewport || nodes.length === 0) {
-      return;
-    }
-
-    if (dragRef.current && dragRef.current.id === selectedId) {
-      return;
-    }
-
-    const targetNode = selectedNode ?? getFocusNode();
-    const viewportWidth = viewport.clientWidth || boardWidth;
-    const viewportHeight = viewport.clientHeight || boardHeight;
-    const boardScale = getBoardScale();
-
-    const targetCenterX = targetNode ? targetNode.x + iconNodeSize / 2 : boardWidth / 2;
-    const targetCenterY = targetNode ? targetNode.y + iconNodeSize / 2 : boardHeight / 2;
-
-    const nextPan = {
-      x: viewportWidth / 2 - targetCenterX * boardScale,
-      y: viewportHeight / 2 - targetCenterY * boardScale,
-    };
-
-    if (isMobile) {
-      const boardCenterOffsetX = (boardWidth * boardScale - viewportWidth) / 2;
-      const boardCenterOffsetY = (boardHeight * boardScale - viewportHeight) / 2;
-      const mobilePan = {
-        x: nextPan.x + boardCenterOffsetX + 6,
-        y: nextPan.y + boardCenterOffsetY - 8,
-      };
-      setPan(mobilePan);
-      return;
-    }
-
-    const clampedPan = clampPan(nextPan, boardScale);
-    setPan((currentPan) => {
-      if (Math.abs(currentPan.x - clampedPan.x) < 0.5 && Math.abs(currentPan.y - clampedPan.y) < 0.5) {
-        return currentPan;
-      }
-      return clampedPan;
-    });
-  }, [selectedId, selectedNode, nodes, selectedWorkId, zoom]);
-
-  function toggleFullscreen() {
-    if (!mapViewportRef.current) {
-      return;
-    }
-
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-      return;
-    }
-
-    mapViewportRef.current.requestFullscreen();
-  }
-
-  function activateAddMode() {
-    setActivePanelTab("add");
-    setSelectedRelationshipId(null);
-  }
-
-  function activateInfoMode(nodeId?: string) {
-    if (nodeId) {
-      setSelectedId(nodeId);
-    }
-    setActivePanelTab("info");
-  }
-
-  function clearRelationshipSelection() {
-    setSelectedRelationshipId(null);
-  }
-
-  function handleBoardBackgroundPointerDown(event: React.PointerEvent<HTMLDivElement>) {
-    if (event.button !== 0 && event.pointerType === "mouse") {
-      return;
-    }
-
-    if (viewportDragRef.current) {
-      return;
-    }
-
-    const boardElement = event.currentTarget as HTMLDivElement;
-    const pointerNodeId = (event.target as HTMLElement | null)?.closest("[data-node-id]")?.getAttribute("data-node-id") ??
-      findNodeIdAtPoint(event.clientX, event.clientY);
-
-    if (pointerNodeId) {
-      const nodeElement = document.querySelector<HTMLElement>(`[data-node-id="${CSS.escape(pointerNodeId)}"]`);
-      if (nodeElement) {
-        const handledEvent = {
-          ...event,
-          currentTarget: nodeElement,
-          target: nodeElement,
-          preventDefault: event.preventDefault,
-          stopPropagation: event.stopPropagation,
-        } as unknown as React.PointerEvent<HTMLElement>;
-        setHideNodeInfoPopup(false);
-        handlePointerDown(handledEvent, pointerNodeId, getBoardScale());
-        return;
-      }
-    }
-
-    boardElement.setPointerCapture?.(event.pointerId);
-
-    if (event.pointerType === "touch") {
-      activeTouchRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    }
-
-    const handlePanMove = (moveEvent: MouseEvent | PointerEvent) => {
-      const pointerId = "pointerId" in moveEvent ? moveEvent.pointerId : event.pointerId;
-      if (pointerId !== event.pointerId && event.pointerType === "mouse") {
-        return;
-      }
-
-      if (event.pointerType === "touch" && activeTouchRef.current.has(pointerId)) {
-        activeTouchRef.current.set(pointerId, {
-          x: moveEvent.clientX,
-          y: moveEvent.clientY,
-        });
-      }
-
-      if (event.pointerType === "touch" && activeTouchRef.current.size >= 2) {
-        const touches = Array.from(activeTouchRef.current.values());
-        if (touches.length >= 2) {
-          const nextDistance = Math.hypot(touches[1].x - touches[0].x, touches[1].y - touches[0].y);
-          const startDistance = pinchGestureRef.current?.startDistance ?? nextDistance;
-          const startZoom = pinchGestureRef.current?.startZoom ?? zoom;
-          const scaleFactor = nextDistance / (startDistance || 1);
-          const smoothedScaleFactor = 0.9 + (scaleFactor - 1) * 0.32;
-          const nextZoom = Math.min(
-            maxZoom,
-            Math.max(minZoom, Number((startZoom * smoothedScaleFactor).toFixed(2))),
-          );
-
-          if (longPressTimeoutRef.current) {
-            window.clearTimeout(longPressTimeoutRef.current);
-            longPressTimeoutRef.current = null;
+    const nextNodes = nodes.map((node) =>
+      node.id === selectedNodeId
+        ? {
+            ...node,
+            data: {
+              ...node.data,
+              [field]: value,
+            },
           }
-
-          setZoom(nextZoom);
-          setPan((currentPan) => clampPan(currentPan, nextZoom));
-        }
-        return;
-      }
-
-      const dragState = viewportDragRef.current;
-      if (!dragState) {
-        return;
-      }
-
-      const dragSensitivity = event.pointerType === "touch" ? 0.72 : 1;
-      const deltaX = (moveEvent.clientX - dragState.startX) * dragSensitivity;
-      const deltaY = (moveEvent.clientY - dragState.startY) * dragSensitivity;
-      if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) {
-        window.clearTimeout(longPressTimeoutRef.current ?? undefined);
-        longPressTimeoutRef.current = null;
-      }
-
-      setPan((currentPan) => {
-        const nextPan = {
-          x: dragState.startPanX + deltaX,
-          y: dragState.startPanY + deltaY,
-        };
-        return clampPan(nextPan, zoom);
-      });
-    };
-
-    const handlePanEnd = (endEvent: MouseEvent | PointerEvent) => {
-      const pointerId = "pointerId" in endEvent ? endEvent.pointerId : event.pointerId;
-      if (pointerId !== event.pointerId && event.pointerType === "mouse") {
-        return;
-      }
-
-      if (event.pointerType === "touch") {
-        activeTouchRef.current.delete(event.pointerId);
-        if (activeTouchRef.current.size < 2) {
-          pinchGestureRef.current = null;
-        }
-      }
-      boardElement.releasePointerCapture?.(event.pointerId);
-      viewportDragRef.current = null;
-      setIsBoardDragging(false);
-      boardElement.removeEventListener("pointermove", handlePanMove as EventListener);
-      boardElement.removeEventListener("pointerup", handlePanEnd as EventListener);
-      if (longPressTimeoutRef.current) {
-        window.clearTimeout(longPressTimeoutRef.current);
-        longPressTimeoutRef.current = null;
-      }
-    };
-
-    const target = event.target as HTMLElement;
-    if (
-      target.closest("[data-character-node]") ||
-      target.closest("[data-character-relationship]") ||
-      target.closest("button") ||
-      target.closest("[data-relationship-editor]") ||
-      target.closest("input") ||
-      target.closest("select") ||
-      target.closest("textarea") ||
-      target.closest("label")
-    ) {
-      return;
-    }
-
-    if (event.pointerType === "touch" && activeTouchRef.current.size >= 2) {
-      const touches = Array.from(activeTouchRef.current.values());
-      pinchGestureRef.current = {
-        startDistance: Math.hypot(touches[1].x - touches[0].x, touches[1].y - touches[0].y),
-        startZoom: zoom,
-        startPan: pan,
-      };
-      boardElement.addEventListener("pointermove", handlePanMove as EventListener);
-      boardElement.addEventListener("pointerup", handlePanEnd as EventListener, { once: true });
-      return;
-    }
-
-    if (activePanelTab === "info") {
-      setActivePanelTab("add");
-    }
-
-    setHoveredNodeId(null);
-    setHideNodeInfoPopup(true);
-    setSelectedRelationshipId(null);
-    clearRelationshipSelection();
-    setIsBoardDragging(true);
-    viewportDragRef.current = {
-      startX: event.clientX,
-      startY: event.clientY,
-      startPanX: pan.x,
-      startPanY: pan.y,
-    };
-
-    if (longPressTimeoutRef.current) {
-      window.clearTimeout(longPressTimeoutRef.current);
-    }
-
-    longPressTimeoutRef.current = window.setTimeout(() => {
-      const boardScale = getBoardScale();
-      const boardRect = boardElement.getBoundingClientRect();
-      const localX = (event.clientX - boardRect.left) / boardScale;
-      const localY = (event.clientY - boardRect.top) / boardScale;
-
-      if (viewportDragRef.current) {
-        const dragState = viewportDragRef.current;
-        const movedEnough = Math.abs(event.clientX - dragState.startX) > 8 || Math.abs(event.clientY - dragState.startY) > 8;
-        if (movedEnough) {
-          return;
-        }
-      }
-
-      viewportDragRef.current = null;
-      setQuickCreatePosition({
-        x: Math.min(boardWidth - nodeWidth - 40, Math.max(40, localX)),
-        y: Math.min(boardHeight - nodeHeight - 40, Math.max(40, localY)),
-      });
-      setQuickCreateName("");
-      setActivePanelTab("add");
-      setHideNodeInfoPopup(true);
-    }, 550);
-
-    boardElement.addEventListener("pointermove", handlePanMove as EventListener);
-    boardElement.addEventListener("pointerup", handlePanEnd as EventListener, { once: true });
+        : node,
+    );
+    setNodes(nextNodes);
+    updateSelectedWorkSeed(nextNodes, edges);
   }
 
-  function handleBoardBackgroundMouseDown(event: React.MouseEvent<HTMLDivElement>) {
-    if (event.button !== 0) {
-      return;
-    }
-    if (viewportDragRef.current) {
-      return;
-    }
-    handleBoardBackgroundPointerDown({
-      ...event,
-      pointerType: "mouse",
-      pointerId: 1,
-      button: 0,
-      preventDefault: event.preventDefault,
-      stopPropagation: event.stopPropagation,
-      currentTarget: event.currentTarget,
-      target: event.target,
-    } as unknown as React.PointerEvent<HTMLDivElement>);
-  }
+  function handleEdgeFieldChange(field: "label" | "type", value: string) {
+    if (!selectedEdgeId) return;
 
-  function handleBoardBackgroundPointerUp(event?: { pointerId?: number }) {
-    if (event?.pointerId !== undefined) {
-      activeTouchRef.current.delete(event.pointerId);
-    }
-    if (longPressTimeoutRef.current) {
-      window.clearTimeout(longPressTimeoutRef.current);
-      longPressTimeoutRef.current = null;
-    }
-    viewportDragRef.current = null;
-    setIsBoardDragging(false);
-    if (activeTouchRef.current.size < 2) {
-      pinchGestureRef.current = null;
-    }
-  }
+    const nextEdges = edges.map((edge) => {
+      if (edge.id !== selectedEdgeId) return edge;
 
-  async function saveToGithub() {
-    setSaveState("saving");
-    setSaveMessage(remoteEnabled ? "저장 중..." : "브라우저 로컬 저장 중");
-
-    try {
-      const nextLibrary: CharacterMapLibrary = { works };
-      const response = await fetch("/api/character-map", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
+      const nextType = field === "type" ? (value as RelationshipType) : (edge.data?.type ?? "기타");
+      return {
+        ...edge,
+        label: field === "label" ? value : nextType,
+        data: {
+          ...edge.data,
+          type: nextType,
+          label: field === "label" ? value : nextType,
         },
-        body: JSON.stringify({ library: nextLibrary, sha: remoteSha }),
-      });
-
-      if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
-        throw new Error(payload.error ?? "GitHub save failed");
-      }
-
-      const payload = (await response.json()) as { ok: true; sha: string };
-      const refreshed = await fetch("/api/character-map", { cache: "no-store" });
-      const refreshedPayload = refreshed.ok ? ((await refreshed.json()) as {
-        data: CharacterMapLibrary;
-        remoteEnabled: boolean;
-        sha: string | null;
-      }) : null;
-
-      const loadedWorks = refreshedPayload?.data.works ?? nextLibrary.works;
-      window.localStorage.setItem(storageKey, JSON.stringify({ works: loadedWorks }));
-      setWorks(loadedWorks);
-      setSelectedWorkId((current) => {
-        const nextSelected = loadedWorks.find((work) => work.id === current)?.id ?? loadedWorks[0]?.id ?? "";
-        const nextWork = loadedWorks.find((work) => work.id === nextSelected) ?? loadedWorks[0] ?? null;
-        setSelectedId(nextWork?.seed.nodes[0]?.id ?? "");
-        setNodes(nextWork?.seed.nodes ?? []);
-        setRelationships(nextWork?.seed.relationships ?? []);
-        return nextSelected;
-      });
-      setRemoteEnabled(refreshedPayload?.remoteEnabled ?? remoteEnabled);
-      setRemoteSha(payload.sha);
-      setSaveState("saved");
-      setSaveMessage("저장 완료! 최신 데이터가 반영되었습니다.");
-    } catch (error) {
-      setSaveState("error");
-      setSaveMessage(error instanceof Error ? error.message : "저장에 실패했습니다.");
-    }
+        style: {
+          stroke:
+            nextType === "부부"
+              ? "#f472b6"
+              : nextType === "사업"
+                ? "#f59e0b"
+                : nextType === "자식"
+                  ? "#22c55e"
+                  : nextType === "커플"
+                    ? "#8b5cf6"
+                    : nextType === "친구"
+                      ? "#3b82f6"
+                      : "#64748b",
+        },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color:
+            nextType === "부부"
+              ? "#f472b6"
+              : nextType === "사업"
+                ? "#f59e0b"
+                : nextType === "자식"
+                  ? "#22c55e"
+                  : nextType === "커플"
+                    ? "#8b5cf6"
+                    : nextType === "친구"
+                      ? "#3b82f6"
+                      : "#64748b",
+        },
+      };
+    });
+    setEdges(nextEdges);
+    updateSelectedWorkSeed(nodes, nextEdges);
   }
 
   return (
-    <div ref={mapViewportRef} className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_380px]">
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_360px]">
       <section className="overflow-hidden rounded-[32px] border border-slate-300/80 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.04)]">
         <div className="flex items-center justify-between border-b border-slate-200/80 px-4 py-4 sm:px-6">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">Character Map</p>
-            <h2 className="mt-1 text-2xl font-semibold text-slate-950">인물 관계도</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              {selectedWork?.titleKo ?? selectedWork?.title ?? "작품 없음"}
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Character Map</p>
+            <h2 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-slate-950">인물 관계도</h2>
           </div>
-          <div className="hidden flex-wrap items-center justify-end gap-2 sm:flex">
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => updateZoom(zoom - 0.05)}
-              className="rounded-full border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600 transition hover:border-slate-400 hover:text-slate-950"
-              aria-label="축소"
+              onClick={addNode}
+              className="rounded-full bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white shadow-[0_10px_22px_rgba(15,23,42,0.12)]"
             >
-              <FontAwesomeIcon icon={faMagnifyingGlassMinus} />
-            </button>
-            <span className="min-w-14 text-center text-sm font-medium text-slate-500">{Math.round(zoom * 100)}%</span>
-            <button
-              type="button"
-              onClick={() => updateZoom(zoom + 0.05)}
-              className="rounded-full border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600 transition hover:border-slate-400 hover:text-slate-950"
-              aria-label="확대"
-            >
-              <FontAwesomeIcon icon={faMagnifyingGlassPlus} />
-            </button>
-            <button
-              type="button"
-              onClick={saveToGithub}
-              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(15,23,42,0.12)] transition hover:bg-slate-700"
-            >
-              <FontAwesomeIcon icon={faCloudArrowUp} className="mr-2" />
-              저장하기
-            </button>
-            <button
-              type="button"
-              onClick={toggleFullscreen}
-              className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-600 transition hover:border-slate-400 hover:text-slate-950"
-            >
-              <FontAwesomeIcon icon={isFullscreen ? faCompress : faExpand} className="mr-2" />
-              {isFullscreen ? "전체화면 종료" : "전체화면"}
-            </button>
-            <button
-              type="button"
-              onClick={resetSeed}
-              className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-600 transition hover:border-slate-400 hover:text-slate-950"
-            >
-              초기화
+              + 인물 추가
             </button>
           </div>
         </div>
 
         <div className="border-b border-slate-200/80 bg-slate-50/70 px-4 py-4 sm:px-6">
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
-            <div className="min-w-0">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">작품 목록</p>
-              </div>
-              <div className="mt-2 flex items-center gap-2">
-                <div className="relative flex-1">
-                  <CustomSelect
-                    value={selectedWorkId}
-                    onChange={(nextValue) => handleWorkSelect(nextValue)}
-                    className="w-full"
-                    options={orderedWorks.map((work) => ({
-                      value: work.id,
-                      label: work.titleKo ?? work.title,
-                    }))}
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!selectedWorkId || works.length === 0) {
-                      return;
-                    }
-
-                    const targetWork = works.find((work) => work.id === selectedWorkId);
-                    if (targetWork) {
-                      setDeleteModal({
-                        kind: "work",
-                        label: targetWork.titleKo ?? targetWork.title ?? "현재 작품",
-                        workId: targetWork.id,
-                      });
-                    }
-                  }}
-                  disabled={!selectedWorkId || works.length === 0}
-                  aria-label="작품 삭제"
-                  className="flex h-11 w-11 items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 text-base font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  ×
-                </button>
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_220px]">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">작품 선택</p>
+              <div className="mt-2">
+                <CustomSelect
+                  value={selectedWorkId}
+                  onChange={setSelectedWorkId}
+                  options={works.map((work) => ({
+                    value: work.id,
+                    label: work.titleKo ?? work.title,
+                  }))}
+                />
               </div>
             </div>
 
-            <form onSubmit={handleCreateWork} className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">작품 추가</p>
-              <div className="mt-2 flex flex-row items-center gap-2">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">새 작품</p>
+              <div className="mt-2 flex gap-2">
                 <input
                   value={newWorkTitle}
                   onChange={(event) => setNewWorkTitle(event.target.value)}
-                  placeholder="작품 이름을 입력하거나 선택하세요"
-                  className={`${fieldClassName} flex-1 min-w-0`}
+                  placeholder="작품 이름"
+                  className="w-full rounded-full border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                 />
                 <button
-                  type="submit"
-                  className="whitespace-nowrap rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
-                >
-                  작품 추가
-                </button>
-              </div>
-
-              {matchedBooks.length > 0 ? (
-                <div className="mt-3 space-y-3">
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">추천 작품</p>
-                    <div className="mt-2 space-y-2">
-                      {matchedBooks.map((book) => (
-                        <button
-                          key={`${book.title}-${book.author ?? "author"}`}
-                          type="button"
-                          onClick={() => {
-                            setNewWorkTitle(book.title_ko ?? book.title);
-                            setSelectedRecommendedBook(book);
-                          }}
-                          className={`group flex w-full items-center justify-between gap-3 rounded-2xl border px-3 py-3 text-left text-sm transition-all duration-200 ${
-                            selectedRecommendedBook?.title === book.title
-                              ? "border-slate-900 bg-slate-900 text-white shadow-[0_16px_30px_rgba(15,23,42,0.12)]"
-                              : "border-slate-200 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900 hover:shadow-[0_12px_24px_rgba(15,23,42,0.06)]"
-                          }`}
-                        >
-                          <span className="min-w-0">
-                            <span className="block truncate font-semibold">{book.title_ko ?? book.title}</span>
-                            <span className={`mt-0.5 block text-[10px] ${selectedRecommendedBook?.title === book.title ? "text-slate-200" : "text-slate-500"}`}>
-                              {book.author_ko ?? book.author ?? "작가 미상"}
-                            </span>
-                          </span>
-                          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${selectedRecommendedBook?.title === book.title ? "border-white/40 text-white" : "border-slate-300 bg-white text-slate-700 group-hover:border-slate-400"}`}>
-                            선택
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {selectedRecommendedBook ? (
-                    <div className="rounded-2xl border border-slate-200 bg-white/90 p-3 shadow-[0_18px_35px_rgba(15,23,42,0.08)]">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">선택 작품</p>
-                          <p className="mt-1 text-sm font-semibold text-slate-800">
-                            {selectedRecommendedBook.title_ko ?? selectedRecommendedBook.title}
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedRecommendedBook(null)}
-                          className="rounded-full border border-slate-300 bg-slate-50 px-2 py-1 text-[10px] font-medium text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
-                        >
-                          닫기
-                        </button>
-                      </div>
-
-                      {selectedBookCharacters.length > 0 ? (
-                        <div className="mt-3">
-                          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">주요 등장인물</p>
-                          <div className="mt-2 grid grid-cols-2 gap-2">
-                            {selectedBookCharacters.map((character) => (
-                              <button
-                                key={character.name}
-                                type="button"
-                                onClick={() => {
-                                  setDraft((current) => ({
-                                    ...current,
-                                    name: character.name,
-                                    summary: character.description_ko ?? current.summary,
-                                  }));
-                                  setActivePanelTab("add");
-                                  window.requestAnimationFrame(() => {
-                                    const input = document.querySelector<HTMLInputElement>("input[placeholder='인물 이름']");
-                                    input?.focus();
-                                    input?.select();
-                                  });
-                                }}
-                                className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-2 text-left transition hover:border-slate-400 hover:shadow-[0_8px_18px_rgba(15,23,42,0.06)]"
-                              >
-                                <span className="block text-[10px] font-semibold text-slate-700 leading-tight">
-                                  {character.name}
-                                </span>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-            </form>
-          </div>
-
-          {selectedWork && selectedBookCharacters.length > 0 ? (
-            <div className="mt-4 rounded-[26px] border border-slate-200 bg-white/90 p-4 shadow-[0_18px_35px_rgba(15,23,42,0.04)]">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">현재 작품 인물 태그</p>
-                  <p className="mt-1 text-sm font-semibold text-slate-900">
-                    {selectedWork.titleKo ?? selectedWork.title}
-                  </p>
-                </div>
-                <button
                   type="button"
-                  onClick={() => setSelectedRecommendedBook(selectedWorkKnownBook ?? null)}
-                  className="rounded-full border border-slate-300 bg-slate-50 px-2 py-1 text-[10px] font-medium text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
+                  onClick={createNewWork}
+                  className="rounded-full bg-slate-900 px-3 py-2.5 text-xs font-semibold text-white"
                 >
-                  추천 보기
+                  추가
                 </button>
               </div>
-
-              <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                {selectedBookCharacters.map((character) => (
-                  <button
-                    key={`${selectedWork.id}-${character.name}`}
-                    type="button"
-                    onClick={() => {
-                      setDraft((current) => ({
-                        ...current,
-                        name: character.name,
-                        summary: character.description_ko ?? current.summary,
-                      }));
-                      setActivePanelTab("add");
-                      window.requestAnimationFrame(() => {
-                        const input = document.querySelector<HTMLInputElement>("input[placeholder='인물 이름']");
-                        input?.focus();
-                        input?.select();
-                      });
-                    }}
-                    className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white px-3 py-2 text-left transition hover:border-slate-400 hover:shadow-[0_10px_20px_rgba(15,23,42,0.06)]"
-                  >
-                    <span className="block text-[10px] font-semibold text-slate-700 leading-tight">{character.name}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-        </div>
-
-        <div className="border-b border-slate-200/80 px-0 py-0 sm:px-0 lg:hidden">
-          <div className="rounded-none bg-[linear-gradient(180deg,_#ffffff_0%,_#f8f8f6_100%)] p-0 shadow-none">
-            <div className="flex items-center justify-between gap-3 px-2 pt-2">
-              <p className="text-xs font-semibold text-slate-700">모바일 마인드맵</p>
-              <span className="rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold text-slate-500 shadow-sm ring-1 ring-slate-200/80">
-                {Math.round(zoom * 100)}%
-              </span>
-            </div>
-
-            <div className="mt-2 grid grid-cols-4 gap-1.5 px-2 pb-2">
-              <button
-                type="button"
-                onClick={() => updateZoom(zoom - 0.02)}
-                className="inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white px-1.5 py-2 text-[10px] font-semibold text-slate-700 shadow-[0_4px_12px_rgba(15,23,42,0.05)] transition active:scale-[0.98] hover:border-slate-300 hover:text-slate-950"
-                aria-label="모바일 축소"
-              >
-                <FontAwesomeIcon icon={faMagnifyingGlassMinus} />
-                <span className="hidden sm:inline">축소</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => updateZoom(zoom + 0.02)}
-                className="inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white px-1.5 py-2 text-[10px] font-semibold text-slate-700 shadow-[0_4px_12px_rgba(15,23,42,0.05)] transition active:scale-[0.98] hover:border-slate-300 hover:text-slate-950"
-                aria-label="모바일 확대"
-              >
-                <FontAwesomeIcon icon={faMagnifyingGlassPlus} />
-                <span className="hidden sm:inline">확대</span>
-              </button>
-              <button
-                type="button"
-                onClick={resetSeed}
-                className="rounded-xl border border-slate-200 bg-slate-900 px-1.5 py-2 text-[10px] font-semibold text-white shadow-[0_6px_18px_rgba(15,23,42,0.12)] transition active:scale-[0.98] hover:bg-slate-800"
-              >
-                초기화
-              </button>
-              <button
-                type="button"
-                onClick={saveToGithub}
-                className="rounded-xl bg-slate-900 px-1.5 py-2 text-[10px] font-semibold text-white shadow-[0_6px_18px_rgba(15,23,42,0.12)] transition active:scale-[0.98] hover:bg-slate-700"
-              >
-                저장하기
-              </button>
-            </div>
-
-            <div
-              className="overflow-auto rounded-none bg-white/70 shadow-none"
-              style={{
-                WebkitOverflowScrolling: "touch",
-                overscrollBehavior: "contain",
-              }}
-            >
-              <div
-                ref={mobileBoardViewportRef}
-                className="relative h-[420px] min-w-[320px] px-0"
-                style={{
-                  WebkitOverflowScrolling: "touch",
-                  overscrollBehavior: "contain",
-                }}
-              >
-                <div
-                  className="relative"
-                  data-character-board
-                  onPointerDown={handleBoardBackgroundPointerDown}
-                  onPointerUp={handleBoardBackgroundPointerUp}
-                  onPointerLeave={handleBoardBackgroundPointerUp}
-                  style={{
-                    height: boardHeight,
-                    width: boardWidth,
-                    transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${mobileTotalScale})`,
-                    transformOrigin: "top left",
-                    transition: isBoardDragging ? "none" : "transform 180ms cubic-bezier(0.22, 1, 0.36, 1)",
-                    touchAction: "none",
-                    userSelect: "none",
-                    margin: 0,
-                    willChange: "transform",
-                  }}
-                >
-                  <svg className="absolute inset-0 h-full w-full overflow-visible" style={{ pointerEvents: "auto" }}>
-                    {coupleRelationships.map((relationship) => {
-                      const from = nodes.find((node) => node.id === relationship.fromId);
-                      const to = nodes.find((node) => node.id === relationship.toId);
-
-                      if (!from || !to) {
-                        return null;
-                      }
-
-                      const fromAnchor = getNodeAnchor(from);
-                      const toAnchor = getNodeAnchor(to);
-                      const centerX = (fromAnchor.x + toAnchor.x) / 2;
-                      const centerY = (fromAnchor.y + toAnchor.y) / 2;
-                      const dx = toAnchor.x - fromAnchor.x;
-                      const dy = toAnchor.y - fromAnchor.y;
-                      const distance = Math.hypot(dx, dy) || 1;
-                      const rotation = (Math.atan2(dy, dx) * 180) / Math.PI;
-
-                      return (
-                        <ellipse
-                          key={`couple-${relationship.id}`}
-                          cx={centerX}
-                          cy={centerY}
-                          rx={Math.max(90, distance / 2 + 68)}
-                          ry={68}
-                          transform={`rotate(${rotation} ${centerX} ${centerY})`}
-                          fill="rgba(244, 114, 182, 0.08)"
-                          stroke="rgba(244, 114, 182, 0.38)"
-                          strokeWidth="2"
-                          strokeDasharray="8 7"
-                        />
-                      );
-                    })}
-
-                    {relationships.map((relationship) => {
-                      const from = nodes.find((node) => node.id === relationship.fromId);
-                      const to = nodes.find((node) => node.id === relationship.toId);
-
-                      if (!from || !to) {
-                        return null;
-                      }
-
-                      const curve = buildCurvePath(from, to);
-
-                      return (
-                        <g
-                          key={`mobile-${relationship.id}`}
-                          role="button"
-                          tabIndex={0}
-                          data-character-relationship
-                          onPointerDown={(event) => {
-                            event.preventDefault();
-                            event.stopPropagation();
-                            handleRelationshipSelect(relationship.id, relationship.fromId);
-                          }}
-                          onClick={(event) => {
-                            event.preventDefault();
-                            event.stopPropagation();
-                            handleRelationshipSelect(relationship.id, relationship.fromId);
-                          }}
-                          onKeyDown={(event) => {
-                            if (event.key === "Enter" || event.key === " ") {
-                              event.preventDefault();
-                              handleRelationshipSelect(relationship.id, relationship.fromId);
-                            }
-                          }}
-                          className="cursor-pointer"
-                          style={{ pointerEvents: "auto" }}
-                        >
-                          <path
-                            d={curve.path}
-                            stroke={selectedRelationshipId === relationship.id ? "#111827" : "rgba(148,163,184,0.72)"}
-                            strokeWidth={selectedRelationshipId === relationship.id ? 3.2 : 2.5}
-                            fill="none"
-                          />
-                          <rect
-                            x={curve.labelX - 60}
-                            y={curve.labelY - 18}
-                            width="120"
-                            height="36"
-                            rx="18"
-                            fill="rgba(255,255,255,0.01)"
-                            stroke="transparent"
-                            style={{ pointerEvents: "auto", cursor: "pointer" }}
-                            onPointerDown={(event) => {
-                              event.preventDefault();
-                              event.stopPropagation();
-                              handleRelationshipSelect(relationship.id, relationship.fromId);
-                            }}
-                            onClick={(event) => {
-                              event.preventDefault();
-                              event.stopPropagation();
-                              handleRelationshipSelect(relationship.id, relationship.fromId);
-                            }}
-                          />
-                          <text
-                            x={curve.labelX}
-                            y={curve.labelY + 5}
-                            textAnchor="middle"
-                            fontSize="11"
-                            fill={selectedRelationshipId === relationship.id ? "#111827" : "#475569"}
-                            style={{ pointerEvents: "none" }}
-                          >
-                            {relationship.label ?? relationship.type}
-                          </text>
-                        </g>
-                      );
-                    })}
-                  </svg>
-
-                  {relationships.map((relationship) => {
-                    const from = nodes.find((node) => node.id === relationship.fromId);
-                    const to = nodes.find((node) => node.id === relationship.toId);
-                    if (!from || !to) {
-                      return null;
-                    }
-
-                    const curve = buildCurvePath(from, to);
-                    const label = relationship.label ?? relationship.type;
-
-                    return (
-                      <button
-                        key={`mobile-overlay-${relationship.id}`}
-                        type="button"
-                        onPointerDown={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          handleRelationshipSelect(relationship.id, relationship.fromId);
-                        }}
-                        onClick={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          handleRelationshipSelect(relationship.id, relationship.fromId);
-                        }}
-                        className="absolute z-10 rounded-full border border-transparent bg-transparent px-2 py-1 text-[10px] font-semibold text-slate-600"
-                        style={{
-                          left: curve.labelX - 60,
-                          top: curve.labelY - 18,
-                          width: 120,
-                          height: 36,
-                          pointerEvents: "auto",
-                        }}
-                        aria-label={`${label} 관계 수정`}
-                      >
-                        <span className="sr-only">{label} 관계 수정</span>
-                      </button>
-                    );
-                  })}
-
-                  {selectedRelationship && selectedRelationshipPosition ? (
-                    <div
-                      data-relationship-editor
-                      className="absolute z-30 w-56 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-[0_18px_35px_rgba(15,23,42,0.12)] backdrop-blur"
-                      style={{ left: selectedRelationshipPosition.left, top: selectedRelationshipPosition.top }}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">관계 편집</p>
-                        <button
-                          type="button"
-                          onClick={clearRelationshipSelection}
-                          className="rounded-full border border-slate-200 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 transition hover:border-slate-300 hover:text-slate-800"
-                        >
-                          닫기
-                        </button>
-                      </div>
-
-                      <div className="mt-3 space-y-3">
-                        <div>
-                          <label className="text-[11px] font-semibold text-slate-600">종류</label>
-                          <CustomSelect
-                            value={selectedRelationship.type}
-                            onChange={(nextValue) => handleRelationshipPatch("type", nextValue as RelationshipType)}
-                            className="mt-1"
-                            options={relationOptions.map((option) => ({ value: option, label: option }))}
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[11px] font-semibold text-slate-600">라벨</label>
-                          <input
-                            value={selectedRelationship.label ?? ""}
-                            onChange={(event) => handleRelationshipPatch("label", event.target.value)}
-                            placeholder={selectedRelationship.type === "기타" ? "직접 입력" : "선택 사항"}
-                            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-2.5 py-2 text-xs text-slate-700 outline-none focus:border-slate-400"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleDeleteSelectedRelationship}
-                          className="inline-flex w-full items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100"
-                        >
-                          관계 삭제
-                        </button>
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {nodes.map((node) => {
-                    const isSelected = node.id === selectedNode?.id;
-                    const isHovered = hoveredNodeId === node.id;
-                    const showInfo = !hideNodeInfoPopup && isHovered;
-                    const couplePair = getCouplePair(node.id);
-                    const isPaired = Boolean(couplePair && couplePair.pairedId);
-
-                    return (
-                      <div key={`mobile-${node.id}`} className="absolute" style={{ left: node.x, top: node.y }}>
-                        {isPaired ? (
-                          <div className="pointer-events-none absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-rose-200/90 bg-rose-50/50" />
-                        ) : null}
-                        <div className="flex flex-col items-center">
-                          <button
-                            type="button"
-                            data-character-node
-                            data-node-id={node.id}
-                            onPointerDown={(event) => {
-                              setHideNodeInfoPopup(false);
-                              handlePointerDown(event, node.id, mobileTotalScale);
-                            }}
-                            onDoubleClick={() => openNodeEditModal(node.id)}
-                            onClick={() => {
-                              setHideNodeInfoPopup(false);
-                              setSelectedId(node.id);
-                              setSelectedRelationshipId(null);
-                            }}
-                            onMouseEnter={() => handleNodeHoverStart(node.id)}
-                            onMouseLeave={() => handleNodeHoverEnd(node.id)}
-                            onFocus={() => handleNodeHoverStart(node.id)}
-                            onBlur={() => handleNodeHoverEnd(node.id)}
-                            onKeyDown={(event) => {
-                              if (event.key === "Enter" || event.key === " ") {
-                                event.preventDefault();
-                                setSelectedId(node.id);
-                              }
-                            }}
-                            className="flex h-14 w-14 cursor-grab items-center justify-center rounded-full border bg-white text-white shadow-lg transition active:cursor-grabbing"
-                            style={{
-                              borderColor: isSelected ? node.color : "rgba(226,232,240,0.92)",
-                              boxShadow: isSelected
-                                ? `0 20px 40px ${node.color}33`
-                                : "0 18px 35px rgba(15,23,42,0.08)",
-                              backgroundColor: node.color,
-                              touchAction: "none",
-                              userSelect: "none",
-                            }}
-                            aria-label={node.name}
-                          >
-                            <FontAwesomeIcon icon={faUser} />
-                          </button>
-                          <p className="mt-2 max-w-[88px] truncate rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-slate-700 shadow-sm">
-                            {node.name}
-                          </p>
-                        </div>
-
-                        {showInfo ? (
-                          <div className="pointer-events-none absolute left-1/2 top-0 z-20 w-52 -translate-x-1/2 -translate-y-full rounded-[20px] border border-slate-200 bg-white/95 p-3 text-left shadow-[0_16px_36px_rgba(15,23,42,0.16)] backdrop-blur">
-                            <p className="text-sm font-semibold text-slate-900">{node.name}</p>
-                            <p className="mt-1 text-xs text-slate-500">{node.title}</p>
-                            <p className="mt-2 text-xs leading-5 text-slate-600">{node.summary}</p>
-                          </div>
-                        ) : null}
-                      </div>
-                    );
-                  })}
-
-                </div>
-              </div>
-
             </div>
           </div>
         </div>
 
-        <div className="hidden lg:block">
-          <div
-            ref={(node) => {
-              boardViewportRef.current = node;
-              boardExportRef.current = node;
+        <div className="h-[660px] w-full overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.12),_transparent_35%),linear-gradient(180deg,_#fff_0%,_#f8fafc_100%)]">
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={handleConnect}
+            onNodeClick={(_, node) => {
+              setSelectedNodeId(node.id);
+              setSelectedEdgeId(null);
             }}
-            className="relative h-[760px] overflow-auto bg-[linear-gradient(180deg,_#fcfcfb_0%,_#f4f4f3_100%)]"
-            onWheel={handleWheelZoom}
-            onDoubleClick={() => activateAddMode()}
-            onPointerDown={handleBoardBackgroundPointerDown}
-            onPointerUp={handleBoardBackgroundPointerUp}
-            onPointerLeave={handleBoardBackgroundPointerUp}
+            onEdgeClick={(_, edge) => {
+              setSelectedEdgeId(edge.id);
+              setSelectedNodeId(null);
+            }}
+            nodeTypes={nodeTypes}
+            fitView
+            fitViewOptions={{ padding: 0.2 }}
+            defaultEdgeOptions={{
+              type: "smoothstep",
+              animated: true,
+            }}
+            proOptions={{ hideAttribution: true }}
           >
-            {canQuickConnect && showQuickConnectHint ? (
-              <button
-                type="button"
-                onClick={() => setShowQuickConnectHint(false)}
-                className="absolute left-5 top-5 z-20 max-w-xs cursor-pointer rounded-2xl border border-slate-300 bg-white/90 p-3 text-left shadow-[0_18px_35px_rgba(15,23,42,0.08)] backdrop-blur-sm transition hover:border-slate-400 hover:bg-white"
-              >
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">관계 만들기</p>
-                <p className="mt-1 text-sm leading-5 text-slate-700">
-                  선택한 인물을 다른 인물 위로 드래그하면 자동으로 관계가 생성됩니다.
-                </p>
-              </button>
-            ) : null}
-
-            <div
-              className="relative min-w-fit"
-              style={{ height: boardHeight * zoom, width: boardWidth * zoom }}
-            >
-            <div
-              ref={boardContentRef}
-              className="relative"
-              data-character-board
-              style={{
-                height: boardHeight,
-                width: boardWidth,
-                transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
-                transformOrigin: "top left",
-                transition: isBoardDragging ? "none" : "transform 180ms cubic-bezier(0.22, 1, 0.36, 1)",
-                willChange: "transform",
-              }}
-            >
-            <svg className="absolute inset-0 h-full w-full overflow-visible" style={{ pointerEvents: "auto" }}>
-              {coupleRelationships.map((relationship) => {
-                const from = nodes.find((node) => node.id === relationship.fromId);
-                const to = nodes.find((node) => node.id === relationship.toId);
-
-                if (!from || !to) {
-                  return null;
-                }
-
-                const fromAnchor = getNodeAnchor(from);
-                const toAnchor = getNodeAnchor(to);
-                const centerX = (fromAnchor.x + toAnchor.x) / 2;
-                const centerY = (fromAnchor.y + toAnchor.y) / 2;
-                const dx = toAnchor.x - fromAnchor.x;
-                const dy = toAnchor.y - fromAnchor.y;
-                const distance = Math.hypot(dx, dy) || 1;
-                const rotation = (Math.atan2(dy, dx) * 180) / Math.PI;
-
-                return (
-                  <ellipse
-                    key={`couple-${relationship.id}`}
-                    cx={centerX}
-                    cy={centerY}
-                    rx={Math.max(92, distance / 2 + 70)}
-                    ry={70}
-                    transform={`rotate(${rotation} ${centerX} ${centerY})`}
-                    fill="rgba(244, 114, 182, 0.08)"
-                    stroke="rgba(244, 114, 182, 0.38)"
-                    strokeWidth="2"
-                    strokeDasharray="8 7"
-                  />
-                );
-              })}
-
-              {relationships.map((relationship) => {
-                const from = nodes.find((node) => node.id === relationship.fromId);
-                const to = nodes.find((node) => node.id === relationship.toId);
-
-                if (!from || !to) {
-                  return null;
-                }
-
-                const curve = buildCurvePath(from, to);
-
-                return (
-                  <g
-                    key={relationship.id}
-                    role="button"
-                    tabIndex={0}
-                    data-character-relationship
-                    onClick={() => handleRelationshipSelect(relationship.id, relationship.fromId)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        handleRelationshipSelect(relationship.id, relationship.fromId);
-                      }
-                    }}
-                    className="cursor-pointer"
-                    style={{ pointerEvents: "auto" }}
-                  >
-                    <path
-                      d={curve.path}
-                      stroke={selectedRelationshipId === relationship.id ? "#111827" : "rgba(148,163,184,0.8)"}
-                      strokeWidth={selectedRelationshipId === relationship.id ? 3.2 : 2.5}
-                      fill="none"
-                    />
-                    <rect
-                      x={curve.labelX - 42}
-                      y={curve.labelY - 12}
-                      width="84"
-                      height="24"
-                      rx="12"
-                      fill={selectedRelationshipId === relationship.id ? "rgba(255,255,255,0.98)" : "rgba(255,255,255,0.88)"}
-                    />
-                    <rect
-                      x={curve.labelX - 60}
-                      y={curve.labelY - 18}
-                      width="120"
-                      height="36"
-                      rx="18"
-                      fill="transparent"
-                      style={{ pointerEvents: "auto" }}
-                    />
-                    <text
-                      x={curve.labelX}
-                      y={curve.labelY + 5}
-                      textAnchor="middle"
-                      fontSize="11"
-                      fill={selectedRelationshipId === relationship.id ? "#111827" : "#475569"}
-                      style={{ pointerEvents: "none" }}
-                    >
-                      {relationship.label ?? relationship.type}
-                    </text>
-                  </g>
-                );
-              })}
-            </svg>
-
-            {relationships.map((relationship) => {
-              const from = nodes.find((node) => node.id === relationship.fromId);
-              const to = nodes.find((node) => node.id === relationship.toId);
-              if (!from || !to) {
-                return null;
-              }
-
-              const curve = buildCurvePath(from, to);
-              const label = relationship.label ?? relationship.type;
-
-              return (
-                <button
-                  key={`desktop-overlay-${relationship.id}`}
-                  type="button"
-                  onPointerDown={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    handleRelationshipSelect(relationship.id, relationship.fromId);
-                  }}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    handleRelationshipSelect(relationship.id, relationship.fromId);
-                  }}
-                  className="absolute z-10 rounded-full border border-transparent bg-transparent px-2 py-1 text-[10px] font-semibold text-slate-600"
-                  style={{
-                    left: curve.labelX - 60,
-                    top: curve.labelY - 18,
-                    width: 120,
-                    height: 36,
-                    pointerEvents: "auto",
-                  }}
-                  aria-label={`${label} 관계 수정`}
-                >
-                  <span className="sr-only">{label} 관계 수정</span>
-                </button>
-              );
-            })}
-
-            {selectedRelationship && selectedRelationshipPosition ? (
-              <div
-                data-relationship-editor
-                className="absolute z-30 w-56 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-[0_18px_35px_rgba(15,23,42,0.12)] backdrop-blur"
-                style={{ left: selectedRelationshipPosition.left, top: selectedRelationshipPosition.top }}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">관계 편집</p>
-                  <button
-                    type="button"
-                    onClick={clearRelationshipSelection}
-                    className="rounded-full border border-slate-200 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 transition hover:border-slate-300 hover:text-slate-800"
-                  >
-                    닫기
-                  </button>
-                </div>
-
-                <div className="mt-3 space-y-3">
-                  <div>
-                    <label className="text-[11px] font-semibold text-slate-600">종류</label>
-                    <CustomSelect
-                      value={selectedRelationship.type}
-                      onChange={(nextValue) => handleRelationshipPatch("type", nextValue as RelationshipType)}
-                      className="mt-1"
-                      options={relationOptions.map((option) => ({ value: option, label: option }))}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-semibold text-slate-600">라벨</label>
-                    <input
-                      value={selectedRelationship.label ?? ""}
-                      onChange={(event) => handleRelationshipPatch("label", event.target.value)}
-                      placeholder={selectedRelationship.type === "기타" ? "직접 입력" : "선택 사항"}
-                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-2.5 py-2 text-xs text-slate-700 outline-none focus:border-slate-400"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleDeleteSelectedRelationship}
-                    className="inline-flex w-full items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100"
-                  >
-                    관계 삭제
-                  </button>
-                </div>
-              </div>
-            ) : null}
-
-            {nodes.map((node) => {
-              const isSelected = node.id === selectedNode?.id;
-              const isHovered = hoveredNodeId === node.id;
-              const showInfo = !hideNodeInfoPopup && isHovered;
-              const couplePair = getCouplePair(node.id);
-              const isPaired = Boolean(couplePair && couplePair.pairedId);
-
-              return (
-                <div key={node.id} className="absolute" style={{ left: node.x, top: node.y }}>
-                  {isPaired ? (
-                    <div className="pointer-events-none absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-rose-200/90 bg-rose-50/50" />
-                  ) : null}
-                  <div className="flex flex-col items-center">
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      data-character-node
-                      data-node-id={node.id}
-                      onPointerDown={(event) => {
-                        setHideNodeInfoPopup(false);
-                        handlePointerDown(event, node.id);
-                      }}
-                      onDoubleClick={() => openNodeEditModal(node.id)}
-                      onMouseEnter={() => handleNodeHoverStart(node.id)}
-                      onMouseLeave={() => handleNodeHoverEnd(node.id)}
-                      onFocus={() => handleNodeHoverStart(node.id)}
-                      onBlur={() => handleNodeHoverEnd(node.id)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          setHideNodeInfoPopup(false);
-                          setSelectedId(node.id);
-                          setSelectedRelationshipId(null);
-                        }
-                      }}
-                      onClick={() => {
-                        setHideNodeInfoPopup(false);
-                        setSelectedId(node.id);
-                        setSelectedRelationshipId(null);
-                      }}
-                      className="flex h-14 w-14 cursor-grab items-center justify-center rounded-full border text-white shadow-lg transition hover:-translate-y-1 active:cursor-grabbing"
-                      style={{
-                        borderColor: isSelected ? node.color : "rgba(226,232,240,0.9)",
-                        boxShadow: isSelected
-                          ? `0 20px 40px ${node.color}33`
-                          : "0 18px 35px rgba(15,23,42,0.08)",
-                        backgroundColor: node.color,
-                        touchAction: "none",
-                        userSelect: "none",
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faUser} />
-                    </div>
-                    <p className="mt-2 max-w-[88px] truncate rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-slate-700 shadow-sm">
-                      {node.name}
-                    </p>
-                  </div>
-
-                  {showInfo ? (
-                    <div className="pointer-events-none absolute left-1/2 top-0 z-20 w-52 -translate-x-1/2 -translate-y-full rounded-[20px] border border-slate-200 bg-white/95 p-3 text-left shadow-[0_16px_36px_rgba(15,23,42,0.16)] backdrop-blur">
-                      <p className="text-sm font-semibold text-slate-900">{node.name}</p>
-                      <p className="mt-1 text-xs text-slate-500">{node.title}</p>
-                      <p className="mt-2 text-xs leading-5 text-slate-600">{node.summary}</p>
-                    </div>
-                  ) : null}
-                </div>
-              );
-            })}
-            </div>
-            </div>
-
-            <div className="pointer-events-none absolute bottom-4 right-4 rounded-[24px] border border-slate-300/80 bg-white/95 p-3 shadow-[0_16px_40px_rgba(0,0,0,0.08)]">
-              <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                <FontAwesomeIcon icon={faLocationCrosshairs} className="text-slate-700" />
-                Minimap
-              </div>
-              <div
-                className="relative overflow-hidden rounded-2xl bg-slate-950/95"
-                style={{ height: minimapHeight, width: minimapWidth }}
-              >
-                <svg className="absolute inset-0 h-full w-full">
-                  {relationships.map((relationship) => {
-                    const from = nodes.find((node) => node.id === relationship.fromId);
-                    const to = nodes.find((node) => node.id === relationship.toId);
-
-                    if (!from || !to) {
-                      return null;
-                    }
-
-                    return (
-                      <line
-                        key={relationship.id}
-                        x1={(from.x + iconNodeSize / 2) * minimapScale}
-                        y1={(from.y + iconNodeSize / 2) * minimapScale}
-                        x2={(to.x + iconNodeSize / 2) * minimapScale}
-                        y2={(to.y + iconNodeSize / 2) * minimapScale}
-                        stroke="rgba(203,213,225,0.45)"
-                        strokeWidth="1.2"
-                      />
-                    );
-                  })}
-                </svg>
-                {nodes.map((node) => {
-                  const isSelected = node.id === selectedNode?.id;
-
-                  return (
-                    <div
-                      key={`${node.id}-minimap`}
-                      className="absolute rounded-md border"
-                      style={{
-                        left: node.x * minimapScale,
-                        top: node.y * minimapScale,
-                        width: 18,
-                        height: 14,
-                        backgroundColor: node.color,
-                        borderColor: isSelected ? "#fff" : "rgba(255,255,255,0.25)",
-                        boxShadow: isSelected ? "0 0 0 2px rgba(255,255,255,0.25)" : "none",
-                      }}
-                    />
-                  );
-                })}
-                <div
-                  className="absolute rounded-xl border border-slate-300/80 bg-slate-100/70"
-                  style={{
-                    left: 0,
-                    top: 0,
-                    width: viewportWidth * minimapScale,
-                    height: viewportHeight * minimapScale,
-                  }}
-                />
-              </div>
-              <p className="mt-2 text-[11px] leading-5 text-slate-500">
-                마우스 휠로 확대/축소하고, 카드 drag로 배치를 조정합니다.
-              </p>
-            </div>
-          </div>
+            <Background gap={18} size={1} color="#dfe7f1" />
+            <MiniMap
+              pannable
+              zoomable
+              nodeColor={(node) => (node.data?.color as string) ?? "#c4b5fd"}
+              maskColor="rgba(255,255,255,0.78)"
+            />
+            <Controls />
+          </ReactFlow>
         </div>
       </section>
 
-      {nodeEditModalId && selectedNode ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/18 p-3 backdrop-blur-[1.5px]">
-          <div className="w-full max-w-sm overflow-hidden rounded-[24px] border border-slate-200/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] shadow-[0_24px_60px_rgba(15,23,42,0.14)] ring-1 ring-slate-200/80">
-            <div className="flex items-center justify-between gap-2 border-b border-slate-200/80 bg-white/70 px-3.5 py-3">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 text-[11px] text-white shadow-[0_8px_18px_rgba(15,23,42,0.18)]">
-                  <FontAwesomeIcon icon={faUser} />
-                </div>
-                <div>
-                  <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-500">character</p>
-                  <h4 className="text-sm font-semibold text-slate-900">인물 수정</h4>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setNodeEditModalId(null)}
-                className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-medium text-slate-600 transition hover:border-slate-300 hover:bg-white"
-              >
-                닫기
-              </button>
-            </div>
-
-            <div className="px-3.5 pb-3 pt-3">
-              <div className="flex gap-1 rounded-2xl bg-slate-100 p-1">
-                <button
-                  type="button"
-                  onClick={() => setShowNodeDetails((current) => !current)}
-                  className={`flex-1 rounded-xl px-2 py-1.5 text-[11px] font-semibold transition ${
-                    showNodeDetails
-                      ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  세부정보
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setNodeEditModalId(null);
-                    void saveToGithub();
-                  }}
-                  className="flex-1 rounded-xl bg-slate-900 px-2 py-1.5 text-[11px] font-semibold text-white shadow-[0_8px_18px_rgba(15,23,42,0.14)] transition hover:bg-slate-800"
-                >
-                  저장
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setNodeEditModalId(null);
-                    handleDeleteSelectedNode();
-                  }}
-                  className="flex-1 rounded-xl border border-rose-200 bg-rose-50 px-2 py-1.5 text-[11px] font-semibold text-rose-700 transition hover:bg-rose-100"
-                >
-                  삭제
-                </button>
-              </div>
-
-              <div className="mt-3 space-y-2.5 rounded-[18px] border border-slate-200 bg-white/90 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-                <label className="block">
-                  <span className="mb-1 block text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">name</span>
-                  <input
-                    value={selectedNode.name}
-                    onChange={(event) => handleNodePatch("name", event.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-300 focus:bg-white"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">title</span>
-                  <input
-                    value={selectedNode.title}
-                    onChange={(event) => handleNodePatch("title", event.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-300 focus:bg-white"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">summary</span>
-                  <textarea
-                    value={selectedNode.summary}
-                    onChange={(event) => handleNodePatch("summary", event.target.value)}
-                    className="h-20 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-300 focus:bg-white"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">actions</span>
-                  <textarea
-                    value={selectedNode.majorActions.join("\n")}
-                    onChange={(event) => handleNodePatch("majorActions", event.target.value)}
-                    className="h-20 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-300 focus:bg-white"
-                  />
-                </label>
-              </div>
-            </div>
+      <aside className="rounded-[28px] border border-slate-200/80 bg-white/90 p-4 shadow-[0_12px_28px_rgba(15,23,42,0.04)] backdrop-blur-sm">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">Editor</p>
+            <h3 className="mt-1 text-lg font-semibold tracking-[-0.03em] text-slate-900">정보 편집</h3>
           </div>
-        </div>
-      ) : null}
-
-      {deleteModal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_28px_80px_rgba(15,23,42,0.22)]">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-500">삭제 확인</p>
-                <h4 className="mt-2 text-xl font-semibold text-slate-900">
-                  {deleteModal.kind === "work" ? "작품 삭제" : "인물 삭제"}
-                </h4>
-              </div>
-              <button
-                type="button"
-                onClick={() => setDeleteModal(null)}
-                className="rounded-full border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:border-slate-300 hover:text-slate-800"
-              >
-                취소
-              </button>
-            </div>
-
-            <p className="mt-4 text-sm leading-6 text-slate-600">
-              {deleteModal.kind === "work"
-                ? `"${deleteModal.label}" 작품을 삭제하시겠습니까? 이 작업은 최근 삭제 목록에 보관되어 복구할 수 있습니다.`
-                : `"${deleteModal.label}" 인물을 삭제하시겠습니까? 연결된 관계도 함께 정리됩니다.`}
-            </p>
-
-            <div className="mt-5 space-y-2">
-              <button
-                type="button"
-                onClick={confirmDeleteModal}
-                className="inline-flex w-full items-center justify-center rounded-2xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-500"
-              >
-                삭제하기
-              </button>
-              <button
-                type="button"
-                onClick={() => setDeleteModal(null)}
-                className="inline-flex w-full items-center justify-center rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-white"
-              >
-                돌아가기
-              </button>
-            </div>
-
-            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-500">최근 삭제</p>
-                <span className="text-[10px] text-slate-400">{deleteHistory.length}개</span>
-              </div>
-              {deleteHistory.length === 0 ? (
-                <p className="mt-3 text-sm text-slate-500">최근 삭제 항목이 없습니다.</p>
-              ) : (
-                <div className="mt-3 space-y-2">
-                  {deleteHistory.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2"
-                    >
-                      <div>
-                        <p className="text-xs font-semibold text-slate-700">{item.label}</p>
-                        <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                          {item.kind === "work" ? "작품" : "인물"}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => restoreDeleteItem(item)}
-                        className="rounded-full border border-slate-300 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-white"
-                      >
-                        복구
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {quickCreatePosition ? (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/20 backdrop-blur-[1px] p-4">
-          <div className="w-full max-w-md rounded-[30px] border border-slate-200 bg-white p-4 shadow-[0_28px_80px_rgba(15,23,42,0.18)]">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-slate-500">빈 공간 생성</p>
-                <h4 className="mt-2 text-lg font-semibold text-slate-900">새 인물 추가</h4>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setQuickCreatePosition(null);
-                  setQuickCreateName("");
-                }}
-                className="rounded-full border border-slate-200 px-2 py-1 text-[10px] font-medium text-slate-500 transition hover:border-slate-300 hover:text-slate-800"
-              >
-                취소
-              </button>
-            </div>
-
-            <p className="mt-2 text-[11px] leading-5 text-slate-500">
-              빈 공간을 눌렀던 위치에 인물을 바로 추가합니다.
-            </p>
-
-            <div className="mt-4 space-y-3">
-              <div>
-                <label className="text-[10px] font-semibold text-slate-600">인물 이름</label>
-                <input
-                  autoFocus
-                  value={quickCreateName}
-                  onChange={(event) => setQuickCreateName(event.target.value)}
-                  placeholder="예: 낡은 경비원"
-                  className="mt-1 w-full rounded-2xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-200"
-                />
-              </div>
-
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-[10px] leading-5 text-slate-600">
-                {selectedNode ? (
-                  <span>현재 선택된 인물과 연결 관계를 이어서 만들 수도 있습니다.</span>
-                ) : (
-                  <span>이 위치에 독립 인물을 바로 추가합니다.</span>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  const nextName = quickCreateName.trim() || draft.name.trim() || "새 인물";
-                  createCharacterAtPosition(quickCreatePosition, nextName);
-                }}
-                className="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
-              >
-                생성하기
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {dragConnectDraft ? (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/20 backdrop-blur-[1px]">
-          <div className="w-full max-w-sm rounded-[28px] border border-slate-200 bg-white p-4 shadow-[0_28px_80px_rgba(15,23,42,0.18)]">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-500">관계 유형 선택</p>
-              <button
-                type="button"
-                onClick={() => setDragConnectDraft(null)}
-                className="rounded-full border border-slate-200 px-1.5 py-0.5 text-[9px] font-medium text-slate-500"
-              >
-                취소
-              </button>
-            </div>
-
-            <div className="mt-3 space-y-3">
-              <div>
-                <label className="text-[9px] font-semibold text-slate-600">관계 종류</label>
-                <CustomSelect
-                  value={dragConnectDraft.type}
-                  onChange={(nextValue) =>
-                    setDragConnectDraft((current) =>
-                      current ? { ...current, type: nextValue as RelationshipType } : current,
-                    )
-                  }
-                  className="mt-1"
-                  options={relationOptions.map((option) => ({ value: option, label: option }))}
-                />
-              </div>
-
-              {dragConnectDraft.type === "기타" ? (
-                <div>
-                  <label className="text-[9px] font-semibold text-slate-600">커스텀 라벨</label>
-                  <input
-                    value={dragConnectDraft.label}
-                    onChange={(event) =>
-                      setDragConnectDraft((current) =>
-                        current ? { ...current, label: event.target.value } : current,
-                      )
-                    }
-                    placeholder="관계 직접 입력"
-                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-2.5 py-2 text-[10px] text-slate-700 outline-none focus:border-slate-400"
-                  />
-                </div>
-              ) : null}
-
-              <button
-                type="button"
-                onClick={() => {
-                  const created = addRelationshipBetweenExistingNodes(
-                    dragConnectDraft.sourceNodeId,
-                    dragConnectDraft.targetNodeId,
-                    dragConnectDraft.type,
-                    dragConnectDraft.type === "기타" ? dragConnectDraft.label : undefined,
-                  );
-
-                  if (created) {
-                    setExistingConnectionTargetId(dragConnectDraft.targetNodeId);
-                    setExistingConnectionSearch("");
-                  }
-                  setDragConnectDraft(null);
-                }}
-                className="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-[10px] font-semibold text-white transition hover:bg-slate-700"
-              >
-                관계 생성
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {relationshipDeleteConfirm ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_28px_80px_rgba(15,23,42,0.22)]">
-            <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-500">삭제 확인</p>
-            <h4 className="mt-2 text-base font-semibold text-slate-900">관계를 삭제할까요?</h4>
-            <p className="mt-2 text-[11px] leading-6 text-slate-600">
-              선택한 관계를 삭제하면 지도가 즉시 반영됩니다.
-            </p>
-
-            <div className="mt-5 space-y-2">
-              <button
-                type="button"
-                onClick={confirmDeleteRelationship}
-                className="inline-flex w-full items-center justify-center rounded-2xl bg-rose-600 px-4 py-3 text-[11px] font-semibold text-white transition hover:bg-rose-500"
-              >
-                삭제하기
-              </button>
-              <button
-                type="button"
-                onClick={() => setRelationshipDeleteConfirm(null)}
-                className="inline-flex w-full items-center justify-center rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-[11px] font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-white"
-              >
-                취소
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      <aside className="space-y-6">
-        <section className="rounded-[30px] border border-slate-200 bg-[linear-gradient(135deg,_#ffffff_0%,_#f5f5f4_45%,_#efefee_100%)] p-6 shadow-[0_22px_50px_rgba(15,23,42,0.05)]">
-          <div className="mb-5 flex rounded-2xl border border-slate-200 bg-slate-100 p-1 shadow-inner shadow-slate-200/80">
+          {(selectedNodeId || selectedEdgeId) && (
             <button
               type="button"
-              onClick={() => setActivePanelTab("add")}
-              className={`flex-1 rounded-xl px-3 py-2 text-sm font-semibold transition ${
-                activePanelTab === "add"
-                  ? "bg-slate-950 text-white shadow-sm"
-                  : "text-slate-600 hover:text-slate-950"
-              }`}
+              onClick={removeSelected}
+              className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-[11px] font-semibold text-rose-700"
             >
-              인물 추가
+              삭제
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (selectedNode) {
-                  setActivePanelTab("info");
-                }
-              }}
-              className={`flex-1 rounded-xl px-3 py-2 text-sm font-semibold transition ${
-                activePanelTab === "info"
-                  ? "bg-slate-950 text-white shadow-sm"
-                  : "text-slate-600 hover:text-slate-950"
-              }`}
-            >
-              인물 정보
-            </button>
-          </div>
+          )}
+        </div>
 
-          <div className="relative">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
-                <FontAwesomeIcon icon={faBookOpen} />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-500">{activePanelTab === "add" ? "새 인물" : "선택한 인물"}</p>
-                <h3 className="text-xl font-semibold text-slate-900">{selectedNode?.name || (activePanelTab === "info" ? "인물 없음" : "새 인물")}</h3>
-              </div>
+        {selectedNode ? (
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">인물 이름</label>
+              <input
+                value={selectedNode.data.label}
+                onChange={(event) => handleNodeFieldChange("label", event.target.value)}
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+              />
             </div>
-
-            <div className="relative mt-5">
-              <div
-                className={`transition-all duration-200 ${
-                  activePanelTab === "info" ? "opacity-100 translate-y-0" : "pointer-events-none absolute inset-0 opacity-0 translate-y-2"
-                }`}
-              >
-                <div className="space-y-3">
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
-                    <label className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                      이름
-                    </label>
-                    <input
-                      value={selectedNode?.name ?? ""}
-                      onChange={(event) => handleNodePatch("name", event.target.value)}
-                      className={`${fieldClassName} mt-2`}
-                    />
-                  </div>
-
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
-                    <label className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                      역할 / 호칭
-                    </label>
-                    <input
-                      value={selectedNode?.title ?? ""}
-                      onChange={(event) => handleNodePatch("title", event.target.value)}
-                      className={`${fieldClassName} mt-2`}
-                    />
-                  </div>
-
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
-                    <label className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                      배경 메모
-                    </label>
-                    <textarea
-                      value={selectedNode?.summary ?? ""}
-                      onChange={(event) => handleNodePatch("summary", event.target.value)}
-                      className={`${textareaClassName} mt-2`}
-                    />
-                  </div>
-
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
-                    <label className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                      주요 행동 메모
-                    </label>
-                    <textarea
-                      value={selectedNode?.majorActions.join("\n") ?? ""}
-                      onChange={(event) => handleNodePatch("majorActions", event.target.value)}
-                      className={`${textareaClassName} mt-2`}
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
-                    <FontAwesomeIcon icon={faLink} className="text-slate-700" />
-                    연결된 관계
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {connectedRelationships.map((relationship) => (
-                      <button
-                        key={relationship.id}
-                        type="button"
-                        onClick={() => handleRelationshipSelect(relationship.id, selectedNode?.id)}
-                        className={`rounded-full px-3 py-1 text-xs font-medium shadow-sm transition ${
-                          selectedRelationship?.id === relationship.id
-                            ? "bg-slate-900 text-white"
-                            : "bg-white text-slate-600 hover:text-slate-950"
-                        }`}
-                      >
-                        {relationship.label ?? relationship.type}
-                      </button>
-                    ))}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleDeleteSelectedNode}
-                    disabled={!selectedNode}
-                    className="mt-4 inline-flex w-full items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    인물 삭제
-                  </button>
-
-                  <div className="mt-4 rounded-2xl border border-slate-200 bg-white/80 p-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                      관계 편집
-                    </p>
-                    {selectedRelationship ? (
-                      <div className="mt-3 space-y-3">
-                        <div>
-                          <label className="text-xs font-semibold text-slate-600">관계 종류</label>
-                          <CustomSelect
-                            value={selectedRelationship.type}
-                            onChange={(nextValue) => handleRelationshipPatch("type", nextValue as RelationshipType)}
-                            className="mt-2"
-                            options={relationOptions.map((option) => ({ value: option, label: option }))}
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-xs font-semibold text-slate-600">커스텀 라벨</label>
-                          <input
-                            value={selectedRelationship.label ?? ""}
-                            onChange={(event) => handleRelationshipPatch("label", event.target.value)}
-                            placeholder={selectedRelationship.type === "기타" ? "관계를 직접 입력" : "선택 사항"}
-                            className={`${fieldClassName} mt-2`}
-                          />
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={handleDeleteSelectedRelationship}
-                          className="inline-flex w-full items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100"
-                        >
-                          관계 삭제
-                        </button>
-                      </div>
-                    ) : (
-                      <p className="mt-3 text-sm leading-6 text-slate-500">
-                        카드 또는 관계선 클릭 후 여기에서 관계 종류와 라벨을 수정할 수 있습니다.
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">기존 인물 연결</p>
-                    <div className="mt-3 space-y-3">
-                      <div>
-                        <label className="text-xs font-semibold text-slate-600">연결 대상</label>
-                        <div className="mt-2 rounded-2xl border border-slate-300 bg-white/90 p-2 shadow-[0_6px_16px_rgba(15,23,42,0.04)]">
-                          <input
-                            value={existingConnectionSearch}
-                            onChange={(event) => setExistingConnectionSearch(event.target.value)}
-                            placeholder={selectedNode ? "인물 검색해서 선택" : "먼저 인물을 선택하세요"}
-                            disabled={!selectedNode || nodes.length <= 1}
-                            className={`${fieldClassName} border-0 bg-transparent px-2 py-2 shadow-none focus:ring-0`}
-                          />
-
-                          {selectedExistingConnectionNode ? (
-                            <div className="mt-2 flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2">
-                              <div className="min-w-0">
-                                <p className="truncate text-sm font-semibold text-slate-800">
-                                  {selectedExistingConnectionNode.name}
-                                </p>
-                                <p className="truncate text-[10px] text-slate-500">
-                                  {selectedExistingConnectionNode.title}
-                                </p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setExistingConnectionTargetId("");
-                                  setExistingConnectionSearch("");
-                                }}
-                                className="rounded-full border border-slate-300 bg-white px-2 py-1 text-[10px] font-medium text-slate-700"
-                              >
-                                취소
-                              </button>
-                            </div>
-                          ) : null}
-
-                          {selectedNode && nodes.length > 1 ? (
-                            <div className="mt-2 max-h-44 space-y-1 overflow-y-auto pr-1">
-                              {filteredExistingConnectionNodes.length === 0 ? (
-                                <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
-                                  검색 결과가 없습니다.
-                                </p>
-                              ) : (
-                                filteredExistingConnectionNodes.map((node) => (
-                                  <button
-                                    key={node.id}
-                                    type="button"
-                                    onClick={() => {
-                                      setExistingConnectionTargetId(node.id);
-                                      setExistingConnectionSearch(node.name);
-                                    }}
-                                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left transition hover:border-slate-400 hover:bg-slate-50"
-                                  >
-                                    <div className="min-w-0">
-                                      <p className="truncate text-sm font-semibold text-slate-800">{node.name}</p>
-                                      <p className="truncate text-[10px] text-slate-500">{node.title}</p>
-                                    </div>
-                                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
-                                      선택
-                                    </span>
-                                  </button>
-                                ))
-                              )}
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="text-xs font-semibold text-slate-600">관계 종류</label>
-                        <CustomSelect
-                          value={existingConnectionType}
-                          onChange={(nextValue) => setExistingConnectionType(nextValue as RelationshipType)}
-                          className="mt-2"
-                          options={relationOptions.map((option) => ({ value: option, label: option }))}
-                        />
-                      </div>
-
-                      {existingConnectionType === "기타" ? (
-                        <div>
-                          <label className="text-xs font-semibold text-slate-600">커스텀 라벨</label>
-                          <input
-                            value={existingConnectionLabel}
-                            onChange={(event) => setExistingConnectionLabel(event.target.value)}
-                            placeholder="관계를 직접 입력"
-                            className={`${fieldClassName} mt-2`}
-                          />
-                        </div>
-                      ) : null}
-
-                      <div className="rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-[11px] leading-5 text-slate-500">
-                        드래그로 다른 인물에 놓으면 빠르게 관계를 추가할 수 있습니다.
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={handleConnectSelectedNodeToExisting}
-                        disabled={!selectedNode || !existingConnectionTargetId}
-                        className="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        연결 추가
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div
-                className={`transition-all duration-200 ${
-                  activePanelTab === "add" ? "opacity-100 translate-y-0" : "pointer-events-none absolute inset-0 opacity-0 translate-y-2"
-                }`}
-              >
-                <div className="rounded-[28px] border border-slate-300/80 bg-[linear-gradient(180deg,_#fafaf8_0%,_#f4f4ef_100%)] p-6 text-slate-800 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
-                      <FontAwesomeIcon icon={faPlus} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-600">인물 추가</p>
-                      <h3 className="text-xl font-semibold text-slate-900">
-                        {draft.linkedToSelected && selectedNode ? `${selectedNode.name}와 이어 붙이기` : "독립 인물로 추가"}
-                      </h3>
-                    </div>
-                  </div>
-
-                  <form className="mt-5 space-y-3" onSubmit={handleCreateCharacter}>
-                    <input
-                      value={draft.name}
-                      onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
-                      placeholder="인물 이름"
-                      className={fieldClassName}
-                    />
-                    <input
-                      value={draft.title}
-                      onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
-                      placeholder="역할 또는 호칭"
-                      className={fieldClassName}
-                    />
-                    <textarea
-                      value={draft.summary}
-                      onChange={(event) => setDraft((current) => ({ ...current, summary: event.target.value }))}
-                      placeholder="인물 소개"
-                      className={textareaClassName}
-                    />
-                    <textarea
-                      value={draft.majorActions}
-                      onChange={(event) => setDraft((current) => ({ ...current, majorActions: event.target.value }))}
-                      placeholder="주요 행동을 줄바꿈으로 입력"
-                      className={textareaClassName}
-                    />
-                    <label className="flex items-center gap-2 rounded-2xl border border-slate-300 bg-white/70 px-4 py-3 text-sm text-slate-700">
-                      <input
-                        type="checkbox"
-                        checked={!draft.linkedToSelected}
-                        onChange={(event) =>
-                          setDraft((current) => ({
-                            ...current,
-                            linkedToSelected: !event.target.checked,
-                            relationshipType: event.target.checked ? "선택 없음" : current.relationshipType,
-                          }))
-                        }
-                        className={checkboxClassName}
-                      />
-                      현재 인물과 연결하지 않고 독립 인물로 추가
-                    </label>
-                    <CustomSelect
-                      value={draft.relationshipType}
-                      onChange={(nextValue) =>
-                        setDraft((current) => ({
-                          ...current,
-                          relationshipType: nextValue as RelationshipType | "선택 없음",
-                        }))
-                      }
-                      className={draft.linkedToSelected === false ? "pointer-events-none opacity-50" : ""}
-                      options={relationshipSelectionOptions.map((option) => ({ value: option, label: option }))}
-                    />
-
-                    {draft.linkedToSelected && draft.relationshipType === "기타" ? (
-                      <input
-                        value={draft.customRelationship}
-                        onChange={(event) =>
-                          setDraft((current) => ({ ...current, customRelationship: event.target.value }))
-                        }
-                        placeholder="직접 입력 관계"
-                        className={fieldClassName}
-                      />
-                    ) : null}
-
-                    <button
-                      type="submit"
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-                    >
-                      <FontAwesomeIcon icon={faWandSparkles} />
-                      연결 인물 만들기
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={saveToGithub}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-800 transition hover:border-slate-700 hover:bg-slate-50"
-                    >
-                      <FontAwesomeIcon icon={faCloudArrowUp} />
-                      저장
-                    </button>
-
-                    <p
-                      className={`text-xs leading-6 ${
-                        saveState === "error"
-                          ? "text-rose-500"
-                          : saveState === "saved"
-                            ? "text-emerald-600"
-                            : "text-slate-500"
-                      }`}
-                    >
-                      {saveMessage}
-                    </p>
-                  </form>
-                </div>
-              </div>
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">호칭/역할</label>
+              <input
+                value={selectedNode.data.subtitle}
+                onChange={(event) => handleNodeFieldChange("subtitle", event.target.value)}
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">한 줄 설명</label>
+              <textarea
+                value={selectedNode.data.summary}
+                onChange={(event) => handleNodeFieldChange("summary", event.target.value)}
+                rows={5}
+                className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+              />
             </div>
           </div>
-        </section>
+        ) : selectedEdge ? (
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">관계 유형</label>
+              <select
+                value={selectedEdge.data?.type ?? "기타"}
+                onChange={(event) => handleEdgeFieldChange("type", event.target.value)}
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+              >
+                {relationOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">연결 설명</label>
+              <textarea
+                value={typeof selectedEdge.label === "string" ? selectedEdge.label : String(selectedEdge.label ?? "")}
+                onChange={(event) => handleEdgeFieldChange("label", event.target.value)}
+                rows={5}
+                className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+              />
+            </div>
+            <div className="rounded-2xl border border-violet-100 bg-violet-50 p-3 text-sm leading-6 text-violet-700">
+              노드끼리 연결하면 새 관계가 생깁니다. 관계 유형과 설명을 적으면 서사적 의미를 더 잘 남길 수 있어요.
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-[22px] border border-dashed border-slate-300 bg-slate-50/80 p-4 text-sm leading-6 text-slate-600">
+            인물을 클릭해 정보를 수정하거나, 노드 핸들을 드래그해서 다른 인물과 관계를 연결해 보세요.
+          </div>
+        )}
+
+        <div className="mt-5 rounded-[22px] border border-slate-200 bg-slate-50/80 p-3">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">기본 관계 유형</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {relationOptions.map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setDraftRelationType(type)}
+                className={`rounded-full border px-2.5 py-1.5 text-[11px] font-medium transition ${
+                  draftRelationType === type
+                    ? "border-slate-900 bg-slate-900 text-white"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        </div>
       </aside>
     </div>
   );

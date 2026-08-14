@@ -1,0 +1,584 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import {
+  Background,
+  Connection,
+  Controls,
+  Edge,
+  Handle,
+  MarkerType,
+  MiniMap,
+  Node,
+  NodeProps,
+  NodeTypes,
+  Position,
+  ReactFlow,
+  useEdgesState,
+  useNodesState,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+
+type KeywordNodeData = {
+  label: string;
+  description: string;
+  color: string;
+};
+
+type KeywordNode = Node<KeywordNodeData, "keywordNode">;
+type KeywordEdge = Edge<{ label?: string }>;
+type SavedMindmapDocument = {
+  id: string;
+  title: string;
+  updatedAt: string;
+  nodes: KeywordNode[];
+  edges: KeywordEdge[];
+};
+
+const storageKey = "readingbook-keyword-mindmap";
+const documentsStorageKey = "readingbook-keyword-mindmap-documents";
+
+const colorPalette = [
+  "#fdf2f8",
+  "#eff6ff",
+  "#ecfeff",
+  "#fef3c7",
+  "#f5f3ff",
+  "#dcfce7",
+];
+
+const initialNodes: KeywordNode[] = [
+  {
+    id: "theme-core",
+    type: "keywordNode",
+    position: { x: 240, y: 120 },
+    data: {
+      label: "책의 중심 주제",
+      description: "이야기의 핵심 감정과 메시지를 한 줄로 압축한 키워드입니다.",
+      color: "#fdf2f8",
+    },
+  },
+  {
+    id: "memory",
+    type: "keywordNode",
+    position: { x: 500, y: 80 },
+    data: {
+      label: "기억의 잔상",
+      description: "상처와 행복이 섞여 남는 인상적인 장면과 감정의 흐름입니다.",
+      color: "#ecfeff",
+    },
+  },
+  {
+    id: "choice",
+    type: "keywordNode",
+    position: { x: 500, y: 260 },
+    data: {
+      label: "선택의 순간",
+      description: "인물의 행동을 결정짓는 갈등과 타이밍을 남겼습니다.",
+      color: "#fef3c7",
+    },
+  },
+  {
+    id: "relationship",
+    type: "keywordNode",
+    position: { x: 760, y: 180 },
+    data: {
+      label: "관계의 균형",
+      description: "인물 간의 신뢰와 경계가 어떻게 변화하는지 정리하는 핵심 단어입니다.",
+      color: "#eff6ff",
+    },
+  },
+  {
+    id: "ending",
+    type: "keywordNode",
+    position: { x: 240, y: 340 },
+    data: {
+      label: "결말의 여운",
+      description: "마지막 장면에서 남는 의미와 구조적 메시지를 정리해두면 좋습니다.",
+      color: "#dcfce7",
+    },
+  },
+];
+
+const initialEdges: KeywordEdge[] = [
+  {
+    id: "e-core-memory",
+    source: "theme-core",
+    target: "memory",
+    label: "감정이 자리를 잡는다",
+    animated: true,
+    style: { stroke: "#8b5cf6" },
+    markerEnd: { type: MarkerType.ArrowClosed, color: "#8b5cf6" },
+    type: "smoothstep",
+  },
+  {
+    id: "e-core-choice",
+    source: "theme-core",
+    target: "choice",
+    label: "결정의 계기가 된다",
+    animated: true,
+    style: { stroke: "#f59e0b" },
+    markerEnd: { type: MarkerType.ArrowClosed, color: "#f59e0b" },
+    type: "smoothstep",
+  },
+  {
+    id: "e-memory-relationship",
+    source: "memory",
+    target: "relationship",
+    label: "과거가 현재를 만든다",
+    animated: true,
+    style: { stroke: "#0ea5e9" },
+    markerEnd: { type: MarkerType.ArrowClosed, color: "#0ea5e9" },
+    type: "smoothstep",
+  },
+  {
+    id: "e-choice-ending",
+    source: "choice",
+    target: "ending",
+    label: "결말을 앞당기는 선택",
+    animated: true,
+    style: { stroke: "#22c55e" },
+    markerEnd: { type: MarkerType.ArrowClosed, color: "#22c55e" },
+    type: "smoothstep",
+  },
+];
+
+function KeywordNodeCard({ data, selected }: NodeProps<KeywordNode>) {
+  return (
+    <div
+      className="relative w-[200px] rounded-[24px] border-2 bg-white p-3 shadow-[0_18px_38px_rgba(15,23,42,0.08)]"
+      style={{
+        background: `linear-gradient(180deg, ${data.color} 0%, rgba(255,255,255,0.96) 52%)`,
+        borderColor: selected ? "#8b5cf6" : "rgba(148, 163, 184, 0.35)",
+      }}
+    >
+      <Handle type="target" position={Position.Left} className="!h-3 !w-3 !border-2 !border-white !bg-slate-700" />
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="rounded-full bg-white/80 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-violet-700">
+          concept
+        </span>
+        <span className="h-2.5 w-2.5 rounded-full bg-violet-500" />
+      </div>
+      <h3 className="text-sm font-semibold tracking-[-0.03em] text-slate-900">{data.label}</h3>
+      <p className="mt-2 text-[11px] leading-5 text-slate-600">{data.description}</p>
+      <Handle type="source" position={Position.Right} className="!h-3 !w-3 !border-2 !border-white !bg-slate-700" />
+    </div>
+  );
+}
+
+const nodeTypes: NodeTypes = {
+  keywordNode: KeywordNodeCard,
+};
+
+function makeBlankDocument(title: string, nextNodes: KeywordNode[] = initialNodes, nextEdges: KeywordEdge[] = initialEdges): SavedMindmapDocument {
+  return {
+    id: crypto.randomUUID(),
+    title,
+    updatedAt: new Date().toISOString(),
+    nodes: nextNodes,
+    edges: nextEdges,
+  };
+}
+
+export function KeywordMindmap() {
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [documents, setDocuments] = useState<SavedMindmapDocument[]>([]);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string>("");
+  const [documentTitle, setDocumentTitle] = useState("문서 1");
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialNodes[0].id);
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+
+  function applyDocument(document: SavedMindmapDocument) {
+    setNodes(document.nodes);
+    setEdges(document.edges);
+    setSelectedDocumentId(document.id);
+    setDocumentTitle(document.title);
+    setSelectedNodeId(document.nodes[0]?.id ?? null);
+    setSelectedEdgeId(null);
+  }
+
+  useEffect(() => {
+    const savedDocuments = window.localStorage.getItem(documentsStorageKey);
+    const legacySave = window.localStorage.getItem(storageKey);
+
+    try {
+      if (savedDocuments) {
+        const parsedDocuments = JSON.parse(savedDocuments) as SavedMindmapDocument[];
+        if (Array.isArray(parsedDocuments) && parsedDocuments.length > 0) {
+          setDocuments(parsedDocuments);
+          applyDocument(parsedDocuments[parsedDocuments.length - 1]);
+          return;
+        }
+      }
+
+      if (legacySave) {
+        const parsed = JSON.parse(legacySave) as { nodes?: KeywordNode[]; edges?: KeywordEdge[] };
+        const migrated = makeBlankDocument("문서 1", parsed.nodes ?? initialNodes, parsed.edges ?? initialEdges);
+        setDocuments([migrated]);
+        applyDocument(migrated);
+        return;
+      }
+
+      const firstDocument = makeBlankDocument("문서 1");
+      setDocuments([firstDocument]);
+      applyDocument(firstDocument);
+    } catch {
+      const firstDocument = makeBlankDocument("문서 1");
+      setDocuments([firstDocument]);
+      applyDocument(firstDocument);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!documents.length) return;
+    window.localStorage.setItem(documentsStorageKey, JSON.stringify(documents));
+  }, [documents]);
+
+  useEffect(() => {
+    window.localStorage.setItem(storageKey, JSON.stringify({ nodes, edges }));
+  }, [edges, nodes]);
+
+  const selectedNode = useMemo(
+    () => nodes.find((node) => node.id === selectedNodeId) ?? null,
+    [nodes, selectedNodeId],
+  );
+
+  const selectedEdge = useMemo(
+    () => edges.find((edge) => edge.id === selectedEdgeId) ?? null,
+    [edges, selectedEdgeId],
+  );
+
+  const handleConnect = (connection: Connection) => {
+    if (!connection.source || !connection.target) return;
+
+    const newEdge = {
+      id: `edge-${Date.now()}`,
+      source: connection.source,
+      target: connection.target,
+      label: "새 연결의 의미를 적어보세요.",
+      animated: true,
+      type: "smoothstep",
+      style: { stroke: "#7c3aed" },
+      markerEnd: { type: MarkerType.ArrowClosed, color: "#7c3aed" },
+    };
+
+    setEdges((current) => [...current, newEdge]);
+    setSelectedEdgeId(newEdge.id);
+    setSelectedNodeId(null);
+  };
+
+  function addKeyword() {
+    const nextIndex = nodes.length + 1;
+    const nextNode: KeywordNode = {
+      id: `keyword-${Date.now()}`,
+      type: "keywordNode",
+      position: { x: 200 + (nextIndex % 3) * 170, y: 140 + (nextIndex % 4) * 120 },
+      data: {
+        label: `새 키워드 ${nextIndex}`,
+        description: "이 키워드의 의미와 연결 포인트를 적어보세요.",
+        color: colorPalette[nextIndex % colorPalette.length],
+      },
+    };
+
+    setNodes((current) => [...current, nextNode]);
+    setSelectedNodeId(nextNode.id);
+    setSelectedEdgeId(null);
+  }
+
+  function handleNodeFieldChange(field: "label" | "description", value: string) {
+    if (!selectedNodeId) return;
+
+    setNodes((current) =>
+      current.map((node) =>
+        node.id === selectedNodeId
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                [field]: value,
+              },
+            }
+          : node,
+      ),
+    );
+  }
+
+  function handleEdgeFieldChange(value: string) {
+    if (!selectedEdgeId) return;
+
+    setEdges((current) =>
+      current.map((edge) =>
+        edge.id === selectedEdgeId
+          ? {
+              ...edge,
+              label: value,
+            }
+          : edge,
+      ),
+    );
+  }
+
+  function saveCurrentDocument() {
+    const trimmedTitle = documentTitle.trim() || `문서 ${documents.length + 1}`;
+
+    setDocuments((current) => {
+      const nextDocuments = current.some((document) => document.id === selectedDocumentId)
+        ? current.map((document) =>
+            document.id === selectedDocumentId
+              ? {
+                  ...document,
+                  title: trimmedTitle,
+                  updatedAt: new Date().toISOString(),
+                  nodes,
+                  edges,
+                }
+              : document,
+          )
+        : [
+            ...current,
+            {
+              id: selectedDocumentId || crypto.randomUUID(),
+              title: trimmedTitle,
+              updatedAt: new Date().toISOString(),
+              nodes,
+              edges,
+            },
+          ];
+
+      const nextSelectedId = selectedDocumentId || nextDocuments[nextDocuments.length - 1].id;
+      setSelectedDocumentId(nextSelectedId);
+      setDocumentTitle(trimmedTitle);
+      return nextDocuments;
+    });
+  }
+
+  function createNewDocument() {
+    const nextIndex = documents.length + 1;
+    const blankMap = {
+      nodes: [
+        {
+          id: `new-root-${Date.now()}`,
+          type: "keywordNode",
+          position: { x: 220, y: 200 },
+          data: {
+            label: `새 시작 키워드 ${nextIndex}`,
+            description: "여기에 핵심 키워드를 적고 다른 키워드와 연결해 보세요.",
+            color: "#f5f3ff",
+          },
+        },
+      ],
+      edges: [],
+    } satisfies { nodes: KeywordNode[]; edges: KeywordEdge[] };
+
+    const nextDocument = makeBlankDocument(`문서 ${nextIndex}`, blankMap.nodes, blankMap.edges);
+    setDocuments((current) => [...current, nextDocument]);
+    applyDocument(nextDocument);
+  }
+
+  function loadDocument(documentId: string) {
+    const target = documents.find((document) => document.id === documentId);
+    if (!target) return;
+    applyDocument(target);
+  }
+
+  function deleteCurrentDocument() {
+    if (!selectedDocumentId) return;
+
+    const nextDocuments = documents.filter((document) => document.id !== selectedDocumentId);
+    if (nextDocuments.length === 0) {
+      const freshDocument = makeBlankDocument("문서 1");
+      setDocuments([freshDocument]);
+      applyDocument(freshDocument);
+      return;
+    }
+
+    const nextTarget = nextDocuments[nextDocuments.length - 1];
+    setDocuments(nextDocuments);
+    applyDocument(nextTarget);
+  }
+
+  function removeSelected() {
+    if (selectedNodeId) {
+      setNodes((current) => current.filter((node) => node.id !== selectedNodeId));
+      setEdges((current) =>
+        current.filter((edge) => edge.source !== selectedNodeId && edge.target !== selectedNodeId),
+      );
+      setSelectedNodeId(null);
+      setSelectedEdgeId(null);
+      return;
+    }
+
+    if (selectedEdgeId) {
+      setEdges((current) => current.filter((edge) => edge.id !== selectedEdgeId));
+      setSelectedEdgeId(null);
+    }
+  }
+
+  return (
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/90 p-3 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-sm sm:p-4">
+        <div className="mb-3 space-y-3 rounded-[18px] border border-violet-100 bg-violet-50/70 px-3 py-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-violet-500">Keyword Map</p>
+              <h2 className="mt-1 text-base font-semibold tracking-[-0.03em] text-slate-900">핵심 키워드 연결지도</h2>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={saveCurrentDocument}
+                className="rounded-full border border-violet-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-violet-700"
+              >
+                문서 저장
+              </button>
+              <button
+                type="button"
+                onClick={createNewDocument}
+                className="rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-white shadow-[0_8px_18px_rgba(15,23,42,0.12)]"
+              >
+                + 새 문서
+              </button>
+              <button
+                type="button"
+                onClick={deleteCurrentDocument}
+                className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-semibold text-rose-700"
+              >
+                문서 삭제
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 md:flex-row md:items-center">
+            <div className="min-w-0 flex-1">
+              <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">문서 선택</label>
+              <div className="rounded-[18px] border border-slate-200 bg-white/90 p-1 shadow-[0_12px_22px_rgba(15,23,42,0.05)]">
+                <select
+                  value={selectedDocumentId}
+                  onChange={(event) => loadDocument(event.target.value)}
+                  className="w-full appearance-none rounded-[14px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-3 py-2.5 pr-10 text-sm font-medium text-slate-700 shadow-inner shadow-slate-100 outline-none transition hover:border-slate-300 focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
+                  style={{
+                    backgroundImage: "url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 16 16\'%3E%3Cpath fill=\'%2364748b\' d=\'M4 6l4 4 4-4H4z\'/%3E%3C/svg%3E')",
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right 0.8rem center",
+                  }}
+                >
+                  {documents.length === 0 ? <option value="">문서 없음</option> : null}
+                  {documents.map((document) => (
+                    <option key={document.id} value={document.id}>
+                      {document.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="min-w-0 flex-1 md:max-w-[220px]">
+              <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">문서 이름</label>
+              <input
+                value={documentTitle}
+                onChange={(event) => setDocumentTitle(event.target.value)}
+                placeholder="문서 이름"
+                className="w-full rounded-[14px] border border-slate-200 bg-white/90 px-3 py-2.5 text-sm font-medium text-slate-700 shadow-inner shadow-slate-100 outline-none transition hover:border-slate-300 focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="h-[640px] w-full overflow-hidden rounded-[22px] border border-slate-200 bg-[radial-gradient(circle_at_top,_rgba(167,139,250,0.12),_transparent_35%),linear-gradient(180deg,_#fff_0%,_#f8fafc_100%)]">
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={handleConnect}
+            onNodeClick={(_, node) => {
+              setSelectedNodeId(node.id);
+              setSelectedEdgeId(null);
+            }}
+            onEdgeClick={(_, edge) => {
+              setSelectedEdgeId(edge.id);
+              setSelectedNodeId(null);
+            }}
+            nodeTypes={nodeTypes}
+            fitView
+            fitViewOptions={{ padding: 0.2 }}
+            defaultEdgeOptions={{
+              type: "smoothstep",
+              animated: true,
+            }}
+            proOptions={{ hideAttribution: true }}
+          >
+            <Background gap={18} size={1} color="#dfe7f1" />
+            <MiniMap
+              pannable
+              zoomable
+              nodeColor={(node) => (node.data?.color as string) ?? "#c4b5fd"}
+              maskColor="rgba(255,255,255,0.75)"
+            />
+            <Controls />
+          </ReactFlow>
+        </div>
+      </div>
+
+      <aside className="rounded-[28px] border border-slate-200/80 bg-white/90 p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)] backdrop-blur-sm">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">Editor</p>
+            <h3 className="mt-1 text-lg font-semibold tracking-[-0.03em] text-slate-900">설명 편집</h3>
+          </div>
+          {(selectedNodeId || selectedEdgeId) && (
+            <button
+              type="button"
+              onClick={removeSelected}
+              className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-[11px] font-semibold text-rose-700"
+            >
+              삭제
+            </button>
+          )}
+        </div>
+
+        {selectedNode ? (
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">키워드</label>
+              <input
+                value={selectedNode.data.label}
+                onChange={(event) => handleNodeFieldChange("label", event.target.value)}
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">가볍게 설명</label>
+              <textarea
+                value={selectedNode.data.description}
+                onChange={(event) => handleNodeFieldChange("description", event.target.value)}
+                rows={6}
+                className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-800 placeholder:text-slate-400"
+              />
+            </div>
+          </div>
+        ) : selectedEdge ? (
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">연결 설명</label>
+              <textarea
+                value={typeof selectedEdge.label === "string" ? selectedEdge.label : String(selectedEdge.label ?? "")}
+                onChange={(event) => handleEdgeFieldChange(event.target.value)}
+                rows={6}
+                className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-800 placeholder:text-slate-400"
+              />
+            </div>
+            <div className="rounded-2xl border border-violet-100 bg-violet-50 p-3 text-sm leading-6 text-violet-700">
+              연결은 키워드 핸들을 드래그해 만들 수 있습니다. 라벨을 바꾸면 각 관계가 어떤 의미를 갖는지 더 잘 보입니다.
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-[22px] border border-dashed border-slate-300 bg-slate-50/80 p-4 text-sm leading-6 text-slate-600">
+            키워드를 클릭해 메모를 편집하거나, 두 키워드 사이를 드래그해 관계를 연결해 보세요. 설명을 적어두면 독서 기록이 훨씬 선명해집니다.
+          </div>
+        )}
+      </aside>
+    </div>
+  );
+}

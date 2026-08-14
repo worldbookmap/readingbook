@@ -24,6 +24,7 @@ export default async function CharactersPage({
             <Link href="/characters" className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-[0_8px_18px_rgba(15,23,42,0.12)] ring-1 ring-slate-900/10" style={{ color: "#ffffff" }}>관계도</Link>
             <Link href="/story-events" className="rounded-full px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900">타임라인</Link>
             <Link href="/timeline" className="rounded-full px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900">연표</Link>
+            <Link href="/keywords" className="rounded-full px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900">키워드맵</Link>
           </div>
         </nav>
 

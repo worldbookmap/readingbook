@@ -5,6 +5,7 @@ import {
   faBookOpenReader,
   faCodeBranch,
   faGlobe,
+  faProjectDiagram,
 } from "@fortawesome/free-solid-svg-icons";
 import characterMapLibrary from "@/data/character-map.json";
 import storyEventLibrary from "@/data/story-event-library.json";
@@ -37,6 +38,15 @@ const featureCards = [
     description:
       "서유럽, 동유럽, 아시아, 미국, 남미, 기타 지역으로 나눈 카드형 타임라인 보드입니다. 연도 카드 추가와 이동이 가능합니다.",
     accent: "from-slate-100 via-white to-stone-50",
+  },
+  {
+    href: "/keywords",
+    icon: faProjectDiagram,
+    eyebrow: "Keyword Atlas",
+    title: "핵심 키워드 연결 지도",
+    description:
+      "책의 주요 키워드를 노드로 만들고, 각 연결에 의미를 적으며 정리하는 마인드맵으로 독서 핵심을 시각화합니다.",
+    accent: "from-violet-100 via-white to-fuchsia-50",
   },
 ];
 
@@ -109,6 +119,13 @@ export default function Home() {
                   className="inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2.5 text-[11px] font-semibold text-slate-700 transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-950 sm:px-5 sm:py-3 sm:text-sm"
                 >
                   연표 보드 열기
+                  <FontAwesomeIcon icon={faArrowRight} />
+                </Link>
+                <Link
+                  href="/keywords"
+                  className="inline-flex shrink-0 items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-4 py-2.5 text-[11px] font-semibold text-violet-700 transition duration-200 hover:-translate-y-0.5 hover:border-violet-300 hover:bg-violet-100 sm:px-5 sm:py-3 sm:text-sm"
+                >
+                  키워드맵
                   <FontAwesomeIcon icon={faArrowRight} />
                 </Link>
               </div>
