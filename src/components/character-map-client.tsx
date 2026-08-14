@@ -110,6 +110,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [isBoardDragging, setIsBoardDragging] = useState(false);
   const [hideNodeInfoPopup, setHideNodeInfoPopup] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
@@ -1298,9 +1299,10 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
           const startDistance = pinchGestureRef.current?.startDistance ?? nextDistance;
           const startZoom = pinchGestureRef.current?.startZoom ?? zoom;
           const scaleFactor = nextDistance / (startDistance || 1);
+          const smoothedScaleFactor = 0.9 + (scaleFactor - 1) * 0.32;
           const nextZoom = Math.min(
             maxZoom,
-            Math.max(minZoom, Number((startZoom * (0.9 + (scaleFactor - 1) * 0.55)).toFixed(2))),
+            Math.max(minZoom, Number((startZoom * smoothedScaleFactor).toFixed(2))),
           );
 
           if (longPressTimeoutRef.current) {
@@ -1319,8 +1321,9 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         return;
       }
 
-      const deltaX = moveEvent.clientX - dragState.startX;
-      const deltaY = moveEvent.clientY - dragState.startY;
+      const dragSensitivity = event.pointerType === "touch" ? 0.72 : 1;
+      const deltaX = (moveEvent.clientX - dragState.startX) * dragSensitivity;
+      const deltaY = (moveEvent.clientY - dragState.startY) * dragSensitivity;
       if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) {
         window.clearTimeout(longPressTimeoutRef.current ?? undefined);
         longPressTimeoutRef.current = null;
@@ -1349,6 +1352,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       }
       boardElement.releasePointerCapture?.(event.pointerId);
       viewportDragRef.current = null;
+      setIsBoardDragging(false);
       boardElement.removeEventListener("pointermove", handlePanMove as EventListener);
       boardElement.removeEventListener("pointerup", handlePanEnd as EventListener);
       if (longPressTimeoutRef.current) {
@@ -1391,6 +1395,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     setHideNodeInfoPopup(true);
     setSelectedRelationshipId(null);
     clearRelationshipSelection();
+    setIsBoardDragging(true);
     viewportDragRef.current = {
       startX: event.clientX,
       startY: event.clientY,
@@ -1458,6 +1463,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       longPressTimeoutRef.current = null;
     }
     viewportDragRef.current = null;
+    setIsBoardDragging(false);
     if (activeTouchRef.current.size < 2) {
       pinchGestureRef.current = null;
     }
@@ -1806,8 +1812,21 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               </button>
             </div>
 
-            <div className="overflow-auto rounded-none bg-white/70 shadow-none">
-              <div ref={mobileBoardViewportRef} className="relative h-[420px] min-w-[320px] px-0">
+            <div
+              className="overflow-auto rounded-none bg-white/70 shadow-none"
+              style={{
+                WebkitOverflowScrolling: "touch",
+                overscrollBehavior: "contain",
+              }}
+            >
+              <div
+                ref={mobileBoardViewportRef}
+                className="relative h-[420px] min-w-[320px] px-0"
+                style={{
+                  WebkitOverflowScrolling: "touch",
+                  overscrollBehavior: "contain",
+                }}
+              >
                 <div
                   className="relative"
                   data-character-board
@@ -1817,11 +1836,13 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                   style={{
                     height: boardHeight,
                     width: boardWidth,
-                    transform: `translate(${pan.x}px, ${pan.y}px) scale(${mobileTotalScale})`,
+                    transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${mobileTotalScale})`,
                     transformOrigin: "top left",
+                    transition: isBoardDragging ? "none" : "transform 180ms cubic-bezier(0.22, 1, 0.36, 1)",
                     touchAction: "none",
                     userSelect: "none",
                     margin: 0,
+                    willChange: "transform",
                   }}
                 >
                   <svg className="absolute inset-0 h-full w-full overflow-visible" style={{ pointerEvents: "auto" }}>
@@ -2131,9 +2152,10 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               style={{
                 height: boardHeight,
                 width: boardWidth,
-                transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
                 transformOrigin: "top left",
-                transition: "transform 220ms cubic-bezier(0.22, 1, 0.36, 1)",
+                transition: isBoardDragging ? "none" : "transform 180ms cubic-bezier(0.22, 1, 0.36, 1)",
+                willChange: "transform",
               }}
             >
             <svg className="absolute inset-0 h-full w-full overflow-visible" style={{ pointerEvents: "auto" }}>
