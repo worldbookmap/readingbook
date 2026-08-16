@@ -53,12 +53,31 @@ const defaultEventDraft: EventDraft = {
 };
 
 const inputClassName =
-  "w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-2.5 text-sm text-slate-800 shadow-[0_2px_8px_rgba(15,23,42,0.03)] outline-none transition-all duration-200 placeholder:text-slate-400 hover:border-slate-300 focus:border-slate-700 focus:ring-4 focus:ring-slate-200/80 invalid:border-rose-300 invalid:text-rose-700 invalid:focus:ring-rose-100";
+  "w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-2.5 text-sm text-slate-800 shadow-[0_2px_8px_rgba(15,23,42,0.03)] outline-none transition-all duration-200 placeholder:text-slate-400 selection:bg-slate-200 selection:text-slate-900 hover:border-slate-300 focus:border-slate-700 focus:ring-4 focus:ring-slate-200/80 invalid:border-rose-300 invalid:text-rose-700 invalid:focus:ring-rose-100";
 const textareaClassName = `${inputClassName} min-h-[110px] resize-y`;
 const secondaryButtonClassName =
   "inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200/80 disabled:cursor-not-allowed disabled:opacity-50";
 const checkboxClassName =
   "h-4 w-4 rounded border-slate-300 bg-white text-slate-900 shadow-sm accent-slate-900 transition focus:ring-4 focus:ring-slate-200";
+
+function clearDefaultValueIfNeeded(
+  currentValue: string,
+  defaultValues: string[],
+  onClear: (nextValue: string) => void,
+  event?: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>,
+) {
+  const shouldReset = defaultValues.includes(currentValue);
+
+  if (shouldReset) {
+    onClear("");
+  }
+
+  if (event) {
+    requestAnimationFrame(() => {
+      event.currentTarget.select();
+    });
+  }
+}
 
 function parseYear(yearLabel: string) {
   const cleaned = yearLabel.trim().toUpperCase();
@@ -935,6 +954,16 @@ export function StoryEventTimeline() {
               <form className="mt-5 space-y-3" onSubmit={(event) => { addWork(event); setActiveModal(null); }}>
                 <input
                   value={workDraft.title}
+                  onFocus={(event) => {
+                    clearDefaultValueIfNeeded(
+                      workDraft.title,
+                      ["새 작품"],
+                      (nextValue) => {
+                        setWorkDraft((current) => ({ ...current, title: nextValue }));
+                      },
+                      event,
+                    );
+                  }}
                   onChange={(event) => setWorkDraft((current) => ({ ...current, title: event.target.value }))}
                   placeholder="소설 제목"
                   className={inputClassName}
@@ -971,30 +1000,80 @@ export function StoryEventTimeline() {
               <form className="mt-5 space-y-3" onSubmit={(event) => { addEvent(event); setActiveModal(null); }}>
                 <input
                   value={eventDraft.title}
+                  onFocus={(event) => {
+                    clearDefaultValueIfNeeded(
+                      eventDraft.title,
+                      ["새 이벤트", "사건 제목"],
+                      (nextValue) => {
+                        setEventDraft((current) => ({ ...current, title: nextValue }));
+                      },
+                      event,
+                    );
+                  }}
                   onChange={(event) => setEventDraft((current) => ({ ...current, title: event.target.value }))}
                   placeholder="사건 제목"
                   className={inputClassName}
                 />
                 <input
                   value={eventDraft.yearLabel}
+                  onFocus={(event) => {
+                    clearDefaultValueIfNeeded(
+                      eventDraft.yearLabel,
+                      ["예: 1776 또는 BC 3000"],
+                      (nextValue) => {
+                        setEventDraft((current) => ({ ...current, yearLabel: nextValue }));
+                      },
+                      event,
+                    );
+                  }}
                   onChange={(event) => setEventDraft((current) => ({ ...current, yearLabel: event.target.value }))}
                   placeholder="예: 1776 또는 BC 3000"
                   className={inputClassName}
                 />
                 <input
                   value={eventDraft.chapter}
+                  onFocus={(event) => {
+                    clearDefaultValueIfNeeded(
+                      eventDraft.chapter,
+                      ["새 장면", "장면 or 챕터"],
+                      (nextValue) => {
+                        setEventDraft((current) => ({ ...current, chapter: nextValue }));
+                      },
+                      event,
+                    );
+                  }}
                   onChange={(event) => setEventDraft((current) => ({ ...current, chapter: event.target.value }))}
                   placeholder="장면 or 챕터"
                   className={inputClassName}
                 />
                 <textarea
                   value={eventDraft.summary}
+                  onFocus={(event) => {
+                    clearDefaultValueIfNeeded(
+                      eventDraft.summary,
+                      ["사건 설명", "이벤트 설명을 입력해 주세요."],
+                      (nextValue) => {
+                        setEventDraft((current) => ({ ...current, summary: nextValue }));
+                      },
+                      event,
+                    );
+                  }}
                   onChange={(event) => setEventDraft((current) => ({ ...current, summary: event.target.value }))}
                   placeholder="사건 설명"
                   className={textareaClassName}
                 />
                 <input
                   value={eventDraft.tags}
+                  onFocus={(event) => {
+                    clearDefaultValueIfNeeded(
+                      eventDraft.tags,
+                      ["태그를 쉼표로 구분"],
+                      (nextValue) => {
+                        setEventDraft((current) => ({ ...current, tags: nextValue }));
+                      },
+                      event,
+                    );
+                  }}
                   onChange={(event) => setEventDraft((current) => ({ ...current, tags: event.target.value }))}
                   placeholder="태그를 쉼표로 구분"
                   className={inputClassName}

@@ -130,6 +130,25 @@ const nodeTypes: NodeTypes = {
   characterNode: CharacterNodeCard,
 };
 
+function clearDefaultValueIfNeeded(
+  currentValue: string,
+  defaults: string[],
+  onClear: (nextValue: string) => void,
+  event?: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>,
+) {
+  const shouldReset = defaults.some((defaultValue) => defaultValue === currentValue);
+
+  if (shouldReset) {
+    onClear("");
+  }
+
+  if (event) {
+    requestAnimationFrame(() => {
+      event.currentTarget.select();
+    });
+  }
+}
+
 type CharacterMapFlowProps = {
   nodes: CharacterFlowNode[];
   edges: CharacterFlowEdge[];
@@ -884,25 +903,55 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">인물 이름</label>
               <input
                 value={selectedNode.data.label}
+                onFocus={(event) => {
+                  clearDefaultValueIfNeeded(
+                    selectedNode.data.label,
+                    ["인물 이름"],
+                    (nextValue) => {
+                      handleNodeFieldChange("label", nextValue);
+                    },
+                    event,
+                  );
+                }}
                 onChange={(event) => handleNodeFieldChange("label", event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition selection:bg-slate-200 selection:text-slate-900 focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
               />
             </div>
             <div>
               <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">호칭/역할</label>
               <input
                 value={selectedNode.data.subtitle}
+                onFocus={(event) => {
+                  clearDefaultValueIfNeeded(
+                    selectedNode.data.subtitle,
+                    ["새 인물"],
+                    (nextValue) => {
+                      handleNodeFieldChange("subtitle", nextValue);
+                    },
+                    event,
+                  );
+                }}
                 onChange={(event) => handleNodeFieldChange("subtitle", event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition selection:bg-slate-200 selection:text-slate-900 focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
               />
             </div>
             <div>
               <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">한 줄 설명</label>
               <textarea
                 value={selectedNode.data.summary}
+                onFocus={(event) => {
+                  clearDefaultValueIfNeeded(
+                    selectedNode.data.summary,
+                    ["이 인물의 역할을 적어보세요."],
+                    (nextValue) => {
+                      handleNodeFieldChange("summary", nextValue);
+                    },
+                    event,
+                  );
+                }}
                 onChange={(event) => handleNodeFieldChange("summary", event.target.value)}
                 rows={5}
-                className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+                className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-800 outline-none transition selection:bg-slate-200 selection:text-slate-900 focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
               />
             </div>
           </div>
@@ -926,9 +975,20 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">연결 설명</label>
               <textarea
                 value={typeof selectedEdge.label === "string" ? selectedEdge.label : String(selectedEdge.label ?? "")}
+                onFocus={(event) => {
+                  const defaultValues = [selectedEdge.data?.type ?? "기타", "관계 설명을 추가해 보세요."];
+                  clearDefaultValueIfNeeded(
+                    typeof selectedEdge.label === "string" ? selectedEdge.label : String(selectedEdge.label ?? ""),
+                    defaultValues,
+                    (nextValue) => {
+                      handleEdgeFieldChange("label", nextValue);
+                    },
+                    event,
+                  );
+                }}
                 onChange={(event) => handleEdgeFieldChange("label", event.target.value)}
                 rows={5}
-                className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+                className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-800 outline-none transition selection:bg-slate-200 selection:text-slate-900 focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
               />
             </div>
             <div className="rounded-2xl border border-violet-100 bg-violet-50 p-3 text-sm leading-6 text-violet-700">
@@ -1048,43 +1108,58 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                   <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">인물 이름</label>
                   <input
                     value={nodeDraft.label}
-                    onFocus={() => {
-                      if (nodeDraft.label === "인물 이름") {
-                        setNodeDraft((current) => (current ? { ...current, label: "" } : current));
-                      }
+                    onFocus={(event) => {
+                      clearDefaultValueIfNeeded(
+                        nodeDraft.label,
+                        ["인물 이름"],
+                        (nextValue) => {
+                          setNodeDraft((current) => (current ? { ...current, label: nextValue } : current));
+                        },
+                        event,
+                      );
                     }}
                     onChange={(event) => setNodeDraft((current) => (current ? { ...current, label: event.target.value } : current))}
                     placeholder="인물 이름"
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition selection:bg-slate-200 selection:text-slate-900 focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                   />
                 </div>
                 <div>
                   <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">호칭/역할</label>
                   <input
                     value={nodeDraft.subtitle}
-                    onFocus={() => {
-                      if (nodeDraft.subtitle === "새 인물") {
-                        setNodeDraft((current) => (current ? { ...current, subtitle: "" } : current));
-                      }
+                    onFocus={(event) => {
+                      clearDefaultValueIfNeeded(
+                        nodeDraft.subtitle,
+                        ["새 인물"],
+                        (nextValue) => {
+                          setNodeDraft((current) => (current ? { ...current, subtitle: nextValue } : current));
+                        },
+                        event,
+                      );
                     }}
                     onChange={(event) => setNodeDraft((current) => (current ? { ...current, subtitle: event.target.value } : current))}
                     placeholder="호칭/역할"
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition selection:bg-slate-200 selection:text-slate-900 focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                   />
                 </div>
                 <div>
                   <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">한 줄 설명</label>
                   <textarea
                     value={nodeDraft.summary}
-                    onFocus={() => {
-                      if (nodeDraft.summary === "이 인물의 역할을 적어보세요.") {
-                        setNodeDraft((current) => (current ? { ...current, summary: "" } : current));
-                      }
+                    onFocus={(event) => {
+                      clearDefaultValueIfNeeded(
+                        nodeDraft.summary,
+                        ["이 인물의 역할을 적어보세요."],
+                        (nextValue) => {
+                          setNodeDraft((current) => (current ? { ...current, summary: nextValue } : current));
+                        },
+                        event,
+                      );
                     }}
                     onChange={(event) => setNodeDraft((current) => (current ? { ...current, summary: event.target.value } : current))}
                     rows={5}
                     placeholder="이 인물의 역할을 적어보세요."
-                    className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+                    className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-800 outline-none transition selection:bg-slate-200 selection:text-slate-900 focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                   />
                 </div>
               </div>
@@ -1110,15 +1185,20 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                   <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">연결 설명</label>
                   <textarea
                     value={edgeDraft.label}
-                    onFocus={() => {
-                      if (edgeDraft.label === "관계 설명을 추가해 보세요." || edgeDraft.label === selectedEdge.data?.type) {
-                        setEdgeDraft((current) => (current ? { ...current, label: "" } : current));
-                      }
+                    onFocus={(event) => {
+                      clearDefaultValueIfNeeded(
+                        edgeDraft.label,
+                        ["관계 설명을 추가해 보세요.", selectedEdge?.data?.type ?? "기타"],
+                        (nextValue) => {
+                          setEdgeDraft((current) => (current ? { ...current, label: nextValue } : current));
+                        },
+                        event,
+                      );
                     }}
                     onChange={(event) => setEdgeDraft((current) => (current ? { ...current, label: event.target.value } : current))}
                     rows={5}
                     placeholder="관계 설명을 추가해 보세요."
-                    className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+                    className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-800 outline-none transition selection:bg-slate-200 selection:text-slate-900 focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                   />
                 </div>
               </div>

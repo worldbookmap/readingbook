@@ -117,12 +117,31 @@ const defaultDraft: DraftCard = {
 };
 
 const inputClassName =
-  "w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-800 shadow-[0_2px_8px_rgba(15,23,42,0.03)] outline-none transition-all duration-200 placeholder:text-slate-400 hover:border-slate-300 focus:border-slate-700 focus:ring-4 focus:ring-slate-200/80 invalid:border-rose-300 invalid:text-rose-700 invalid:focus:ring-rose-100";
+  "w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-800 shadow-[0_2px_8px_rgba(15,23,42,0.03)] outline-none transition-all duration-200 placeholder:text-slate-400 selection:bg-slate-200 selection:text-slate-900 hover:border-slate-300 focus:border-slate-700 focus:ring-4 focus:ring-slate-200/80 invalid:border-rose-300 invalid:text-rose-700 invalid:focus:ring-rose-100";
 const textareaClassName = `${inputClassName} h-28`;
 const secondaryButtonClassName =
   "inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200/80";
 const checkboxClassName =
   "h-4 w-4 rounded border-slate-300 bg-white text-slate-900 shadow-sm accent-slate-900 transition focus:ring-4 focus:ring-slate-200";
+
+function clearDefaultValueIfNeeded(
+  currentValue: string,
+  defaultValues: string[],
+  onClear: (nextValue: string) => void,
+  event?: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>,
+) {
+  const shouldReset = defaultValues.includes(currentValue);
+
+  if (shouldReset) {
+    onClear("");
+  }
+
+  if (event) {
+    requestAnimationFrame(() => {
+      event.currentTarget.select();
+    });
+  }
+}
 
 type Props = {
   initialCards: TimelineCard[];
@@ -539,6 +558,16 @@ export function TimelineBoard({ initialCards }: Props) {
                 <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">제목</label>
                 <input
                   value={modalDraft.title}
+                  onFocus={(event) => {
+                    clearDefaultValueIfNeeded(
+                      modalDraft.title,
+                      ["새 카드"],
+                      (nextValue) => {
+                        setModalDraft((current) => (current ? { ...current, title: nextValue } : current));
+                      },
+                      event,
+                    );
+                  }}
                   onChange={(event) => setModalDraft((current) => (current ? { ...current, title: event.target.value } : current))}
                   className={inputClassName}
                 />
@@ -549,6 +578,16 @@ export function TimelineBoard({ initialCards }: Props) {
                   <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">연도</label>
                   <input
                     value={modalDraft.yearLabel}
+                    onFocus={(event) => {
+                      clearDefaultValueIfNeeded(
+                        modalDraft.yearLabel,
+                        ["새 연표"],
+                        (nextValue) => {
+                          setModalDraft((current) => (current ? { ...current, yearLabel: nextValue } : current));
+                        },
+                        event,
+                      );
+                    }}
                     onChange={(event) => setModalDraft((current) => (current ? { ...current, yearLabel: event.target.value } : current))}
                     className={inputClassName}
                   />
@@ -572,6 +611,16 @@ export function TimelineBoard({ initialCards }: Props) {
                 <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">설명</label>
                 <textarea
                   value={modalDraft.description}
+                  onFocus={(event) => {
+                    clearDefaultValueIfNeeded(
+                      modalDraft.description,
+                      ["설명을 입력해 주세요.", "새 카드 설명"],
+                      (nextValue) => {
+                        setModalDraft((current) => (current ? { ...current, description: nextValue } : current));
+                      },
+                      event,
+                    );
+                  }}
                   onChange={(event) => setModalDraft((current) => (current ? { ...current, description: event.target.value } : current))}
                   className={textareaClassName}
                 />
@@ -625,12 +674,32 @@ export function TimelineBoard({ initialCards }: Props) {
           <form className="mt-4 space-y-3" onSubmit={createCard}>
             <input
               value={draft.title}
+              onFocus={(event) => {
+                clearDefaultValueIfNeeded(
+                  draft.title,
+                  ["새 카드"],
+                  (nextValue) => {
+                    setDraft((current) => ({ ...current, title: nextValue }));
+                  },
+                  event,
+                );
+              }}
               onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
               placeholder="사건 제목"
               className={inputClassName}
             />
             <input
               value={draft.yearLabel}
+              onFocus={(event) => {
+                clearDefaultValueIfNeeded(
+                  draft.yearLabel,
+                  ["새 연표", "연도 예: BC 3000, 1776"],
+                  (nextValue) => {
+                    setDraft((current) => ({ ...current, yearLabel: nextValue }));
+                  },
+                  event,
+                );
+              }}
               onChange={(event) =>
                 setDraft((current) => ({ ...current, yearLabel: event.target.value }))
               }
@@ -666,6 +735,16 @@ export function TimelineBoard({ initialCards }: Props) {
             </div>
             <textarea
               value={draft.description}
+              onFocus={(event) => {
+                clearDefaultValueIfNeeded(
+                  draft.description,
+                  ["설명을 입력해 주세요.", "설명"],
+                  (nextValue) => {
+                    setDraft((current) => ({ ...current, description: nextValue }));
+                  },
+                  event,
+                );
+              }}
               onChange={(event) =>
                 setDraft((current) => ({ ...current, description: event.target.value }))
               }
@@ -674,6 +753,16 @@ export function TimelineBoard({ initialCards }: Props) {
             />
             <input
               value={draft.tags}
+              onFocus={(event) => {
+                clearDefaultValueIfNeeded(
+                  draft.tags,
+                  ["태그를 쉼표로 구분"],
+                  (nextValue) => {
+                    setDraft((current) => ({ ...current, tags: nextValue }));
+                  },
+                  event,
+                );
+              }}
               onChange={(event) => setDraft((current) => ({ ...current, tags: event.target.value }))}
               placeholder="태그를 쉼표로 구분"
               className={inputClassName}

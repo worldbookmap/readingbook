@@ -49,6 +49,25 @@ const colorPalette = [
   "#dcfce7",
 ];
 
+function clearDefaultValueIfNeeded(
+  currentValue: string,
+  defaultValues: string[],
+  onClear: (nextValue: string) => void,
+  event?: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>,
+) {
+  const shouldReset = defaultValues.includes(currentValue);
+
+  if (shouldReset) {
+    onClear("");
+  }
+
+  if (event) {
+    requestAnimationFrame(() => {
+      event.currentTarget.select();
+    });
+  }
+}
+
 const initialNodes: KeywordNode[] = [
   {
     id: "theme-core",
@@ -652,9 +671,19 @@ export function KeywordMindmap() {
               <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">문서 이름</label>
               <input
                 value={documentTitle}
+                onFocus={(event) => {
+                  clearDefaultValueIfNeeded(
+                    documentTitle,
+                    ["문서 1", "새 문서"],
+                    (nextValue) => {
+                      setDocumentTitle(nextValue);
+                    },
+                    event,
+                  );
+                }}
                 onChange={(event) => setDocumentTitle(event.target.value)}
                 placeholder="문서 이름"
-                className="w-full rounded-[14px] border border-slate-200 bg-white/90 px-3 py-2.5 text-sm font-medium text-slate-700 shadow-inner shadow-slate-100 outline-none transition hover:border-slate-300 focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
+                className="w-full rounded-[14px] border border-slate-200 bg-white/90 px-3 py-2.5 text-sm font-medium text-slate-700 shadow-inner shadow-slate-100 outline-none transition selection:bg-violet-200 selection:text-violet-900 hover:border-slate-300 focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
               />
             </div>
           </div>
