@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
   Connection,
@@ -14,8 +14,10 @@ import {
   NodeTypes,
   Position,
   ReactFlow,
+  ReactFlowProvider,
   useEdgesState,
   useNodesState,
+  useReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { CharacterMapLibrary, CharacterNode, CharacterRelationship, RelationshipType } from "@/lib/types";
@@ -128,6 +130,94 @@ const nodeTypes: NodeTypes = {
   characterNode: CharacterNodeCard,
 };
 
+type CharacterMapFlowProps = {
+  nodes: CharacterFlowNode[];
+  edges: CharacterFlowEdge[];
+  onNodesChange: ReturnType<typeof useNodesState<CharacterFlowNode>>[2];
+  onEdgesChange: ReturnType<typeof useEdgesState<CharacterFlowEdge>>[2];
+  onConnect: (connection: Connection) => void;
+  onNodeClick: (event: { clientX: number; clientY: number }, node: Node) => void;
+  onEdgeClick: (event: { clientX: number; clientY: number }, edge: Edge) => void;
+  onNodeDoubleClick: (event: { clientX: number; clientY: number }, node: Node) => void;
+  addNodeAtPosition: (position?: { x: number; y: number }) => void;
+  longPressTimerRef: React.RefObject<number | null>;
+};
+
+function CharacterMapFlow({
+  nodes,
+  edges,
+  onNodesChange,
+  onEdgesChange,
+  onConnect,
+  onNodeClick,
+  onEdgeClick,
+  onNodeDoubleClick,
+  addNodeAtPosition,
+  longPressTimerRef,
+}: CharacterMapFlowProps) {
+  const reactFlowInstance = useReactFlow();
+
+  return (
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onConnect={onConnect}
+      onNodeClick={onNodeClick}
+      onEdgeClick={onEdgeClick}
+      onNodeDoubleClick={onNodeDoubleClick}
+      onPaneClick={(event) => {
+        const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        if (event.detail === 2) {
+          addNodeAtPosition(position);
+        }
+      }}
+      onPointerDown={(event) => {
+        if (event.target instanceof HTMLElement && event.target.closest(".react-flow__node")) return;
+
+        if (longPressTimerRef.current) {
+          window.clearTimeout(longPressTimerRef.current);
+        }
+
+        longPressTimerRef.current = window.setTimeout(() => {
+          const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY });
+          addNodeAtPosition(position);
+        }, 600);
+      }}
+      onPointerUp={() => {
+        if (longPressTimerRef.current) {
+          window.clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
+        }
+      }}
+      onPointerLeave={() => {
+        if (longPressTimerRef.current) {
+          window.clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
+        }
+      }}
+      nodeTypes={nodeTypes}
+      fitView
+      fitViewOptions={{ padding: 0.2 }}
+      defaultEdgeOptions={{
+        type: "smoothstep",
+        animated: true,
+      }}
+      proOptions={{ hideAttribution: true }}
+    >
+      <Background gap={18} size={1} color="#dfe7f1" />
+      <MiniMap
+        pannable
+        zoomable
+        nodeColor={(node) => (node.data?.color as string) ?? "#c4b5fd"}
+        maskColor="rgba(255,255,255,0.78)"
+      />
+      <Controls />
+    </ReactFlow>
+  );
+}
+
 export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const latestWork = library.works.at(-1) ?? library.works[0] ?? null;
   const [works, setWorks] = useState<CharacterMapLibrary["works"]>(library.works);
@@ -138,8 +228,17 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   );
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [nodeDraft, setNodeDraft] = useState<{ label: string; subtitle: string; summary: string } | null>(null);
+  const [edgeDraft, setEdgeDraft] = useState<{ type: RelationshipType; label: string } | null>(null);
   const [newWorkTitle, setNewWorkTitle] = useState("");
   const [draftRelationType, setDraftRelationType] = useState<RelationshipType>("기타");
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveMessage, setSaveMessage] = useState("GitHub 저장 준비 중");
+  const [remoteEnabled, setRemoteEnabled] = useState(false);
+  const [remoteSha, setRemoteSha] = useState<string | null>(null);
+  const longPressTimerRef = useRef<number | null>(null);
 
   const selectedWork = useMemo(
     () => works.find((work) => work.id === selectedWorkId) ?? works[0] ?? null,
@@ -166,6 +265,76 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       // ignore invalid cached data
     }
   }, []);
+
+  useEffect(() => {
+    async function loadRemoteData() {
+      try {
+        const response = await fetch("/api/character-map", { cache: "no-store" });
+        if (!response.ok) return;
+
+        const payload = (await response.json()) as {
+          data?: CharacterMapLibrary;
+          remoteEnabled?: boolean;
+          sha?: string | null;
+        };
+
+        if (payload.data?.works?.length) {
+          setWorks(payload.data.works);
+          const nextSelected = payload.data.works.some((work) => work.id === selectedWorkId)
+            ? selectedWorkId
+            : payload.data.works[0]?.id ?? "";
+          setSelectedWorkId(nextSelected);
+        }
+
+        setRemoteEnabled(Boolean(payload.remoteEnabled));
+        setRemoteSha(payload.sha ?? null);
+        setSaveMessage(payload.remoteEnabled ? "GitHub 동기화가 활성화되었습니다." : "GitHub 동기화가 비활성 상태입니다.");
+      } catch {
+        setSaveMessage("GitHub 연결 상태를 확인하는 중입니다.");
+      }
+    }
+
+    void loadRemoteData();
+  }, []);
+
+  async function saveToGithub() {
+    setSaveState("saving");
+    setSaveMessage(remoteEnabled ? "저장 중..." : "GitHub 동기화 환경을 확인하는 중입니다.");
+
+    try {
+      const response = await fetch("/api/character-map", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ works, sha: remoteSha }),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string };
+        throw new Error(payload.error ?? "GitHub 저장에 실패했습니다.");
+      }
+
+      const payload = (await response.json()) as { ok: true; sha: string };
+      const refreshed = await fetch("/api/character-map", { cache: "no-store" });
+      const refreshedPayload = refreshed.ok
+        ? ((await refreshed.json()) as { data?: CharacterMapLibrary; remoteEnabled?: boolean; sha?: string | null })
+        : null;
+
+      if (refreshedPayload?.data?.works?.length) {
+        setWorks(refreshedPayload.data.works);
+      }
+
+      setRemoteEnabled(Boolean(refreshedPayload?.remoteEnabled ?? remoteEnabled));
+      setRemoteSha(payload.sha ?? refreshedPayload?.sha ?? remoteSha);
+      setSaveState("saved");
+      setSaveMessage("저장 완료! GitHub에 반영되었습니다.");
+      window.alert("저장 완료! GitHub에 반영되었습니다.");
+    } catch (error) {
+      setSaveState("error");
+      setSaveMessage(error instanceof Error ? error.message : "GitHub 저장에 실패했습니다.");
+    }
+  }
 
   useEffect(() => {
     if (!selectedWork) {
@@ -240,6 +409,154 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     [edges, selectedEdgeId],
   );
 
+  useEffect(() => {
+    if (selectedNode) {
+      setNodeDraft({
+        label: selectedNode.data.label,
+        subtitle: selectedNode.data.subtitle,
+        summary: selectedNode.data.summary,
+      });
+    } else {
+      setNodeDraft(null);
+    }
+
+    if (selectedEdge) {
+      setEdgeDraft({
+        type: (selectedEdge.data?.type as RelationshipType) ?? "기타",
+        label: typeof selectedEdge.label === "string" ? selectedEdge.label : selectedEdge.data?.label ?? "",
+      });
+    } else {
+      setEdgeDraft(null);
+    }
+  }, [selectedNode, selectedEdge]);
+
+  function openDetailModal(nodeId?: string, edgeId?: string) {
+    if (nodeId) {
+      setSelectedNodeId(nodeId);
+      setSelectedEdgeId(null);
+    } else if (edgeId) {
+      setSelectedEdgeId(edgeId);
+      setSelectedNodeId(null);
+    }
+    setIsEditing(false);
+    setIsDetailModalOpen(true);
+  }
+
+  function closeDetailModal() {
+    setIsDetailModalOpen(false);
+    setIsEditing(false);
+    setSelectedNodeId(null);
+    setSelectedEdgeId(null);
+    setNodeDraft(null);
+    setEdgeDraft(null);
+  }
+
+  function handleNodeSave() {
+    if (!selectedNodeId || !nodeDraft) return;
+
+    const nextNodes = nodes.map((node) =>
+      node.id === selectedNodeId
+        ? {
+            ...node,
+            data: {
+              ...node.data,
+              label: nodeDraft.label.trim() || "새 인물",
+              subtitle: nodeDraft.subtitle.trim() || "새 인물",
+              summary: nodeDraft.summary.trim(),
+            },
+          }
+        : node,
+    );
+
+    setNodes(nextNodes);
+    updateSelectedWorkSeed(nextNodes, edges);
+    setIsEditing(false);
+    setIsDetailModalOpen(false);
+    setSelectedNodeId(null);
+  }
+
+  function handleEdgeSave() {
+    if (!selectedEdgeId || !edgeDraft) return;
+
+    const nextEdges = edges.map((edge) => {
+      if (edge.id !== selectedEdgeId) return edge;
+
+      const nextType = edgeDraft.type;
+      return {
+        ...edge,
+        label: edgeDraft.label.trim() || nextType,
+        data: {
+          ...edge.data,
+          type: nextType,
+          label: edgeDraft.label.trim() || nextType,
+        },
+        style: {
+          stroke:
+            nextType === "부부"
+              ? "#f472b6"
+              : nextType === "사업"
+                ? "#f59e0b"
+                : nextType === "자식"
+                  ? "#22c55e"
+                  : nextType === "커플"
+                    ? "#8b5cf6"
+                    : nextType === "친구"
+                      ? "#3b82f6"
+                      : "#64748b",
+        },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color:
+            nextType === "부부"
+              ? "#f472b6"
+              : nextType === "사업"
+                ? "#f59e0b"
+                : nextType === "자식"
+                  ? "#22c55e"
+                  : nextType === "커플"
+                    ? "#8b5cf6"
+                    : nextType === "친구"
+                      ? "#3b82f6"
+                      : "#64748b",
+        },
+      };
+    });
+
+    setEdges(nextEdges);
+    updateSelectedWorkSeed(nodes, nextEdges);
+    setIsEditing(false);
+    setIsDetailModalOpen(false);
+    setSelectedEdgeId(null);
+  }
+
+  function handleRelationshipDelete() {
+    const hasConfirmed = window.confirm("정말 삭제하시겠습니까?");
+    if (!hasConfirmed) return;
+
+    if (selectedEdgeId) {
+      const nextEdges = edges.filter((edge) => edge.id !== selectedEdgeId);
+      setEdges(nextEdges);
+      updateSelectedWorkSeed(nodes, nextEdges);
+      setSelectedEdgeId(null);
+      setIsDetailModalOpen(false);
+      setIsEditing(false);
+      window.alert("삭제 완료되었습니다.");
+      return;
+    }
+
+    if (selectedNodeId) {
+      const nextNodes = nodes.filter((node) => node.id !== selectedNodeId);
+      const nextEdges = edges.filter((edge) => edge.source !== selectedNodeId && edge.target !== selectedNodeId);
+      setNodes(nextNodes);
+      setEdges(nextEdges);
+      updateSelectedWorkSeed(nextNodes, nextEdges);
+      setSelectedNodeId(null);
+      setIsDetailModalOpen(false);
+      setIsEditing(false);
+      window.alert("삭제 완료되었습니다.");
+    }
+  }
+
   function createNewWork() {
     const title = newWorkTitle.trim();
     if (!title) return;
@@ -289,7 +606,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     );
   }
 
-  function addNode() {
+  function addNodeAtPosition(position?: { x: number; y: number }) {
     if (!selectedWork) return;
 
     const nextId = crypto.randomUUID();
@@ -297,8 +614,8 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       id: nextId,
       type: "characterNode",
       position: {
-        x: 180 + (nodes.length % 4) * 180,
-        y: 140 + (nodes.length % 3) * 150,
+        x: position?.x ?? 180 + (nodes.length % 4) * 180,
+        y: position?.y ?? 140 + (nodes.length % 3) * 150,
       },
       data: {
         label: `인물 ${nodes.length + 1}`,
@@ -317,7 +634,14 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     setSelectedEdgeId(null);
   }
 
+  function addNode() {
+    addNodeAtPosition();
+  }
+
   function removeSelected() {
+    const hasConfirmed = window.confirm("정말 삭제하시겠습니까?");
+    if (!hasConfirmed) return;
+
     if (selectedNodeId) {
       const nextNodes = nodes.filter((node) => node.id !== selectedNodeId);
       const nextEdges = edges.filter((edge) => edge.source !== selectedNodeId && edge.target !== selectedNodeId);
@@ -325,6 +649,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       setEdges(nextEdges);
       updateSelectedWorkSeed(nextNodes, nextEdges);
       setSelectedNodeId(null);
+      window.alert("삭제 완료되었습니다.");
       return;
     }
 
@@ -333,6 +658,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       setEdges(nextEdges);
       updateSelectedWorkSeed(nodes, nextEdges);
       setSelectedEdgeId(null);
+      window.alert("삭제 완료되었습니다.");
     }
   }
 
@@ -443,6 +769,13 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
           <div className="flex items-center gap-2">
             <button
               type="button"
+              onClick={saveToGithub}
+              className="rounded-full border border-sky-200 bg-sky-50 px-3.5 py-2 text-xs font-semibold text-sky-700 shadow-[0_8px_18px_rgba(14,116,144,0.08)] transition hover:border-sky-300 hover:bg-sky-100"
+            >
+              저장
+            </button>
+            <button
+              type="button"
               onClick={addNode}
               className="rounded-full bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white shadow-[0_10px_22px_rgba(15,23,42,0.12)]"
             >
@@ -489,38 +822,26 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         </div>
 
         <div className="h-[660px] w-full overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.12),_transparent_35%),linear-gradient(180deg,_#fff_0%,_#f8fafc_100%)]">
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={handleConnect}
-            onNodeClick={(_, node) => {
-              setSelectedNodeId(node.id);
-              setSelectedEdgeId(null);
-            }}
-            onEdgeClick={(_, edge) => {
-              setSelectedEdgeId(edge.id);
-              setSelectedNodeId(null);
-            }}
-            nodeTypes={nodeTypes}
-            fitView
-            fitViewOptions={{ padding: 0.2 }}
-            defaultEdgeOptions={{
-              type: "smoothstep",
-              animated: true,
-            }}
-            proOptions={{ hideAttribution: true }}
-          >
-            <Background gap={18} size={1} color="#dfe7f1" />
-            <MiniMap
-              pannable
-              zoomable
-              nodeColor={(node) => (node.data?.color as string) ?? "#c4b5fd"}
-              maskColor="rgba(255,255,255,0.78)"
+          <ReactFlowProvider>
+            <CharacterMapFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={handleConnect}
+              onNodeClick={(_, node) => {
+                openDetailModal(node.id);
+              }}
+              onEdgeClick={(_, edge) => {
+                openDetailModal(undefined, edge.id);
+              }}
+              onNodeDoubleClick={(_, node) => {
+                openDetailModal(node.id);
+              }}
+              addNodeAtPosition={addNodeAtPosition}
+              longPressTimerRef={longPressTimerRef}
             />
-            <Controls />
-          </ReactFlow>
+          </ReactFlowProvider>
         </div>
       </section>
 
@@ -539,6 +860,22 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               삭제
             </button>
           )}
+        </div>
+
+        <div className="mb-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">저장 상태</p>
+              <p className="mt-1 text-sm font-medium text-slate-700">{saveMessage}</p>
+            </div>
+            <button
+              type="button"
+              onClick={saveToGithub}
+              className="rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-slate-700"
+            >
+              GitHub 저장
+            </button>
+          </div>
         </div>
 
         {selectedNode ? (
@@ -624,6 +961,190 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
           </div>
         </div>
       </aside>
+
+      {isDetailModalOpen && (selectedNode || selectedEdge) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-4 backdrop-blur-[2px]">
+          <div className="w-full max-w-xl rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_26px_80px_rgba(15,23,42,0.18)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-500">{selectedNode ? "Person" : "Relationship"}</p>
+                <h3 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-900">
+                  {selectedNode ? (isEditing ? nodeDraft?.label || "새 인물" : selectedNode.data.label) : isEditing ? edgeDraft?.type || "관계" : selectedEdge?.data?.type ?? "관계"}
+                </h3>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {!isEditing && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditing(true)}
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-base text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
+                      aria-label="수정"
+                      title="수정"
+                    >
+                      ✎
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRelationshipDelete}
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-base text-rose-600 transition hover:bg-rose-100"
+                      aria-label="삭제"
+                      title="삭제"
+                    >
+                      🗑
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={closeDetailModal}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-lg text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
+                  aria-label="닫기"
+                  title="닫기"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {!isEditing && selectedNode && (
+              <div className="mt-6 space-y-4">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">호칭/역할</p>
+                  <p className="mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
+                    {selectedNode.data.subtitle}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">한 줄 설명</p>
+                  <p className="mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-700">
+                    {selectedNode.data.summary}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {!isEditing && selectedEdge && (
+              <div className="mt-6 space-y-4">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">관계 유형</p>
+                  <p className="mt-2 rounded-2xl border border-violet-100 bg-violet-50 px-3 py-2.5 text-sm font-medium text-violet-700">
+                    {selectedEdge.data?.type ?? "기타"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">연결 설명</p>
+                  <p className="mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-700">
+                    {typeof selectedEdge.label === "string" ? selectedEdge.label : selectedEdge.data?.label ?? "설명이 아직 없습니다."}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {isEditing && selectedNode && nodeDraft && (
+              <div className="mt-6 space-y-4">
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">인물 이름</label>
+                  <input
+                    value={nodeDraft.label}
+                    onFocus={() => {
+                      if (nodeDraft.label === "인물 이름") {
+                        setNodeDraft((current) => (current ? { ...current, label: "" } : current));
+                      }
+                    }}
+                    onChange={(event) => setNodeDraft((current) => (current ? { ...current, label: event.target.value } : current))}
+                    placeholder="인물 이름"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">호칭/역할</label>
+                  <input
+                    value={nodeDraft.subtitle}
+                    onFocus={() => {
+                      if (nodeDraft.subtitle === "새 인물") {
+                        setNodeDraft((current) => (current ? { ...current, subtitle: "" } : current));
+                      }
+                    }}
+                    onChange={(event) => setNodeDraft((current) => (current ? { ...current, subtitle: event.target.value } : current))}
+                    placeholder="호칭/역할"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">한 줄 설명</label>
+                  <textarea
+                    value={nodeDraft.summary}
+                    onFocus={() => {
+                      if (nodeDraft.summary === "이 인물의 역할을 적어보세요.") {
+                        setNodeDraft((current) => (current ? { ...current, summary: "" } : current));
+                      }
+                    }}
+                    onChange={(event) => setNodeDraft((current) => (current ? { ...current, summary: event.target.value } : current))}
+                    rows={5}
+                    placeholder="이 인물의 역할을 적어보세요."
+                    className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+                  />
+                </div>
+              </div>
+            )}
+
+            {isEditing && selectedEdge && edgeDraft && (
+              <div className="mt-6 space-y-4">
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">관계 유형</label>
+                  <select
+                    value={edgeDraft.type}
+                    onChange={(event) => setEdgeDraft((current) => (current ? { ...current, type: event.target.value as RelationshipType } : current))}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+                  >
+                    {relationOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">연결 설명</label>
+                  <textarea
+                    value={edgeDraft.label}
+                    onFocus={() => {
+                      if (edgeDraft.label === "관계 설명을 추가해 보세요." || edgeDraft.label === selectedEdge.data?.type) {
+                        setEdgeDraft((current) => (current ? { ...current, label: "" } : current));
+                      }
+                    }}
+                    onChange={(event) => setEdgeDraft((current) => (current ? { ...current, label: event.target.value } : current))}
+                    rows={5}
+                    placeholder="관계 설명을 추가해 보세요."
+                    className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+                  />
+                </div>
+              </div>
+            )}
+
+            {isEditing && (
+              <div className="mt-6 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700"
+                >
+                  닫기
+                </button>
+                <button
+                  type="button"
+                  onClick={selectedNode ? handleNodeSave : handleEdgeSave}
+                  className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+                >
+                  저장
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

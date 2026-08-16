@@ -146,6 +146,7 @@ export function TimelineBoard({ initialCards }: Props) {
   const [remoteEnabled, setRemoteEnabled] = useState(false);
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
+  const longPressTimerRef = useRef<number | null>(null);
   const [modalDraft, setModalDraft] = useState<{
     id: string;
     title: string;
@@ -237,6 +238,34 @@ export function TimelineBoard({ initialCards }: Props) {
     return Number.isNaN(numeric) ? 0 : numeric;
   }
 
+  function openNewCardModalForBlankSpace() {
+    const nextId = crypto.randomUUID();
+    const nextRegion = regionNames[0] ?? defaultRegions[0];
+
+    const nextCard: TimelineCard = {
+      id: nextId,
+      region: nextRegion,
+      year: 0,
+      yearLabel: "새 연표",
+      title: "새 카드",
+      description: "설명을 입력해 주세요.",
+      tags: [],
+      order: cards.filter((card) => card.region === nextRegion).length,
+    };
+
+    setCards((current) => [...current, nextCard]);
+    setActiveId(nextId);
+    setModalDraft({
+      id: nextId,
+      title: "새 카드",
+      yearLabel: "새 연표",
+      description: "설명을 입력해 주세요.",
+      tags: "",
+      region: nextRegion,
+    });
+    setIsCardModalOpen(true);
+  }
+
   function createCard(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -318,11 +347,15 @@ export function TimelineBoard({ initialCards }: Props) {
       return;
     }
 
+    const hasConfirmed = window.confirm("정말 삭제하시겠습니까?");
+    if (!hasConfirmed) return;
+
     const nextCards = normalizeCards(cards.filter((card) => card.id !== nextTargetId), regionNames);
     setCards(nextCards);
     setActiveId(nextCards[0]?.id ?? "");
     setIsCardModalOpen(false);
     setModalDraft(null);
+    window.alert("삭제 완료되었습니다.");
   }
 
   function openCardModal(cardId: string) {
@@ -472,6 +505,7 @@ export function TimelineBoard({ initialCards }: Props) {
       setRemoteSha(payload.sha);
       setSaveState("saved");
       setSaveMessage("저장 완료! 최신 데이터가 반영되었습니다.");
+      window.alert("저장 완료! GitHub에 반영되었습니다.");
     } catch (error) {
       setSaveState("error");
       setSaveMessage(error instanceof Error ? error.message : "GitHub 저장에 실패했습니다.");

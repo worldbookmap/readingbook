@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
   Connection,
@@ -14,8 +14,10 @@ import {
   NodeTypes,
   Position,
   ReactFlow,
+  ReactFlowProvider,
   useEdgesState,
   useNodesState,
+  useReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
@@ -170,6 +172,91 @@ const nodeTypes: NodeTypes = {
   keywordNode: KeywordNodeCard,
 };
 
+type KeywordMindmapFlowProps = {
+  nodes: KeywordNode[];
+  edges: KeywordEdge[];
+  onNodesChange: ReturnType<typeof useNodesState<KeywordNode>>[2];
+  onEdgesChange: ReturnType<typeof useEdgesState<KeywordEdge>>[2];
+  onConnect: (connection: Connection) => void;
+  onNodeClick: (event: { clientX: number; clientY: number }, node: Node) => void;
+  onEdgeClick: (event: { clientX: number; clientY: number }, edge: Edge) => void;
+  addKeywordAtPosition: (position?: { x: number; y: number }) => void;
+  longPressTimerRef: React.RefObject<number | null>;
+};
+
+function KeywordMindmapFlow({
+  nodes,
+  edges,
+  onNodesChange,
+  onEdgesChange,
+  onConnect,
+  onNodeClick,
+  onEdgeClick,
+  addKeywordAtPosition,
+  longPressTimerRef,
+}: KeywordMindmapFlowProps) {
+  const reactFlowInstance = useReactFlow();
+
+  return (
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onConnect={onConnect}
+      onNodeClick={onNodeClick}
+      onEdgeClick={onEdgeClick}
+      onPaneClick={(event) => {
+        const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        if (event.detail === 2) {
+          addKeywordAtPosition(position);
+        }
+      }}
+      onPointerDown={(event) => {
+        if (event.target instanceof HTMLElement && event.target.closest(".react-flow__node")) return;
+
+        if (longPressTimerRef.current) {
+          window.clearTimeout(longPressTimerRef.current);
+        }
+
+        longPressTimerRef.current = window.setTimeout(() => {
+          const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY });
+          addKeywordAtPosition(position);
+        }, 600);
+      }}
+      onPointerUp={() => {
+        if (longPressTimerRef.current) {
+          window.clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
+        }
+      }}
+      onPointerLeave={() => {
+        if (longPressTimerRef.current) {
+          window.clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
+        }
+      }}
+      nodeTypes={nodeTypes}
+      fitView
+      fitViewOptions={{ padding: 0.2 }}
+      defaultEdgeOptions={{
+        type: "smoothstep",
+        animated: true,
+      }}
+      proOptions={{ hideAttribution: true }}
+    >
+      <Background gap={18} size={1} color="#dfe7f1" />
+      <MiniMap
+        pannable
+        zoomable
+        nodeColor={(node) => (node.data?.color as string) ?? "#c4b5fd"}
+        maskColor="rgba(255,255,255,0.75)"
+      />
+      <Controls />
+    </ReactFlow>
+  );
+}
+
 function makeBlankDocument(title: string, nextNodes: KeywordNode[] = initialNodes, nextEdges: KeywordEdge[] = initialEdges): SavedMindmapDocument {
   return {
     id: crypto.randomUUID(),
@@ -188,6 +275,11 @@ export function KeywordMindmap() {
   const [documentTitle, setDocumentTitle] = useState("문서 1");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialNodes[0].id);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+  const longPressTimerRef = useRef<number | null>(null);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveMessage, setSaveMessage] = useState("GitHub 저장 준비 중");
+  const [remoteEnabled, setRemoteEnabled] = useState(false);
+  const [remoteSha, setRemoteSha] = useState<string | null>(null);
 
   function applyDocument(document: SavedMindmapDocument) {
     setNodes(document.nodes);
@@ -199,35 +291,58 @@ export function KeywordMindmap() {
   }
 
   useEffect(() => {
-    const savedDocuments = window.localStorage.getItem(documentsStorageKey);
-    const legacySave = window.localStorage.getItem(storageKey);
+    async function loadRemoteData() {
+      try {
+        const response = await fetch("/api/keyword-map", { cache: "no-store" });
+        if (response.ok) {
+          const payload = (await response.json()) as {
+            data?: { documents?: SavedMindmapDocument[] };
+            remoteEnabled?: boolean;
+            sha?: string | null;
+          };
 
-    try {
-      if (savedDocuments) {
-        const parsedDocuments = JSON.parse(savedDocuments) as SavedMindmapDocument[];
-        if (Array.isArray(parsedDocuments) && parsedDocuments.length > 0) {
-          setDocuments(parsedDocuments);
-          applyDocument(parsedDocuments[parsedDocuments.length - 1]);
+          if (payload.data?.documents?.length) {
+            setDocuments(payload.data.documents);
+            applyDocument(payload.data.documents[payload.data.documents.length - 1]);
+            return;
+          }
+        }
+      } catch {
+        // fallback to local cache below
+      }
+
+      const savedDocuments = window.localStorage.getItem(documentsStorageKey);
+      const legacySave = window.localStorage.getItem(storageKey);
+
+      try {
+        if (savedDocuments) {
+          const parsedDocuments = JSON.parse(savedDocuments) as SavedMindmapDocument[];
+          if (Array.isArray(parsedDocuments) && parsedDocuments.length > 0) {
+            setDocuments(parsedDocuments);
+            applyDocument(parsedDocuments[parsedDocuments.length - 1]);
+            return;
+          }
+        }
+
+        if (legacySave) {
+          const parsed = JSON.parse(legacySave) as { nodes?: KeywordNode[]; edges?: KeywordEdge[] };
+          const migrated = makeBlankDocument("문서 1", parsed.nodes ?? initialNodes, parsed.edges ?? initialEdges);
+          setDocuments([migrated]);
+          applyDocument(migrated);
           return;
         }
-      }
 
-      if (legacySave) {
-        const parsed = JSON.parse(legacySave) as { nodes?: KeywordNode[]; edges?: KeywordEdge[] };
-        const migrated = makeBlankDocument("문서 1", parsed.nodes ?? initialNodes, parsed.edges ?? initialEdges);
-        setDocuments([migrated]);
-        applyDocument(migrated);
-        return;
+        const firstDocument = makeBlankDocument("문서 1");
+        setDocuments([firstDocument]);
+        applyDocument(firstDocument);
+      } catch {
+        const firstDocument = makeBlankDocument("문서 1");
+        setDocuments([firstDocument]);
+        applyDocument(firstDocument);
       }
-
-      const firstDocument = makeBlankDocument("문서 1");
-      setDocuments([firstDocument]);
-      applyDocument(firstDocument);
-    } catch {
-      const firstDocument = makeBlankDocument("문서 1");
-      setDocuments([firstDocument]);
-      applyDocument(firstDocument);
     }
+
+    void loadRemoteData();
   }, []);
 
   useEffect(() => {
@@ -268,12 +383,15 @@ export function KeywordMindmap() {
     setSelectedNodeId(null);
   };
 
-  function addKeyword() {
+  function addKeywordAtPosition(position?: { x: number; y: number }) {
     const nextIndex = nodes.length + 1;
     const nextNode: KeywordNode = {
       id: `keyword-${Date.now()}`,
       type: "keywordNode",
-      position: { x: 200 + (nextIndex % 3) * 170, y: 140 + (nextIndex % 4) * 120 },
+      position: {
+        x: position?.x ?? 200 + (nextIndex % 3) * 170,
+        y: position?.y ?? 140 + (nextIndex % 4) * 120,
+      },
       data: {
         label: `새 키워드 ${nextIndex}`,
         description: "이 키워드의 의미와 연결 포인트를 적어보세요.",
@@ -284,6 +402,10 @@ export function KeywordMindmap() {
     setNodes((current) => [...current, nextNode]);
     setSelectedNodeId(nextNode.id);
     setSelectedEdgeId(null);
+  }
+
+  function addKeyword() {
+    addKeywordAtPosition();
   }
 
   function handleNodeFieldChange(field: "label" | "description", value: string) {
@@ -319,38 +441,81 @@ export function KeywordMindmap() {
     );
   }
 
-  function saveCurrentDocument() {
+  async function saveToGithub(nextDocumentsOverride?: SavedMindmapDocument[]) {
+    const nextDocuments = nextDocumentsOverride ?? documents;
+    setSaveState("saving");
+    setSaveMessage(remoteEnabled ? "저장 중..." : "GitHub 동기화 환경을 확인하는 중입니다.");
+
+    try {
+      const response = await fetch("/api/keyword-map", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ documents: nextDocuments, sha: remoteSha }),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string };
+        throw new Error(payload.error ?? "GitHub 저장에 실패했습니다.");
+      }
+
+      const payload = (await response.json()) as { ok: true; sha: string };
+      const refreshed = await fetch("/api/keyword-map", { cache: "no-store" });
+      const refreshedPayload = refreshed.ok
+        ? ((await refreshed.json()) as {
+            data?: { documents?: SavedMindmapDocument[] };
+            remoteEnabled?: boolean;
+            sha?: string | null;
+          })
+        : null;
+
+      if (refreshedPayload?.data?.documents) {
+        setDocuments(refreshedPayload.data.documents);
+      }
+
+      setRemoteEnabled(Boolean(refreshedPayload?.remoteEnabled ?? remoteEnabled));
+      setRemoteSha(payload.sha ?? refreshedPayload?.sha ?? remoteSha);
+      setSaveState("saved");
+      setSaveMessage("저장 완료! GitHub에 반영되었습니다.");
+      window.alert("저장 완료! GitHub에 반영되었습니다.");
+    } catch (error) {
+      setSaveState("error");
+      setSaveMessage(error instanceof Error ? error.message : "GitHub 저장에 실패했습니다.");
+    }
+  }
+
+  async function saveCurrentDocument() {
     const trimmedTitle = documentTitle.trim() || `문서 ${documents.length + 1}`;
 
-    setDocuments((current) => {
-      const nextDocuments = current.some((document) => document.id === selectedDocumentId)
-        ? current.map((document) =>
-            document.id === selectedDocumentId
-              ? {
-                  ...document,
-                  title: trimmedTitle,
-                  updatedAt: new Date().toISOString(),
-                  nodes,
-                  edges,
-                }
-              : document,
-          )
-        : [
-            ...current,
-            {
-              id: selectedDocumentId || crypto.randomUUID(),
-              title: trimmedTitle,
-              updatedAt: new Date().toISOString(),
-              nodes,
-              edges,
-            },
-          ];
+    const nextDocuments = documents.some((document) => document.id === selectedDocumentId)
+      ? documents.map((document) =>
+          document.id === selectedDocumentId
+            ? {
+                ...document,
+                title: trimmedTitle,
+                updatedAt: new Date().toISOString(),
+                nodes,
+                edges,
+              }
+            : document,
+        )
+      : [
+          ...documents,
+          {
+            id: selectedDocumentId || crypto.randomUUID(),
+            title: trimmedTitle,
+            updatedAt: new Date().toISOString(),
+            nodes,
+            edges,
+          },
+        ];
 
-      const nextSelectedId = selectedDocumentId || nextDocuments[nextDocuments.length - 1].id;
-      setSelectedDocumentId(nextSelectedId);
-      setDocumentTitle(trimmedTitle);
-      return nextDocuments;
-    });
+    const nextSelectedId = selectedDocumentId || nextDocuments[nextDocuments.length - 1].id;
+    setSelectedDocumentId(nextSelectedId);
+    setDocumentTitle(trimmedTitle);
+    setDocuments(nextDocuments);
+    await saveToGithub(nextDocuments);
   }
 
   function createNewDocument() {
@@ -385,20 +550,28 @@ export function KeywordMindmap() {
   function deleteCurrentDocument() {
     if (!selectedDocumentId) return;
 
+    const hasConfirmed = window.confirm("정말 삭제하시겠습니까?");
+    if (!hasConfirmed) return;
+
     const nextDocuments = documents.filter((document) => document.id !== selectedDocumentId);
     if (nextDocuments.length === 0) {
       const freshDocument = makeBlankDocument("문서 1");
       setDocuments([freshDocument]);
       applyDocument(freshDocument);
+      window.alert("삭제 완료되었습니다.");
       return;
     }
 
     const nextTarget = nextDocuments[nextDocuments.length - 1];
     setDocuments(nextDocuments);
     applyDocument(nextTarget);
+    window.alert("삭제 완료되었습니다.");
   }
 
   function removeSelected() {
+    const hasConfirmed = window.confirm("정말 삭제하시겠습니까?");
+    if (!hasConfirmed) return;
+
     if (selectedNodeId) {
       setNodes((current) => current.filter((node) => node.id !== selectedNodeId));
       setEdges((current) =>
@@ -406,12 +579,14 @@ export function KeywordMindmap() {
       );
       setSelectedNodeId(null);
       setSelectedEdgeId(null);
+      window.alert("삭제 완료되었습니다.");
       return;
     }
 
     if (selectedEdgeId) {
       setEdges((current) => current.filter((edge) => edge.id !== selectedEdgeId));
       setSelectedEdgeId(null);
+      window.alert("삭제 완료되었습니다.");
     }
   }
 
@@ -427,10 +602,10 @@ export function KeywordMindmap() {
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={saveCurrentDocument}
+                onClick={() => { void saveCurrentDocument(); }}
                 className="rounded-full border border-violet-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-violet-700"
               >
-                문서 저장
+                GitHub 저장
               </button>
               <button
                 type="button"
@@ -486,38 +661,25 @@ export function KeywordMindmap() {
         </div>
 
         <div className="h-[640px] w-full overflow-hidden rounded-[22px] border border-slate-200 bg-[radial-gradient(circle_at_top,_rgba(167,139,250,0.12),_transparent_35%),linear-gradient(180deg,_#fff_0%,_#f8fafc_100%)]">
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={handleConnect}
-            onNodeClick={(_, node) => {
-              setSelectedNodeId(node.id);
-              setSelectedEdgeId(null);
-            }}
-            onEdgeClick={(_, edge) => {
-              setSelectedEdgeId(edge.id);
-              setSelectedNodeId(null);
-            }}
-            nodeTypes={nodeTypes}
-            fitView
-            fitViewOptions={{ padding: 0.2 }}
-            defaultEdgeOptions={{
-              type: "smoothstep",
-              animated: true,
-            }}
-            proOptions={{ hideAttribution: true }}
-          >
-            <Background gap={18} size={1} color="#dfe7f1" />
-            <MiniMap
-              pannable
-              zoomable
-              nodeColor={(node) => (node.data?.color as string) ?? "#c4b5fd"}
-              maskColor="rgba(255,255,255,0.75)"
+          <ReactFlowProvider>
+            <KeywordMindmapFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={handleConnect}
+              onNodeClick={(_, node) => {
+                setSelectedNodeId(node.id);
+                setSelectedEdgeId(null);
+              }}
+              onEdgeClick={(_, edge) => {
+                setSelectedEdgeId(edge.id);
+                setSelectedNodeId(null);
+              }}
+              addKeywordAtPosition={addKeywordAtPosition}
+              longPressTimerRef={longPressTimerRef}
             />
-            <Controls />
-          </ReactFlow>
+          </ReactFlowProvider>
         </div>
       </div>
 
@@ -536,6 +698,22 @@ export function KeywordMindmap() {
               삭제
             </button>
           )}
+        </div>
+
+        <div className="mb-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">저장 상태</p>
+              <p className="mt-1 text-sm font-medium text-slate-700">{saveMessage}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { void saveCurrentDocument(); }}
+              className="rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-slate-700"
+            >
+              저장
+            </button>
+          </div>
         </div>
 
         {selectedNode ? (

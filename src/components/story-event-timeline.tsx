@@ -103,6 +103,7 @@ export function StoryEventTimeline() {
   const [detailEventId, setDetailEventId] = useState<string | null>(null);
   const [boardPan, setBoardPan] = useState({ x: 0, y: 0 });
   const boardRef = useRef<HTMLDivElement | null>(null);
+  const emptyBoardTimerRef = useRef<number | null>(null);
   const longPressTimerRef = useRef<number | null>(null);
   const dragRef = useRef<{
     id: string;
@@ -363,6 +364,9 @@ export function StoryEventTimeline() {
       return;
     }
 
+    const hasConfirmed = window.confirm("정말 삭제하시겠습니까?");
+    if (!hasConfirmed) return;
+
     setWorks((current) =>
       current.map((work) =>
         work.id === selectedWork.id
@@ -373,6 +377,7 @@ export function StoryEventTimeline() {
           : work,
       ),
     );
+    window.alert("삭제 완료되었습니다.");
   }
 
   function deleteSelectedWork() {
@@ -380,10 +385,14 @@ export function StoryEventTimeline() {
       return;
     }
 
+    const hasConfirmed = window.confirm("정말 삭제하시겠습니까?");
+    if (!hasConfirmed) return;
+
     const nextWorks = works.filter((work) => work.id !== selectedWork.id);
     setWorks(nextWorks);
     setSelectedWorkId(nextWorks[0]?.id ?? "");
     setSelectedEventId(nextWorks[0]?.events[0]?.id ?? null);
+    window.alert("삭제 완료되었습니다.");
   }
 
   function resetWorks() {
@@ -562,6 +571,7 @@ export function StoryEventTimeline() {
       setRemoteSha(payload.sha);
       setSaveState("saved");
       setSaveMessage("저장 완료! 최신 데이터가 반영되었습니다.");
+      window.alert("저장 완료! GitHub에 반영되었습니다.");
     } catch (error) {
       setSaveState("error");
       setSaveMessage(error instanceof Error ? error.message : "GitHub 저장에 실패했습니다.");
@@ -753,7 +763,31 @@ export function StoryEventTimeline() {
 
             <div
               ref={boardRef}
-              onPointerDown={beginBoardDrag}
+              onPointerDown={(event) => {
+                if ((event.target as HTMLElement).closest("[data-card-root='true']")) {
+                  beginBoardDrag(event);
+                  return;
+                }
+
+                if (emptyBoardTimerRef.current) {
+                  window.clearTimeout(emptyBoardTimerRef.current);
+                }
+
+                emptyBoardTimerRef.current = window.setTimeout(() => {
+                  setActiveModal("event");
+                }, 650);
+                beginBoardDrag(event);
+              }}
+              onPointerUp={() => {
+                if (emptyBoardTimerRef.current) {
+                  window.clearTimeout(emptyBoardTimerRef.current);
+                  emptyBoardTimerRef.current = null;
+                }
+              }}
+              onDoubleClick={(event) => {
+                if ((event.target as HTMLElement).closest("[data-card-root='true']")) return;
+                setActiveModal("event");
+              }}
               onWheel={(event) => {
                 event.preventDefault();
                 handleTimelineZoom(event.deltaY < 0 ? 0.05 : -0.05);
