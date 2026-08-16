@@ -671,7 +671,7 @@ export function StoryEventTimeline() {
               />
             </div>
 
-            <div className="flex flex-row flex-nowrap items-center justify-start gap-2 overflow-x-auto pb-1 xl:justify-end [&::-webkit-scrollbar]:hidden">
+            <div className="flex flex-wrap items-center justify-start gap-2 xl:justify-end">
               <button
                 type="button"
                 onClick={() => setActiveModal("event")}
@@ -688,14 +688,6 @@ export function StoryEventTimeline() {
               >
                 <FontAwesomeIcon icon={faCalendarDays} className="mr-1 sm:mr-2" />
                 수정
-              </button>
-              <button
-                type="button"
-                onClick={saveToGithub}
-                className="inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[10px] font-medium text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900 sm:px-3.5 sm:py-2 sm:text-sm"
-              >
-                <FontAwesomeIcon icon={faCloudArrowUp} className="mr-1 sm:mr-2" />
-                저장
               </button>
               <button
                 type="button"
@@ -742,6 +734,23 @@ export function StoryEventTimeline() {
               })),
             ]}
           />
+        </div>
+
+        <div className="fixed inset-x-3 bottom-3 z-40 md:inset-x-auto md:right-6 md:bottom-6 md:w-[360px]">
+          <div className="flex items-center gap-2 rounded-[22px] border border-slate-200 bg-white/90 p-2 shadow-[0_18px_48px_rgba(15,23,42,0.12)] backdrop-blur-xl">
+            <div className="min-w-0 flex-1 px-2 py-1">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-slate-500">GitHub</p>
+              <p className="mt-0.5 truncate text-[11px] font-medium text-slate-700">{saveMessage}</p>
+            </div>
+            <button
+              type="button"
+              onClick={saveToGithub}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-3.5 py-2.5 text-[11px] font-semibold text-white shadow-[0_12px_26px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 hover:bg-slate-700 active:scale-[0.98]"
+            >
+              <FontAwesomeIcon icon={faCloudArrowUp} className="text-[10px]" />
+              저장
+            </button>
+          </div>
         </div>
 
         <div className="mt-5">

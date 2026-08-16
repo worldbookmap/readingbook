@@ -611,34 +611,28 @@ export function KeywordMindmap() {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/90 p-3 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-sm sm:p-4">
+      <div className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/90 p-3 pb-24 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-sm sm:p-4">
         <div className="mb-3 space-y-3 rounded-[18px] border border-violet-100 bg-violet-50/70 px-3 py-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-violet-500">Keyword Map</p>
               <h2 className="mt-1 text-base font-semibold tracking-[-0.03em] text-slate-900">핵심 키워드 연결지도</h2>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => { void saveCurrentDocument(); }}
-                className="rounded-full border border-violet-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-violet-700"
-              >
-                GitHub 저장
-              </button>
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
               <button
                 type="button"
                 onClick={createNewDocument}
-                className="rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-white shadow-[0_8px_18px_rgba(15,23,42,0.12)]"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-[11px] font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200/80 active:scale-[0.98] sm:w-auto sm:text-xs"
               >
-                + 새 문서
+                <span aria-hidden="true">＋</span>
+                새 문서
               </button>
               <button
                 type="button"
                 onClick={deleteCurrentDocument}
-                className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-semibold text-rose-700"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3.5 py-2 text-[11px] font-semibold text-rose-700 shadow-[0_8px_18px_rgba(244,63,94,0.06)] transition hover:-translate-y-0.5 hover:border-rose-300 hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-rose-100 active:scale-[0.98] sm:w-auto sm:text-xs"
               >
-                문서 삭제
+                삭제
               </button>
             </div>
           </div>
@@ -712,7 +706,7 @@ export function KeywordMindmap() {
         </div>
       </div>
 
-      <aside className="rounded-[28px] border border-slate-200/80 bg-white/90 p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)] backdrop-blur-sm">
+      <aside className="rounded-[28px] border border-slate-200/80 bg-white/90 p-4 pb-28 shadow-[0_12px_30px_rgba(15,23,42,0.04)] backdrop-blur-sm">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">Editor</p>
@@ -730,19 +724,8 @@ export function KeywordMindmap() {
         </div>
 
         <div className="mb-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">저장 상태</p>
-              <p className="mt-1 text-sm font-medium text-slate-700">{saveMessage}</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => { void saveCurrentDocument(); }}
-              className="rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-slate-700"
-            >
-              저장
-            </button>
-          </div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">저장 상태</p>
+          <p className="mt-1 text-sm font-medium text-slate-700">{saveMessage}</p>
         </div>
 
         {selectedNode ? (

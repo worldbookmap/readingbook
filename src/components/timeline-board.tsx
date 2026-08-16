@@ -769,7 +769,7 @@ export function TimelineBoard({ initialCards }: Props) {
             />
             <button
               type="submit"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-[0_12px_26px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 hover:bg-slate-700 active:scale-[0.99]"
             >
               <FontAwesomeIcon icon={faPlus} />
               카드 추가
@@ -778,7 +778,7 @@ export function TimelineBoard({ initialCards }: Props) {
             <button
               type="button"
               onClick={saveToGithub}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm font-semibold text-sky-700 transition hover:border-sky-400 hover:bg-sky-50"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.99]"
             >
               <FontAwesomeIcon icon={faCloudArrowUp} />
               저장
@@ -853,7 +853,7 @@ export function TimelineBoard({ initialCards }: Props) {
         </section>
       </aside>
 
-      <section className="rounded-[32px] border border-slate-300/80 bg-white p-6 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
+      <section className="rounded-[32px] border border-slate-300/80 bg-white p-6 pb-24 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">Timeline Board</p>
@@ -865,7 +865,24 @@ export function TimelineBoard({ initialCards }: Props) {
           </div>
         </div>
 
-        <div className="mt-4 lg:hidden">
+        <div className="fixed inset-x-3 bottom-3 z-40 md:inset-x-auto md:right-6 md:bottom-6 md:w-[360px]">
+        <div className="flex items-center gap-2 rounded-[22px] border border-slate-200 bg-white/90 p-2 shadow-[0_18px_48px_rgba(15,23,42,0.12)] backdrop-blur-xl">
+          <div className="min-w-0 flex-1 px-2 py-1">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-slate-500">GitHub</p>
+            <p className="mt-0.5 truncate text-[11px] font-medium text-slate-700">{saveMessage}</p>
+          </div>
+          <button
+            type="button"
+            onClick={saveToGithub}
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-3.5 py-2.5 text-[11px] font-semibold text-white shadow-[0_12px_26px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 hover:bg-slate-700 active:scale-[0.98]"
+          >
+            <FontAwesomeIcon icon={faCloudArrowUp} className="text-[10px]" />
+            저장
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 lg:hidden">
           <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-slate-700">모바일 연표</p>

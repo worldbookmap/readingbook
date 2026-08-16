@@ -785,22 +785,14 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Character Map</p>
             <h2 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-slate-950">인물 관계도</h2>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={saveToGithub}
-              className="rounded-full border border-sky-200 bg-sky-50 px-3.5 py-2 text-xs font-semibold text-sky-700 shadow-[0_8px_18px_rgba(14,116,144,0.08)] transition hover:border-sky-300 hover:bg-sky-100"
-            >
-              저장
-            </button>
-            <button
-              type="button"
-              onClick={addNode}
-              className="rounded-full bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white shadow-[0_10px_22px_rgba(15,23,42,0.12)]"
-            >
-              + 인물 추가
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={addNode}
+            className="inline-flex w-full max-w-[140px] items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200/80 active:scale-[0.98] sm:text-sm"
+          >
+            <span aria-hidden="true">＋</span>
+            인물 추가
+          </button>
         </div>
 
         <div className="border-b border-slate-200/80 bg-slate-50/70 px-4 py-4 sm:px-6">
@@ -864,7 +856,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         </div>
       </section>
 
-      <aside className="rounded-[28px] border border-slate-200/80 bg-white/90 p-4 shadow-[0_12px_28px_rgba(15,23,42,0.04)] backdrop-blur-sm">
+      <aside className="rounded-[28px] border border-slate-200/80 bg-white/90 p-4 pb-28 shadow-[0_12px_28px_rgba(15,23,42,0.04)] backdrop-blur-sm">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">Editor</p>
@@ -882,19 +874,8 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         </div>
 
         <div className="mb-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">저장 상태</p>
-              <p className="mt-1 text-sm font-medium text-slate-700">{saveMessage}</p>
-            </div>
-            <button
-              type="button"
-              onClick={saveToGithub}
-              className="rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-slate-700"
-            >
-              GitHub 저장
-            </button>
-          </div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">저장 상태</p>
+          <p className="mt-1 text-sm font-medium text-slate-700">{saveMessage}</p>
         </div>
 
         {selectedNode ? (
@@ -1021,6 +1002,23 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
           </div>
         </div>
       </aside>
+
+      <div className="fixed inset-x-3 bottom-3 z-40 md:inset-x-auto md:right-6 md:bottom-6 md:w-[360px]">
+        <div className="flex items-center gap-2 rounded-[22px] border border-slate-200 bg-white/90 p-2 shadow-[0_18px_48px_rgba(15,23,42,0.12)] backdrop-blur-xl">
+          <div className="min-w-0 flex-1 px-2 py-1">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-slate-500">GitHub</p>
+            <p className="mt-0.5 truncate text-[11px] font-medium text-slate-700">{saveMessage}</p>
+          </div>
+          <button
+            type="button"
+            onClick={saveToGithub}
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-3.5 py-2.5 text-[11px] font-semibold text-white shadow-[0_12px_26px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 hover:bg-slate-700 active:scale-[0.98]"
+          >
+            <span aria-hidden="true">⬇</span>
+            저장
+          </button>
+        </div>
+      </div>
 
       {isDetailModalOpen && (selectedNode || selectedEdge) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-4 backdrop-blur-[2px]">
