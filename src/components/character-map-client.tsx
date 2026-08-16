@@ -248,6 +248,8 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isNewWorkModalOpen, setIsNewWorkModalOpen] = useState(false);
+  const [editingWorkId, setEditingWorkId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [nodeDraft, setNodeDraft] = useState<{ label: string; subtitle: string; summary: string } | null>(null);
   const [edgeDraft, setEdgeDraft] = useState<{ type: RelationshipType; label: string } | null>(null);
@@ -580,6 +582,25 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     const title = newWorkTitle.trim();
     if (!title) return;
 
+    if (editingWorkId) {
+      setWorks((current) =>
+        current.map((work) =>
+          work.id === editingWorkId
+            ? {
+                ...work,
+                title,
+                titleKo: title,
+              }
+            : work,
+        ),
+      );
+
+      setEditingWorkId(null);
+      setNewWorkTitle("");
+      setIsNewWorkModalOpen(false);
+      return;
+    }
+
     const nextWork = {
       id: crypto.randomUUID(),
       title,
@@ -605,6 +626,29 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     setWorks((current) => [nextWork, ...current]);
     setSelectedWorkId(nextWork.id);
     setNewWorkTitle("");
+    setIsNewWorkModalOpen(false);
+  }
+
+  function deleteWork(workId: string) {
+    const target = works.find((work) => work.id === workId);
+    if (!target) return;
+
+    const shouldDelete = window.confirm(`"${target.titleKo ?? target.title}"을(를) 삭제하시겠습니까?`);
+    if (!shouldDelete) return;
+
+    const nextWorks = works.filter((work) => work.id !== workId);
+    setWorks(nextWorks);
+
+    if (selectedWorkId === workId) {
+      setSelectedWorkId(nextWorks[0]?.id ?? "");
+    }
+
+    if (!nextWorks.length) {
+      setNodes([]);
+      setEdges([]);
+    }
+
+    window.alert("삭제 완료되었습니다.");
   }
 
   function updateSelectedWorkSeed(nextNodes: CharacterFlowNode[], nextEdges: CharacterFlowEdge[]) {
@@ -778,56 +822,108 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_360px]">
-      <section className="overflow-hidden rounded-[32px] border border-slate-300/80 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.04)]">
-        <div className="flex items-center justify-between border-b border-slate-200/80 px-4 py-4 sm:px-6">
-          <div>
+    <>
+      {isNewWorkModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/35 p-4 backdrop-blur-[2px]">
+          <div className="w-full max-w-md rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_26px_72px_rgba(15,23,42,0.16)]">
+            <div className="mb-4">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-500">{editingWorkId ? "Edit Work" : "New Work"}</p>
+              <h3 className="mt-1 text-xl font-semibold tracking-[-0.04em] text-slate-900">
+                {editingWorkId ? "작품 이름 수정" : "새 작품 추가"}
+              </h3>
+            </div>
+
+            <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">작품 이름</label>
+            <input
+              value={newWorkTitle}
+              onChange={(event) => setNewWorkTitle(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  createNewWork();
+                }
+              }}
+              placeholder="예: 오만과 편견"
+              autoFocus
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition selection:bg-slate-200 selection:text-slate-900 focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+            />
+
+            <div className="mt-5 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setNewWorkTitle("");
+                  setEditingWorkId(null);
+                  setIsNewWorkModalOpen(false);
+                }}
+                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={createNewWork}
+                disabled={!newWorkTitle.trim()}
+                className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+              >
+                {editingWorkId ? "수정" : "추가"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_360px]">
+        <section className="overflow-hidden rounded-[32px] border border-slate-300/80 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.04)]">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-200/80 px-4 py-4 sm:px-6">
+          <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Character Map</p>
             <h2 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-slate-950">인물 관계도</h2>
           </div>
-          <button
-            type="button"
-            onClick={addNode}
-            className="inline-flex w-full max-w-[140px] items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200/80 active:scale-[0.98] sm:text-sm"
-          >
-            <span aria-hidden="true">＋</span>
-            인물 추가
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={addNode}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-[11px] font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200/80 active:scale-[0.98] sm:px-3.5 sm:text-xs"
+            >
+              <span aria-hidden="true">＋</span>
+              인물 추가
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setEditingWorkId(null);
+                setNewWorkTitle("");
+                setIsNewWorkModalOpen(true);
+              }}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-3 py-2 text-[11px] font-semibold text-white shadow-[0_8px_18px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-300 active:scale-[0.98] sm:px-3.5 sm:text-xs"
+            >
+              <span aria-hidden="true">＋</span>
+              작품 추가
+            </button>
+          </div>
         </div>
 
         <div className="border-b border-slate-200/80 bg-slate-50/70 px-4 py-4 sm:px-6">
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_220px]">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">작품 선택</p>
-              <div className="mt-2">
-                <CustomSelect
-                  value={selectedWorkId}
-                  onChange={setSelectedWorkId}
-                  options={works.map((work) => ({
-                    value: work.id,
-                    label: work.titleKo ?? work.title,
-                  }))}
-                />
-              </div>
-            </div>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">작품 선택</p>
+            <div className="mt-2">
+              <CustomSelect
+                value={selectedWorkId}
+                onChange={setSelectedWorkId}
+                onEditOption={(nextValue) => {
+                  const target = works.find((work) => work.id === nextValue);
+                  if (!target) return;
 
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">새 작품</p>
-              <div className="mt-2 flex gap-2">
-                <input
-                  value={newWorkTitle}
-                  onChange={(event) => setNewWorkTitle(event.target.value)}
-                  placeholder="작품 이름"
-                  className="w-full rounded-full border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
-                />
-                <button
-                  type="button"
-                  onClick={createNewWork}
-                  className="rounded-full bg-slate-900 px-3 py-2.5 text-xs font-semibold text-white"
-                >
-                  추가
-                </button>
-              </div>
+                  setEditingWorkId(nextValue);
+                  setNewWorkTitle(target.titleKo ?? target.title);
+                  setIsNewWorkModalOpen(true);
+                }}
+                onDeleteOption={deleteWork}
+                options={works.map((work) => ({
+                  value: work.id,
+                  label: work.titleKo ?? work.title,
+                }))}
+              />
             </div>
           </div>
         </div>
@@ -1224,5 +1320,6 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         </div>
       )}
     </div>
+    </>
   );
 }

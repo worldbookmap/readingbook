@@ -7,6 +7,7 @@ import {
   faGlobe,
   faProjectDiagram,
 } from "@fortawesome/free-solid-svg-icons";
+import packageJson from "../../package.json";
 import characterMapLibrary from "@/data/character-map.json";
 import storyEventLibrary from "@/data/story-event-library.json";
 import timelineLibrary from "@/data/timeline.json";
@@ -69,6 +70,7 @@ const journeySteps = [
 ];
 
 export default function Home() {
+  const appVersion = packageJson.version;
   const characterMapCount = characterMapLibrary.works.length;
   const storyEventCount = storyEventLibrary.works.length;
   const timelineEventCount = timelineLibrary.cards.length;
@@ -85,7 +87,10 @@ export default function Home() {
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-[11px] font-medium text-slate-600 shadow-[0_8px_24px_rgba(15,23,42,0.04)] backdrop-blur-sm sm:text-sm">
                 <FontAwesomeIcon icon={faBookOpenReader} className="text-amber-600" />
-                독서용 기록 웹앱
+                <span>독서용 기록 웹앱</span>
+                <span className="rounded-full border border-amber-200 bg-amber-50/90 px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.14em] text-amber-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+                  v {appVersion}
+                </span>
               </div>
 
               <h1 className="mt-5 max-w-4xl text-[2.2rem] font-semibold tracking-[-0.05em] text-slate-950 sm:text-4xl lg:text-[3.8rem]">

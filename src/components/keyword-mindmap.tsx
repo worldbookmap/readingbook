@@ -20,6 +20,7 @@ import {
   useReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { CustomSelect } from "@/components/custom-select";
 
 type KeywordNodeData = {
   label: string;
@@ -292,6 +293,8 @@ export function KeywordMindmap() {
   const [documents, setDocuments] = useState<SavedMindmapDocument[]>([]);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string>("");
   const [documentTitle, setDocumentTitle] = useState("문서 1");
+  const [newDocumentTitle, setNewDocumentTitle] = useState("");
+  const [isNewDocumentModalOpen, setIsNewDocumentModalOpen] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialNodes[0].id);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const longPressTimerRef = useRef<number | null>(null);
@@ -537,8 +540,15 @@ export function KeywordMindmap() {
     await saveToGithub(nextDocuments);
   }
 
+  function openNewDocumentModal() {
+    setNewDocumentTitle("");
+    setIsNewDocumentModalOpen(true);
+  }
+
   function createNewDocument() {
+    const trimmedTitle = newDocumentTitle.trim();
     const nextIndex = documents.length + 1;
+    const documentName = trimmedTitle || `문서 ${nextIndex}`;
     const blankMap = {
       nodes: [
         {
@@ -555,9 +565,21 @@ export function KeywordMindmap() {
       edges: [],
     } satisfies { nodes: KeywordNode[]; edges: KeywordEdge[] };
 
-    const nextDocument = makeBlankDocument(`문서 ${nextIndex}`, blankMap.nodes, blankMap.edges);
+    const nextDocument = makeBlankDocument(documentName, blankMap.nodes, blankMap.edges);
     setDocuments((current) => [...current, nextDocument]);
+    setDocumentTitle(documentName);
+    setNewDocumentTitle("");
+    setIsNewDocumentModalOpen(false);
     applyDocument(nextDocument);
+  }
+
+  function editDocument(documentId: string) {
+    const target = documents.find((document) => document.id === documentId);
+    if (!target) return;
+
+    setSelectedDocumentId(target.id);
+    setDocumentTitle(target.title);
+    applyDocument(target);
   }
 
   function loadDocument(documentId: string) {
@@ -566,13 +588,14 @@ export function KeywordMindmap() {
     applyDocument(target);
   }
 
-  function deleteCurrentDocument() {
-    if (!selectedDocumentId) return;
+  function deleteDocumentEntry(documentId: string) {
+    const target = documents.find((document) => document.id === documentId);
+    if (!target) return;
 
-    const hasConfirmed = window.confirm("정말 삭제하시겠습니까?");
+    const hasConfirmed = window.confirm(`"${target.title}"을(를) 삭제하시겠습니까?`);
     if (!hasConfirmed) return;
 
-    const nextDocuments = documents.filter((document) => document.id !== selectedDocumentId);
+    const nextDocuments = documents.filter((document) => document.id !== documentId);
     if (nextDocuments.length === 0) {
       const freshDocument = makeBlankDocument("문서 1");
       setDocuments([freshDocument]);
@@ -612,74 +635,48 @@ export function KeywordMindmap() {
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
       <div className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/90 p-3 pb-24 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-sm sm:p-4">
-        <div className="mb-3 space-y-3 rounded-[18px] border border-violet-100 bg-violet-50/70 px-3 py-2">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-violet-500">Keyword Map</p>
-              <h2 className="mt-1 text-base font-semibold tracking-[-0.03em] text-slate-900">핵심 키워드 연결지도</h2>
-            </div>
-            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
-              <button
-                type="button"
-                onClick={createNewDocument}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-[11px] font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200/80 active:scale-[0.98] sm:w-auto sm:text-xs"
-              >
-                <span aria-hidden="true">＋</span>
-                새 문서
-              </button>
-              <button
-                type="button"
-                onClick={deleteCurrentDocument}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3.5 py-2 text-[11px] font-semibold text-rose-700 shadow-[0_8px_18px_rgba(244,63,94,0.06)] transition hover:-translate-y-0.5 hover:border-rose-300 hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-rose-100 active:scale-[0.98] sm:w-auto sm:text-xs"
-              >
-                삭제
-              </button>
-            </div>
+        <div className="mb-3 rounded-[18px] border border-violet-100 bg-violet-50/70 px-3 py-2">
+          <div className="mb-2">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-violet-500">Keyword Map</p>
+            <h2 className="mt-1 text-base font-semibold tracking-[-0.03em] text-slate-900">핵심 키워드 연결지도</h2>
           </div>
 
-          <div className="flex flex-col gap-2 md:flex-row md:items-center">
-            <div className="min-w-0 flex-1">
-              <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">문서 선택</label>
-              <div className="rounded-[18px] border border-slate-200 bg-white/90 p-1 shadow-[0_12px_22px_rgba(15,23,42,0.05)]">
-                <select
-                  value={selectedDocumentId}
-                  onChange={(event) => loadDocument(event.target.value)}
-                  className="w-full appearance-none rounded-[14px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-3 py-2.5 pr-10 text-sm font-medium text-slate-700 shadow-inner shadow-slate-100 outline-none transition hover:border-slate-300 focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
-                  style={{
-                    backgroundImage: "url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 16 16\'%3E%3Cpath fill=\'%2364748b\' d=\'M4 6l4 4 4-4H4z\'/%3E%3C/svg%3E')",
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "right 0.8rem center",
-                  }}
-                >
-                  {documents.length === 0 ? <option value="">문서 없음</option> : null}
-                  {documents.map((document) => (
-                    <option key={document.id} value={document.id}>
-                      {document.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+          <div className="rounded-[14px] bg-transparent p-0">
+            <CustomSelect
+              value={selectedDocumentId}
+              onChange={(nextValue) => {
+                if (nextValue === "__new__") {
+                  openNewDocumentModal();
+                  return;
+                }
 
-            <div className="min-w-0 flex-1 md:max-w-[220px]">
-              <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">문서 이름</label>
-              <input
-                value={documentTitle}
-                onFocus={(event) => {
-                  clearDefaultValueIfNeeded(
-                    documentTitle,
-                    ["문서 1", "새 문서"],
-                    (nextValue) => {
-                      setDocumentTitle(nextValue);
-                    },
-                    event,
-                  );
-                }}
-                onChange={(event) => setDocumentTitle(event.target.value)}
-                placeholder="문서 이름"
-                className="w-full rounded-[14px] border border-slate-200 bg-white/90 px-3 py-2.5 text-sm font-medium text-slate-700 shadow-inner shadow-slate-100 outline-none transition selection:bg-violet-200 selection:text-violet-900 hover:border-slate-300 focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
-              />
-            </div>
+                loadDocument(nextValue);
+              }}
+              onEditOption={(nextValue) => {
+                if (nextValue === "__new__") {
+                  return;
+                }
+
+                editDocument(nextValue);
+              }}
+              onDeleteOption={(nextValue) => {
+                if (nextValue === "__new__") {
+                  return;
+                }
+
+                deleteDocumentEntry(nextValue);
+              }}
+              placeholder="문서 선택"
+              className="w-full"
+              menuClassName="max-h-[280px]"
+              options={[
+                { value: "__new__", label: "새 문서 추가" },
+                ...documents.map((document) => ({
+                  value: document.id,
+                  label: document.title,
+                })),
+              ]}
+            />
           </div>
         </div>
 
@@ -705,6 +702,53 @@ export function KeywordMindmap() {
           </ReactFlowProvider>
         </div>
       </div>
+
+      {isNewDocumentModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 p-3 backdrop-blur-[2px]">
+          <div className="w-full max-w-md rounded-[24px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.12)]">
+            <div className="flex items-center justify-between gap-3 pb-3">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-500">new document</p>
+                <h3 className="text-lg font-semibold text-slate-900">새 문서 만들기</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsNewDocumentModalOpen(false)}
+                className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-600"
+              >
+                닫기
+              </button>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <label className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">문서 이름</label>
+              <input
+                value={newDocumentTitle}
+                onChange={(event) => setNewDocumentTitle(event.target.value)}
+                placeholder="예: 중반부의 감정선"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-violet-300 focus:outline-none focus:ring-4 focus:ring-violet-100"
+              />
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsNewDocumentModalOpen(false)}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  onClick={createNewDocument}
+                  className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white"
+                >
+                  만들기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <aside className="rounded-[28px] border border-slate-200/80 bg-white/90 p-4 pb-28 shadow-[0_12px_30px_rgba(15,23,42,0.04)] backdrop-blur-sm">
         <div className="mb-4 flex items-center justify-between gap-3">
