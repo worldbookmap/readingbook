@@ -1,4 +1,21 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import packageJson from "../../package.json";
+
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const redirectTimer = window.setTimeout(() => {
+      router.replace("/characters");
+    }, 1800);
+
+    return () => window.clearTimeout(redirectTimer);
+  }, [router]);
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f7f4ef] px-6 text-slate-900">
       <section className="flex w-full max-w-sm flex-col items-center text-center">
@@ -17,6 +34,15 @@ export default function Home() {
         <div className="mt-8 h-1 w-40 overflow-hidden rounded-full bg-amber-100">
           <div className="h-full w-1/2 animate-[loading_1.8s_ease-in-out_infinite] rounded-full bg-amber-500" />
         </div>
+        <Link
+          href="/characters"
+          className="mt-6 text-xs font-medium text-slate-500 underline decoration-slate-300 underline-offset-4 transition hover:text-slate-900"
+        >
+          바로 시작하기
+        </Link>
+        <p className="mt-5 text-[10px] font-medium tracking-[0.16em] text-slate-400">
+          VERSION {packageJson.version}
+        </p>
       </section>
     </main>
   );
