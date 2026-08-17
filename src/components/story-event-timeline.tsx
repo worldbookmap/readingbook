@@ -328,6 +328,50 @@ export function StoryEventTimeline() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
+    async function loadStoryEvents() {
+      try {
+        const response = await fetch("/api/story-events", { cache: "no-store" });
+        if (!response.ok || cancelled) {
+          return;
+        }
+
+        const payload = (await response.json()) as {
+          data?: StoryTimelineLibrary;
+          remoteEnabled?: boolean;
+          sha?: string | null;
+        };
+
+        if (cancelled || !payload.data?.works?.length) {
+          return;
+        }
+
+        setRemoteEnabled(Boolean(payload.remoteEnabled));
+        setRemoteSha(payload.sha ?? null);
+        setSaveMessage(payload.remoteEnabled ? "연결됨" : "브라우저 로컬 저장 모드");
+
+        if (!payload.remoteEnabled) {
+          return;
+        }
+
+        const latestWork = payload.data.works.at(-1) ?? payload.data.works[0];
+        setWorks(payload.data.works);
+        setSelectedWorkId(latestWork.id);
+        setSelectedEventId(latestWork.events[0]?.id ?? null);
+      } catch {
+        // Keep the local or bundled fallback when remote loading is unavailable.
+      }
+    }
+
+    void loadStoryEvents();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!selectedWork) {
       return;
     }
