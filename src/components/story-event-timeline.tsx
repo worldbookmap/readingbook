@@ -1,17 +1,29 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { Background, Controls, Edge, MarkerType, Node, ReactFlow, ReactFlowProvider } from "@xyflow/react";
+import {
+  Background,
+  BackgroundVariant,
+  Controls,
+  Edge,
+  MarkerType,
+  MiniMap,
+  Node,
+  NodeProps,
+  NodeTypes,
+  ReactFlow,
+  ReactFlowProvider,
+  useNodesState,
+  useReactFlow,
+} from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBookOpen,
   faCalendarDays,
-  faGripVertical,
   faLink,
   faPlus,
   faRotateLeft,
-  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { CharacterMapLibrary, CharacterNode, CharacterRelationship, StoryEventCard, StoryTimelineLibrary, StoryTimelineWork } from "@/lib/types";
 import characterMapLibrary from "@/data/character-map-library.json";
@@ -20,8 +32,6 @@ import { CustomSelect } from "@/components/custom-select";
 import { FloatingSyncMenu } from "@/components/floating-sync-menu";
 
 const storageKey = "readingbook-story-event-library";
-const boardWidth = 1100;
-const boardHeight = 560;
 const cardWidth = 260;
 const cardHeight = 180;
 const eventPalette = ["#f59e0b", "#0f766e", "#2563eb", "#7c3aed", "#ef4444", "#f97316"];
@@ -38,6 +48,46 @@ type EventDraft = {
   chapter: string;
   summary: string;
   tags: string;
+};
+
+type StoryEventFlowNode = Node<StoryEventCard, "storyEventNode">;
+
+function StoryEventNodeCard({ data, selected }: NodeProps<StoryEventFlowNode>) {
+  return (
+    <div
+      data-card-root="true"
+      className="relative w-[200px] rounded-[24px] border-2 bg-white p-4 text-left shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition sm:w-[260px]"
+      style={{
+        borderColor: selected ? data.color : "rgba(226,232,240,1)",
+        boxShadow: selected ? `0 18px 40px ${data.color}33` : "0 18px 40px rgba(15,23,42,0.08)",
+      }}
+    >
+      <div className="flex items-center justify-between gap-2">
+        {data.yearLabel ? (
+          <span className="rounded-full px-2.5 py-1 text-[10px] font-semibold text-white" style={{ backgroundColor: data.color }}>
+            {data.yearLabel}
+          </span>
+        ) : (
+          <span className="h-6 w-10 rounded-full bg-slate-100" aria-label="연도 없음" />
+        )}
+        <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">drag</span>
+      </div>
+      <p className="mt-3 text-sm font-semibold text-slate-900">{data.title}</p>
+      <p className="mt-1 text-[11px] text-slate-500">{data.chapter}</p>
+      <p className="mt-2 text-xs leading-5 text-slate-600">{data.summary}</p>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {data.tags.slice(0, 3).map((tag) => (
+          <span key={tag} className="rounded-full bg-slate-100 px-2 py-1 text-[10px] text-slate-500">
+            {tag}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const storyEventNodeTypes: NodeTypes = {
+  storyEventNode: StoryEventNodeCard,
 };
 
 const defaultWorkDraft: WorkDraft = {
@@ -57,10 +107,6 @@ const defaultEventDraft: EventDraft = {
 const inputClassName =
   "w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-2.5 text-sm text-slate-800 shadow-[0_2px_8px_rgba(15,23,42,0.03)] outline-none transition-all duration-200 placeholder:text-slate-400 selection:bg-slate-200 selection:text-slate-900 hover:border-slate-300 focus:border-slate-700 focus:ring-4 focus:ring-slate-200/80 invalid:border-rose-300 invalid:text-rose-700 invalid:focus:ring-rose-100";
 const textareaClassName = `${inputClassName} min-h-[110px] resize-y`;
-const secondaryButtonClassName =
-  "inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200/80 disabled:cursor-not-allowed disabled:opacity-50";
-const checkboxClassName =
-  "h-4 w-4 rounded border-slate-300 bg-white text-slate-900 shadow-sm accent-slate-900 transition focus:ring-4 focus:ring-slate-200";
 const previewPalette = ["#fdf2f8", "#eff6ff", "#ecfeff", "#fef3c7", "#f5f3ff", "#dcfce7", "#fee2e2"];
 
 function buildPreviewNodes(nodes: CharacterNode[]): Node[] {
@@ -161,17 +207,63 @@ function parseYear(yearLabel: string) {
   return Number.isNaN(numeric) ? 0 : numeric;
 }
 
-function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
-}
-
-function getYearPosition(year: number, minYear: number, maxYear: number) {
-  const range = maxYear - minYear || 1;
-  return 80 + ((year - minYear) / range) * (boardWidth - 180);
-}
-
 function buildInitialWorks(): StoryTimelineWork[] {
   return (storyEventLibrary as StoryTimelineLibrary).works;
+}
+
+type StoryEventFlowProps = {
+  nodes: StoryEventFlowNode[];
+  onNodesChange: ReturnType<typeof useNodesState<StoryEventFlowNode>>[2];
+  onNodeClick: (node: StoryEventFlowNode) => void;
+  onNodeDoubleClick: (node: StoryEventFlowNode) => void;
+  onNodeDragStop: (node: StoryEventFlowNode) => void;
+  onCreateEvent: (position: { x: number; y: number }) => void;
+};
+
+function StoryEventFlow({
+  nodes,
+  onNodesChange,
+  onNodeClick,
+  onNodeDoubleClick,
+  onNodeDragStop,
+  onCreateEvent,
+}: StoryEventFlowProps) {
+  const reactFlowInstance = useReactFlow();
+
+  return (
+    <ReactFlow
+      nodes={nodes}
+      edges={[]}
+      onNodesChange={onNodesChange}
+      onNodeClick={(_, node) => onNodeClick(node as StoryEventFlowNode)}
+      onNodeDoubleClick={(_, node) => onNodeDoubleClick(node as StoryEventFlowNode)}
+      onNodeDragStop={(_, node) => onNodeDragStop(node as StoryEventFlowNode)}
+      onPaneClick={(event) => {
+        if (event.detail !== 2) {
+          return;
+        }
+
+        onCreateEvent(reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY }));
+      }}
+      nodeTypes={storyEventNodeTypes}
+      fitView
+      fitViewOptions={{ padding: 0.25, minZoom: 0.4, maxZoom: 1.6 }}
+      minZoom={0.4}
+      maxZoom={1.6}
+      defaultEdgeOptions={{ type: "smoothstep" }}
+      proOptions={{ hideAttribution: true }}
+      className="!bg-white"
+    >
+      <Background variant={BackgroundVariant.Lines} gap={48} size={1} color="rgba(148,163,184,0.18)" />
+      <MiniMap
+        pannable
+        zoomable
+        nodeColor={(node) => (node.data as StoryEventCard)?.color ?? "#f59e0b"}
+        maskColor="rgba(255,255,255,0.72)"
+      />
+      <Controls />
+    </ReactFlow>
+  );
 }
 
 export function StoryEventTimeline() {
@@ -189,32 +281,27 @@ export function StoryEventTimeline() {
   const [characterWorks, setCharacterWorks] = useState<CharacterMapLibrary["works"]>(
     (characterMapLibrary as CharacterMapLibrary).works ?? [],
   );
-  const [collapsedChapters, setCollapsedChapters] = useState<Record<string, boolean>>({});
-  const [isCompact, setIsCompact] = useState(false);
-  const [timelineZoom, setTimelineZoom] = useState(1);
-  const [boardViewport, setBoardViewport] = useState({ width: boardWidth, height: boardHeight });
   const [activeModal, setActiveModal] = useState<"work" | "event" | "edit" | "detail" | "linked" | null>(null);
   const [detailEventId, setDetailEventId] = useState<string | null>(null);
   const [selectedLinkedNode, setSelectedLinkedNode] = useState<CharacterNode | null>(null);
-  const [boardPan, setBoardPan] = useState({ x: 0, y: 0 });
-  const boardRef = useRef<HTMLDivElement | null>(null);
-  const emptyBoardTimerRef = useRef<number | null>(null);
-  const longPressTimerRef = useRef<number | null>(null);
-  const pinchZoomRef = useRef<{ startDistance: number; startZoom: number } | null>(null);
-  const dragRef = useRef<{
-    id: string;
-    startPointerX: number;
-    startPointerY: number;
-    startCardX: number;
-    startCardY: number;
-  } | null>(null);
-  const boardPanRef = useRef<{ startX: number; startY: number; originX: number; originY: number } | null>(null);
 
   const orderedWorks = works;
-  const latestWorkId = orderedWorks[0]?.id ?? "";
   const selectedWork = works.find((work) => work.id === selectedWorkId) ?? works[0] ?? null;
   const selectedEvent = selectedWork?.events.find((event) => event.id === selectedEventId) ?? selectedWork?.events[0] ?? null;
   const detailEvent = selectedWork?.events.find((event) => event.id === detailEventId) ?? null;
+  const [flowNodes, setFlowNodes, onFlowNodesChange] = useNodesState<StoryEventFlowNode>([]);
+
+  const storyEventNodes = useMemo<StoryEventFlowNode[]>(
+    () =>
+      (selectedWork?.events ?? []).map((event) => ({
+        id: event.id,
+        type: "storyEventNode",
+        position: { x: event.x, y: event.y },
+        data: event,
+        selected: event.id === selectedEvent?.id,
+      })),
+    [selectedEvent?.id, selectedWork],
+  );
 
   const linkedCharacterWork =
     characterWorks.find((work) => work.id === selectedWork?.linkedCharacterWorkId) ??
@@ -237,67 +324,6 @@ export function StoryEventTimeline() {
     [linkedCharacterWork],
   );
 
-  const yearBounds = useMemo(() => {
-    const years = (selectedWork?.events ?? [])
-      .filter((event) => (event.yearLabel ?? "").trim().length > 0)
-      .map((event) => event.year);
-
-    if (years.length === 0) {
-      return { min: 0, max: 1 };
-    }
-
-    return {
-      min: Math.min(...years),
-      max: Math.max(...years),
-    };
-  }, [selectedWork]);
-
-  const chapterGroups = useMemo(() => {
-    const groups = new Map<string, StoryEventCard[]>();
-    for (const event of selectedWork?.events ?? []) {
-      const chapterKey = event.chapter?.trim() || "기타";
-      const items = groups.get(chapterKey) ?? [];
-      items.push(event);
-      groups.set(chapterKey, items);
-    }
-
-    return Array.from(groups.entries()).map(([chapter, events]) => ({
-      chapter,
-      events: [...events].sort((left, right) => left.year - right.year),
-    }));
-  }, [selectedWork]);
-
-  useEffect(() => {
-    const updateLayout = () => {
-      const width = window.innerWidth;
-      const compact = width < 768;
-      setIsCompact(compact);
-      setBoardViewport({
-        width: compact ? Math.max(320, Math.min(width - 32, 420)) : boardWidth,
-        height: compact ? 720 : boardHeight,
-      });
-    };
-
-    updateLayout();
-    window.addEventListener("resize", updateLayout);
-
-    return () => window.removeEventListener("resize", updateLayout);
-  }, []);
-
-  useEffect(() => {
-    const board = boardRef.current;
-    if (!board || typeof ResizeObserver === "undefined") {
-      return;
-    }
-
-    const observer = new ResizeObserver(([entry]) => {
-      const width = Math.round(entry.contentRect.width);
-      setBoardViewport((current) => (current.width === width ? current : { ...current, width }));
-    });
-
-    observer.observe(board);
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => {
     async function loadCharacterWorks() {
@@ -390,6 +416,27 @@ export function StoryEventTimeline() {
     }
   }, [selectedWork, selectedEventId]);
 
+  useEffect(() => {
+    setFlowNodes(storyEventNodes);
+  }, [setFlowNodes, storyEventNodes]);
+
+  function handleFlowNodeDragStop(node: StoryEventFlowNode) {
+    setWorks((current) =>
+      current.map((work) =>
+        work.id === selectedWork?.id
+          ? {
+              ...work,
+              events: work.events.map((event) =>
+                event.id === node.id
+                  ? { ...event, x: Math.round(node.position.x), y: Math.round(node.position.y) }
+                  : event,
+              ),
+            }
+          : work,
+      ),
+    );
+  }
+
   function openAddWorkModal() {
     setEditingWorkId(null);
     setWorkDraft(defaultWorkDraft);
@@ -468,9 +515,6 @@ export function StoryEventTimeline() {
     const nextIndex = selectedWork.events.length;
     const yearLabel = eventDraft.yearLabel.trim();
     const year = parseYear(yearLabel);
-    const xRange = boardMetrics.width - cardWidth - 100;
-    const yRange = boardMetrics.height - cardHeight - 80;
-
     const nextEvent: StoryEventCard = {
       id: crypto.randomUUID(),
       title: eventDraft.title.trim(),
@@ -482,8 +526,8 @@ export function StoryEventTimeline() {
         .split(",")
         .map((tag) => tag.trim())
         .filter(Boolean),
-      x: clamp(80 + (nextIndex % 4) * 200 + (nextIndex % 2) * 30, 30, xRange),
-      y: clamp(70 + Math.floor(nextIndex / 4) * 160, 30, yRange),
+      x: 80 + (nextIndex % 4) * 200 + (nextIndex % 2) * 30,
+      y: 70 + Math.floor(nextIndex / 4) * 160,
       color: eventPalette[nextIndex % eventPalette.length],
     };
 
@@ -515,8 +559,8 @@ export function StoryEventTimeline() {
       chapter: `챕터 ${nextIndex + 1}`,
       summary: "새 사건을 입력해 주세요.",
       tags: [],
-      x: clamp(x, 30, Math.max(30, boardMetrics.width - cardWidth)),
-      y: clamp(y, 30, Math.max(30, boardMetrics.height - cardHeight)),
+      x: Math.max(30, x),
+      y: Math.max(30, y),
       color: eventPalette[nextIndex % eventPalette.length],
     };
 
@@ -617,149 +661,12 @@ export function StoryEventTimeline() {
     window.alert("삭제 완료되었습니다.");
   }
 
-  function deleteSelectedWork() {
-    if (!selectedWork) {
-      return;
-    }
-
-    deleteWorkEntry(selectedWork.id);
-  }
-
   function resetWorks() {
     const defaults = buildInitialWorks();
     setWorks(defaults);
     setSelectedWorkId(defaults[0]?.id ?? "");
     setSelectedEventId(defaults[0]?.events[0]?.id ?? null);
     window.localStorage.removeItem(storageKey);
-  }
-
-  function beginDrag(event: React.PointerEvent<HTMLDivElement>, cardId: string) {
-    if (!selectedWork) {
-      return;
-    }
-
-    const card = selectedWork.events.find((item) => item.id === cardId);
-    const board = boardRef.current;
-    if (!card || !board) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    const rect = board.getBoundingClientRect();
-    const pointerX = (event.clientX - rect.left - boardPan.x) / timelineZoom;
-    const pointerY = (event.clientY - rect.top - boardPan.y) / timelineZoom;
-
-    dragRef.current = {
-      id: cardId,
-      startPointerX: pointerX,
-      startPointerY: pointerY,
-      startCardX: card.x,
-      startCardY: card.y,
-    };
-
-    longPressTimerRef.current = window.setTimeout(() => {
-      openDetailModal(cardId);
-    }, 500);
-
-    setSelectedEventId(cardId);
-
-    const handleMove = (moveEvent: PointerEvent) => {
-      if (longPressTimerRef.current !== null) {
-        window.clearTimeout(longPressTimerRef.current);
-        longPressTimerRef.current = null;
-      }
-      if (!dragRef.current || dragRef.current.id !== cardId) {
-        return;
-      }
-
-      const localX = (moveEvent.clientX - rect.left - boardPan.x) / timelineZoom;
-      const localY = (moveEvent.clientY - rect.top - boardPan.y) / timelineZoom;
-      const nextX = clamp(
-        dragRef.current.startCardX + (localX - dragRef.current.startPointerX),
-        0,
-        Math.max(0, (boardRef.current?.clientWidth ?? boardViewport.width) - (isCompact ? 200 : cardWidth)),
-      );
-      const nextY = clamp(
-        dragRef.current.startCardY + (localY - dragRef.current.startPointerY),
-        0,
-        Math.max(0, (boardRef.current?.clientHeight ?? boardViewport.height) - (isCompact ? 150 : cardHeight)),
-      );
-
-      setWorks((current) =>
-        current.map((work) => {
-          if (work.id !== selectedWork.id) {
-            return work;
-          }
-
-          return {
-            ...work,
-            events: work.events.map((item) =>
-              item.id === cardId
-                ? {
-                    ...item,
-                    x: nextX,
-                    y: nextY,
-                  }
-                : item,
-            ),
-          };
-        }),
-      );
-    };
-
-    const handleUp = () => {
-      clearLongPressTimer();
-      dragRef.current = null;
-      window.removeEventListener("pointermove", handleMove);
-      window.removeEventListener("pointerup", handleUp);
-    };
-
-    window.addEventListener("pointermove", handleMove);
-    window.addEventListener("pointerup", handleUp, { once: true });
-  }
-
-  function beginBoardDrag(event: React.PointerEvent<HTMLDivElement>) {
-    if ((event.target as HTMLElement).closest("[data-card-root='true']")) {
-      return;
-    }
-
-    boardPanRef.current = {
-      startX: event.clientX,
-      startY: event.clientY,
-      originX: boardPan.x,
-      originY: boardPan.y,
-    };
-    event.preventDefault();
-    event.stopPropagation();
-
-    const handleMove = (moveEvent: PointerEvent) => {
-      if (!boardPanRef.current) {
-        return;
-      }
-
-      setBoardPan({
-        x: boardPanRef.current.originX + (moveEvent.clientX - boardPanRef.current.startX),
-        y: boardPanRef.current.originY + (moveEvent.clientY - boardPanRef.current.startY),
-      });
-    };
-
-    const handleUp = () => {
-      boardPanRef.current = null;
-      window.removeEventListener("pointermove", handleMove);
-      window.removeEventListener("pointerup", handleUp);
-    };
-
-    window.addEventListener("pointermove", handleMove);
-    window.addEventListener("pointerup", handleUp, { once: true });
-  }
-
-  function toggleChapter(chapter: string) {
-    setCollapsedChapters((current) => ({
-      ...current,
-      [chapter]: !current[chapter],
-    }));
   }
 
   async function refreshFromGithub() {
@@ -842,61 +749,6 @@ export function StoryEventTimeline() {
     setDetailEventId(eventId);
     setActiveModal("detail");
   }
-
-  function clearLongPressTimer() {
-    if (longPressTimerRef.current !== null) {
-      window.clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  }
-
-  function handleTimelineZoom(nextDelta: number) {
-    setTimelineZoom((current) => {
-      const nextValue = Number((current + nextDelta).toFixed(2));
-      return clamp(nextValue, 0.4, 1.6);
-    });
-  }
-
-  useEffect(() => {
-    return () => {
-      clearLongPressTimer();
-    };
-  }, []);
-
-  const boardMetrics = useMemo(() => {
-    const events = selectedWork?.events ?? [];
-    const cardMetrics = isCompact ? { width: 200, height: 150 } : { width: cardWidth, height: cardHeight };
-    const maxEventX = events.reduce((max, event) => Math.max(max, event.x), 0);
-    const maxEventY = events.reduce((max, event) => Math.max(max, event.y), 0);
-
-    return {
-      width: Math.max(isCompact ? 320 : boardViewport.width, maxEventX + cardMetrics.width + 120),
-      height: Math.max(isCompact ? 720 : boardHeight, maxEventY + cardMetrics.height + 120),
-    };
-  }, [boardViewport.width, isCompact, selectedWork]);
-  const mapTransform = `translate(${boardPan.x}px, ${boardPan.y}px) scale(${timelineZoom})`;
-
-  useEffect(() => {
-    if (!isCompact || !selectedWork?.events.length) {
-      return;
-    }
-
-    const mobileZoom = 0.6;
-    const cardWidthForView = 200;
-    const cardHeightForView = 150;
-    const minX = Math.min(...selectedWork.events.map((event) => event.x));
-    const maxX = Math.max(...selectedWork.events.map((event) => event.x + cardWidthForView));
-    const minY = Math.min(...selectedWork.events.map((event) => event.y));
-    const maxY = Math.max(...selectedWork.events.map((event) => event.y + cardHeightForView));
-    const contentCenterX = (minX + maxX) / 2;
-    const contentCenterY = (minY + maxY) / 2;
-
-    setTimelineZoom(mobileZoom);
-    setBoardPan({
-      x: boardViewport.width / 2 - contentCenterX * mobileZoom,
-      y: boardViewport.height / 2 - contentCenterY * mobileZoom,
-    });
-  }, [boardViewport.height, boardViewport.width, isCompact, selectedWork?.id]);
 
   return (
     <div className="space-y-5">
@@ -1009,11 +861,7 @@ export function StoryEventTimeline() {
               <span>{selectedWork?.events.length ?? 0}개 사건</span>
             </div>
 
-            <div
-              ref={boardRef}
-              className="relative overflow-hidden rounded-[26px] border border-amber-200 bg-white shadow-inner"
-              style={{ width: "100%", height: boardMetrics.height }}
-            >
+            <div className="relative h-[720px] overflow-hidden rounded-[26px] border border-amber-200 bg-white shadow-inner sm:h-[560px]">
               <div className="pointer-events-none absolute inset-x-3 top-3 z-30 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
@@ -1032,27 +880,6 @@ export function StoryEventTimeline() {
                   <FontAwesomeIcon icon={faCalendarDays} />
                   수정
                 </button>
-                <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-slate-200 bg-white/90 px-1.5 py-1 shadow-[0_8px_18px_rgba(15,23,42,0.05)]">
-                  <button
-                    type="button"
-                    onClick={() => handleTimelineZoom(-0.05)}
-                    className="flex h-7 w-7 items-center justify-center rounded-full text-sm text-slate-700 transition hover:bg-slate-100 active:scale-95"
-                    aria-label="타임라인 축소"
-                  >
-                    −
-                  </button>
-                  <span className="min-w-10 text-center text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                    {Math.round(timelineZoom * 100)}%
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleTimelineZoom(0.05)}
-                    className="flex h-7 w-7 items-center justify-center rounded-full text-sm text-slate-700 transition hover:bg-slate-100 active:scale-95"
-                    aria-label="타임라인 확대"
-                  >
-                    +
-                  </button>
-                </div>
                 <button
                   type="button"
                   onClick={resetWorks}
@@ -1063,188 +890,19 @@ export function StoryEventTimeline() {
                 </button>
               </div>
 
-              <div
-                onTouchStart={(event) => {
-                  if (event.touches.length !== 2) {
-                    return;
-                  }
-
-                  const [firstTouch, secondTouch] = Array.from(event.touches);
-                  emptyBoardTimerRef.current && window.clearTimeout(emptyBoardTimerRef.current);
-                  emptyBoardTimerRef.current = null;
-                  boardPanRef.current = null;
-                  pinchZoomRef.current = {
-                    startDistance: Math.hypot(
-                      secondTouch.clientX - firstTouch.clientX,
-                      secondTouch.clientY - firstTouch.clientY,
-                    ),
-                    startZoom: timelineZoom,
-                  };
-                }}
-                onTouchMove={(event) => {
-                  if (event.touches.length !== 2 || !pinchZoomRef.current) {
-                    return;
-                  }
-
-                  event.preventDefault();
-                  const [firstTouch, secondTouch] = Array.from(event.touches);
-                  const currentDistance = Math.hypot(
-                    secondTouch.clientX - firstTouch.clientX,
-                    secondTouch.clientY - firstTouch.clientY,
-                  );
-                  const scale = currentDistance / pinchZoomRef.current.startDistance;
-                  setTimelineZoom(clamp(Number((pinchZoomRef.current.startZoom * scale).toFixed(2)), 0.7, 1.6));
-                }}
-                onTouchEnd={(event) => {
-                  if (event.touches.length < 2) {
-                    pinchZoomRef.current = null;
-                  }
-                }}
-                onPointerDown={(event) => {
-                  if ((event.target as HTMLElement).closest("[data-card-root='true']")) {
-                    beginBoardDrag(event);
-                    return;
-                  }
-
-                  const rect = boardRef.current?.getBoundingClientRect();
-                  if (!rect) {
-                    return;
-                  }
-
-                  if (emptyBoardTimerRef.current) {
-                    window.clearTimeout(emptyBoardTimerRef.current);
-                  }
-
-                  const boardPointerX = (event.clientX - rect.left - boardPan.x) / timelineZoom;
-                  const boardPointerY = (event.clientY - rect.top - boardPan.y) / timelineZoom;
-
-                  emptyBoardTimerRef.current = window.setTimeout(() => {
-                    createEventAtBoardPosition(boardPointerX - cardWidth / 2, boardPointerY - cardHeight / 2);
-                  }, 650);
-                  beginBoardDrag(event);
-                }}
-                onPointerUp={() => {
-                  if (emptyBoardTimerRef.current) {
-                    window.clearTimeout(emptyBoardTimerRef.current);
-                    emptyBoardTimerRef.current = null;
-                  }
-                }}
-                onDoubleClick={(event) => {
-                  if ((event.target as HTMLElement).closest("[data-card-root='true']")) return;
-                  const rect = boardRef.current?.getBoundingClientRect();
-                  if (!rect || !selectedWork) return;
-
-                  const boardPointerX = (event.clientX - rect.left - boardPan.x) / timelineZoom;
-                  const boardPointerY = (event.clientY - rect.top - boardPan.y) / timelineZoom;
-                  createEventAtBoardPosition(boardPointerX - cardWidth / 2, boardPointerY - cardHeight / 2, `새 사건 ${selectedWork.events.length + 1}`);
-                }}
-                onWheel={(event) => {
-                  event.preventDefault();
-                  handleTimelineZoom(event.deltaY < 0 ? 0.05 : -0.05);
-                }}
-                className="relative cursor-grab touch-none select-none overflow-hidden rounded-[26px] bg-white shadow-inner active:cursor-grabbing"
-                style={{ width: "100%", height: "100%", touchAction: "none" }}
-              >
-                <div
-                  className="absolute inset-0 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
-                  style={{ transform: mapTransform, transformOrigin: "top left" }}
-                >
-                  <div className="pointer-events-none absolute left-1/2 top-6 bottom-8 w-px -translate-x-1/2 bg-slate-200" />
-
-                  {Array.from({ length: 7 }).map((_, index) => {
-                    const ratio = index / 6;
-                    const year = Math.round(yearBounds.min + (yearBounds.max - yearBounds.min) * ratio);
-                    const y = 70 + ratio * (boardMetrics.height - 120);
-                    return (
-                      <div key={`${year}-tick-${index}`} className="absolute left-0 right-0" style={{ top: y }}>
-                        <div className="absolute left-0 h-px w-[calc(50%-10px)] bg-slate-200" />
-                        <div className="absolute right-0 h-px w-[calc(50%-10px)] bg-slate-200" />
-                        <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 text-[10px] font-semibold text-slate-500">
-                          {year}
-                        </span>
-                      </div>
-                    );
-                  })}
-
-                  {chapterGroups.map(({ chapter, events }, chapterIndex) => {
-                    const collapsed = Boolean(collapsedChapters[chapter]);
-                    const chapterTop = 16 + chapterIndex * 34;
-
-                    return (
-                      <div key={chapter} className="absolute inset-x-0">
-                        <button
-                          type="button"
-                          onClick={() => toggleChapter(chapter)}
-                          className="absolute left-4 z-10 inline-flex items-center whitespace-nowrap rounded-full border border-slate-200 bg-slate-100/90 px-2.5 py-1 text-[9px] font-medium tracking-[0.12em] text-slate-600 shadow-[0_4px_12px_rgba(15,23,42,0.04)] backdrop-blur-sm transition hover:border-slate-300 hover:text-slate-800 font-serif leading-none"
-                          style={{ top: chapterTop }}
-                        >
-                          {chapter} · {collapsed ? "펼치기" : "접기"}
-                        </button>
-
-                        {!collapsed ? (
-                          events.map((event) => {
-                            const isActive = event.id === selectedEvent?.id;
-                            const mobileCardWidth = isCompact ? 200 : cardWidth;
-                            const mobileCardHeight = isCompact ? 150 : cardHeight;
-                            const left = clamp(event.x, 30, Math.max(30, boardMetrics.width - mobileCardWidth));
-                            const top = clamp(event.y, 30, Math.max(30, boardMetrics.height - mobileCardHeight));
-
-                            return (
-                              <div
-                                key={event.id}
-                                data-card-root="true"
-                                onPointerDown={(pointerEvent) => beginDrag(pointerEvent, event.id)}
-                                onDoubleClick={() => openDetailModal(event.id)}
-                                onContextMenu={(pointerEvent) => {
-                                  pointerEvent.preventDefault();
-                                  openDetailModal(event.id);
-                                }}
-                                onClick={() => setSelectedEventId(event.id)}
-                                className="absolute z-20 touch-none select-none rounded-[26px] border bg-white p-4 text-left shadow-[0_22px_45px_rgba(15,23,42,0.08)] transition hover:-translate-y-1"
-                                style={{
-                                  width: mobileCardWidth,
-                                  left,
-                                  top,
-                                  borderColor: isActive ? event.color : "rgba(226,232,240,1)",
-                                  boxShadow: isActive ? `0 18px 40px ${event.color}33` : "0 18px 40px rgba(15,23,42,0.08)",
-                                  touchAction: "none",
-                                }}
-                              >
-                                <div className="flex items-center justify-between gap-2">
-                                  {event.yearLabel ? (
-                                    <span
-                                      className="rounded-full px-2.5 py-1 text-[10px] font-semibold text-white"
-                                      style={{ backgroundColor: event.color }}
-                                    >
-                                      {event.yearLabel}
-                                    </span>
-                                  ) : (
-                                    <span className="h-6 w-10 rounded-full bg-slate-100" aria-label="연도 없음" />
-                                  )}
-                                  <span className="inline-flex items-center gap-1 text-[10px] text-slate-400">
-                                    <FontAwesomeIcon icon={faGripVertical} />
-                                    drag
-                                  </span>
-                                </div>
-                                <p className="mt-3 text-sm font-semibold text-slate-900">{event.title}</p>
-                                <p className="mt-1 text-[11px] text-slate-500">{event.chapter}</p>
-                                <p className="mt-2 text-xs leading-5 text-slate-600">{event.summary}</p>
-                                <div className="mt-3 flex flex-wrap gap-1.5">
-                                  {event.tags.slice(0, 3).map((tag) => (
-                                    <span key={tag} className="rounded-full bg-slate-100 px-2 py-1 text-[10px] text-slate-500">
-                                      {tag}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            );
-                          })
-                        ) : null}
-                      </div>
-                    );
-                  })}
-                </div>
+              <div className="h-full w-full pt-12">
+                <ReactFlowProvider>
+                  <StoryEventFlow
+                    nodes={flowNodes}
+                    onNodesChange={onFlowNodesChange}
+                    onNodeClick={(node) => setSelectedEventId(node.id)}
+                    onNodeDoubleClick={(node) => openDetailModal(node.id)}
+                    onNodeDragStop={handleFlowNodeDragStop}
+                    onCreateEvent={(position) => createEventAtBoardPosition(position.x - cardWidth / 2, position.y - cardHeight / 2)}
+                  />
+                </ReactFlowProvider>
               </div>
+
             </div>
           </div>
         </div>
