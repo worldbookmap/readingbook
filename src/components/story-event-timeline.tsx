@@ -715,6 +715,11 @@ export function StoryEventTimeline() {
         return;
       }
 
+      if (emptyBoardTimerRef.current !== null) {
+        window.clearTimeout(emptyBoardTimerRef.current);
+        emptyBoardTimerRef.current = null;
+      }
+
       setBoardPan({
         x: boardPanRef.current.originX + (moveEvent.clientX - boardPanRef.current.startX),
         y: boardPanRef.current.originY + (moveEvent.clientY - boardPanRef.current.startY),
