@@ -1,92 +1,69 @@
 {
   "works": [
     {
-      "id": "d922e971-7092-4aa9-b714-785b1d574d74",
-      "title": "내 이름은 빨강",
-      "titleKo": "내 이름은 빨강",
-      "author": "새 소설",
-      "events": []
-    },
-    {
-      "id": "story-default",
-      "title": "기본 사건 타임라인",
-      "titleKo": "기본 사건 타임라인",
-      "author": "Readingbook",
-      "linkedCharacterWorkId": "default",
+      "id": "a69eb029-a22a-497b-b100-c7b8d08f2d41",
+      "title": "천상의 비벤덤",
+      "titleKo": "천상의 비벤덤",
+      "author": "니콜라 드 크래시",
       "events": [
         {
-          "id": "event-1",
-          "title": "편지의 수령",
-          "year": 1776,
-          "yearLabel": "1776",
-          "chapter": "1장",
-          "summary": "주인공은 오래된 편지를 받고 사건의 시작점이 되는 단서를 얻는다.",
-          "tags": [
-            "서막",
-            "기밀",
-            "인연"
-          ],
-          "x": 60.15625000000003,
-          "y": 278.94047619047626,
+          "id": "d25c8bda-55df-4eb3-a371-bffdb7e06cca",
+          "title": "롬박스 교수 머리만 남아 있음",
+          "year": 0,
+          "yearLabel": "",
+          "chapter": "챕터 1",
+          "summary": "사고로 몸과 머리 분리",
+          "tags": [],
+          "x": 99.22433035714289,
+          "y": 285.546875,
           "color": "#f59e0b"
         },
         {
-          "id": "event-2",
-          "title": "비밀 동맹",
-          "year": 1778,
-          "yearLabel": "1778",
-          "chapter": "2장",
-          "summary": "주인공과 조력자가 함께 비밀 동맹을 맺고 정보를 교환한다.",
-          "tags": [
-            "동맹",
-            "공모",
-            "전환"
-          ],
-          "x": 274.0781250000001,
-          "y": 181.52529761904765,
+          "id": "3f5fd916-d40c-4e6f-9c33-6506276ec006",
+          "title": "디에고",
+          "year": 0,
+          "yearLabel": "",
+          "chapter": "챕터 1",
+          "summary": "노벨사랑상 수상대상자로 선정되었다고 끌려옴",
+          "tags": [],
+          "x": 563.0580357142857,
+          "y": 238.94531249999997,
           "color": "#0f766e"
-        },
-        {
-          "id": "event-3",
-          "title": "도시의 혼란",
-          "year": 1780,
-          "yearLabel": "1780",
-          "chapter": "3장",
-          "summary": "주요 거점이 혼란에 빠지고 경쟁자가 움직이기 시작한다.",
-          "tags": [
-            "위기",
-            "변화",
-            "도시"
-          ],
-          "x": 18.333333333333357,
-          "y": 568,
-          "color": "#7c3aed"
-        },
-        {
-          "id": "1f5cf5bb-ed70-4181-8a46-fafa6f09e336",
-          "title": "새 사건 4",
-          "year": 0,
-          "yearLabel": "",
-          "chapter": "챕터 4",
-          "summary": "새 사건을 입력해 주세요.",
-          "tags": [],
-          "x": 353.2142857142858,
-          "y": 27.9296875,
-          "color": "#7c3aed"
-        },
-        {
-          "id": "e4a55ee0-ebae-4653-a9e2-4dc5124c9e05",
-          "title": "사건 5",
-          "year": 0,
-          "yearLabel": "",
-          "chapter": "챕터 5",
-          "summary": "새 사건을 입력해 주세요.",
-          "tags": [],
-          "x": 590.0479910714287,
-          "y": 29.78794642857143,
-          "color": "#ef4444"
         }
       ]
+    },
+    {
+      "id": "99aca389-f33c-4bee-80fe-5ad78b17615a",
+      "title": "내 이름은 빨강",
+      "titleKo": "내 이름은 빨강",
+      "author": "오르한 파묵",
+      "events": [
+        {
+          "id": "969b6c14-df0a-4616-b0b6-c4026f39a7b1",
+          "title": "주인공 사망",
+          "year": 0,
+          "yearLabel": "",
+          "chapter": "1권",
+          "summary": "15년간 친구인 주인공을 죽임<br />\n이유는 세밀화 전통때문a",
+          "tags": [],
+          "x": 309.703125,
+          "y": 167.47265625,
+          "color": "#f59e0b"
+        },
+        {
+          "id": "9219f5ae-e87e-4d7f-9c09-1634eefabef0",
+          "title": "살인자 회상",
+          "year": 0,
+          "yearLabel": "",
+          "chapter": "1권",
+          "summary": "15년간 친구인 주인공을 죽임\\n\n이유는 세밀화 전통때문",
+          "tags": [],
+          "x": 646.7522321428573,
+          "y": 174.43080357142856,
+          "color": "#0f766e"
+        }
+      ],
+      "linkedCharacterWorkId": "8649314d-16a4-4e3d-91e1-e835efb7e499"
     }
   ]
 }
