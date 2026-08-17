@@ -46,6 +46,17 @@ body::before {
   pointer-events: none;
 }
 
+@keyframes loading {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  50%,
+  100% {
+    transform: translateX(200%);
+  }
+}
+
 button,
 input,
 textarea,
