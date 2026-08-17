@@ -3,7 +3,7 @@ import { KeywordMindmap } from "@/components/keyword-mindmap";
 
 export default function KeywordsPage() {
   return (
-    <main className="min-h-screen bg-[#f5f5f3] px-4 py-6 text-slate-900 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#f5f5f3] px-2 py-6 text-slate-900 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <nav className="flex items-center justify-between rounded-full border border-slate-200/80 bg-white/80 px-3 py-2 shadow-[0_10px_24px_rgba(15,23,42,0.04)] backdrop-blur-sm">
           <Link href="/" className="inline-flex items-center gap-2 rounded-full px-2 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-700 sm:text-xs">
@@ -18,7 +18,7 @@ export default function KeywordsPage() {
           </div>
         </nav>
 
-        <section className="mb-6 mt-5 rounded-[28px] border border-slate-200/80 bg-[linear-gradient(180deg,_rgba(255,255,255,0.96),rgba(248,245,240,0.95))] p-5 shadow-[0_12px_30px_rgba(15,23,42,0.04)] sm:p-7 lg:p-8">
+        <section className="mb-6 mt-5 rounded-[28px] border border-slate-200/80 bg-[linear-gradient(180deg,_rgba(255,255,255,0.96),rgba(248,245,240,0.95))] p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)] sm:p-7 lg:p-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <p className="inline-flex rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-violet-700">

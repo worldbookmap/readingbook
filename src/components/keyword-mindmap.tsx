@@ -168,7 +168,7 @@ const initialEdges: KeywordEdge[] = [
 function KeywordNodeCard({ data, selected }: NodeProps<KeywordNode>) {
   return (
     <div
-      className="relative w-[200px] rounded-[24px] border-2 bg-white p-3 shadow-[0_18px_38px_rgba(15,23,42,0.08)]"
+      className="relative w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] rounded-[24px] border-2 bg-white p-3 shadow-[0_18px_38px_rgba(15,23,42,0.08)] sm:w-[200px] sm:max-w-none"
       style={{
         background: `linear-gradient(180deg, ${data.color} 0%, rgba(255,255,255,0.96) 52%)`,
         borderColor: selected ? "#8b5cf6" : "rgba(148, 163, 184, 0.35)",

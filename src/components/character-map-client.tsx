@@ -105,7 +105,7 @@ function toCharacterRelationships(edges: CharacterFlowEdge[]): CharacterRelation
 function CharacterNodeCard({ data, selected }: NodeProps<CharacterFlowNode>) {
   return (
     <div
-      className="relative w-[210px] rounded-[24px] border-2 bg-white p-3 shadow-[0_18px_36px_rgba(15,23,42,0.08)]"
+      className="relative w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] rounded-[24px] border-2 bg-white p-3 shadow-[0_18px_36px_rgba(15,23,42,0.08)] sm:w-[210px] sm:max-w-none"
       style={{
         background: `linear-gradient(180deg, ${data.color} 0%, rgba(255,255,255,0.88) 58%)`,
         borderColor: selected ? "#1f2937" : "rgba(148, 163, 184, 0.42)",
