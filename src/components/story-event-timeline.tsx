@@ -212,7 +212,7 @@ export function StoryEventTimeline() {
   const orderedWorks = works;
   const latestWorkId = orderedWorks[0]?.id ?? "";
   const selectedWork = works.find((work) => work.id === selectedWorkId) ?? works[0] ?? null;
-  const selectedEvent = selectedWork?.events.find((event) => event.id === selectedEventId) ?? selectedWork?.events[0] ?? null;
+  const selectedEvent = selectedWork?.events.find((event) => event.id === selectedEventId) ?? null;
   const detailEvent = selectedWork?.events.find((event) => event.id === detailEventId) ?? null;
 
   const linkedCharacterWork =
@@ -519,8 +519,8 @@ export function StoryEventTimeline() {
     setActiveModal("detail");
   }
 
-  function updateSelectedEvent<T extends keyof StoryEventCard>(field: T, value: StoryEventCard[T]) {
-    if (!selectedEvent || !selectedWork) {
+  function updateSelectedEvent<T extends keyof StoryEventCard>(eventId: string, field: T, value: StoryEventCard[T]) {
+    if (!selectedWork) {
       return;
     }
 
@@ -533,7 +533,7 @@ export function StoryEventTimeline() {
         return {
           ...work,
           events: work.events.map((event) => {
-            if (event.id !== selectedEvent.id) {
+            if (event.id !== eventId) {
               return event;
             }
 
@@ -854,7 +854,9 @@ export function StoryEventTimeline() {
                     return;
                   }
 
+                  const nextWork = works.find((work) => work.id === nextValue);
                   setSelectedWorkId(nextValue);
+                  setSelectedEventId(nextWork?.events[0]?.id ?? null);
                 }}
                 onEditOption={(nextValue) => {
                   if (nextValue === "__new__") {
@@ -1332,28 +1334,28 @@ export function StoryEventTimeline() {
               <div className="mt-5 space-y-3">
                 <input
                   value={selectedEvent.title}
-                  onChange={(event) => updateSelectedEvent("title", event.target.value)}
+                  onChange={(event) => updateSelectedEvent(selectedEvent.id, "title", event.target.value)}
                   className={inputClassName}
                 />
                 <input
                   value={selectedEvent.yearLabel}
-                  onChange={(event) => updateSelectedEvent("yearLabel", event.target.value)}
+                  onChange={(event) => updateSelectedEvent(selectedEvent.id, "yearLabel", event.target.value)}
                   className={inputClassName}
                 />
                 <input
                   value={selectedEvent.chapter ?? ""}
-                  onChange={(event) => updateSelectedEvent("chapter", event.target.value)}
+                  onChange={(event) => updateSelectedEvent(selectedEvent.id, "chapter", event.target.value)}
                   className={inputClassName}
                 />
                 <textarea
                   value={selectedEvent.summary}
-                  onChange={(event) => updateSelectedEvent("summary", event.target.value)}
+                  onChange={(event) => updateSelectedEvent(selectedEvent.id, "summary", event.target.value)}
                   className={textareaClassName}
                 />
                 <input
                   value={selectedEvent.tags.join(", ")}
                   onChange={(event) =>
-                    updateSelectedEvent("tags", event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean))
+                    updateSelectedEvent(selectedEvent.id, "tags", event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean))
                   }
                   className={inputClassName}
                 />
@@ -1480,28 +1482,28 @@ export function StoryEventTimeline() {
                 <div className="space-y-2.5">
                   <input
                     value={detailEvent.title}
-                    onChange={(event) => updateSelectedEvent("title", event.target.value)}
+                    onChange={(event) => updateSelectedEvent(detailEvent.id, "title", event.target.value)}
                     className={inputClassName}
                   />
                   <input
                     value={detailEvent.yearLabel}
-                    onChange={(event) => updateSelectedEvent("yearLabel", event.target.value)}
+                    onChange={(event) => updateSelectedEvent(detailEvent.id, "yearLabel", event.target.value)}
                     className={inputClassName}
                   />
                   <input
                     value={detailEvent.chapter ?? ""}
-                    onChange={(event) => updateSelectedEvent("chapter", event.target.value)}
+                    onChange={(event) => updateSelectedEvent(detailEvent.id, "chapter", event.target.value)}
                     className={inputClassName}
                   />
                   <textarea
                     value={detailEvent.summary}
-                    onChange={(event) => updateSelectedEvent("summary", event.target.value)}
+                    onChange={(event) => updateSelectedEvent(detailEvent.id, "summary", event.target.value)}
                     className={textareaClassName}
                   />
                   <input
                     value={detailEvent.tags.join(", ")}
                     onChange={(event) =>
-                      updateSelectedEvent("tags", event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean))
+                      updateSelectedEvent(detailEvent.id, "tags", event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean))
                     }
                     className={inputClassName}
                   />
