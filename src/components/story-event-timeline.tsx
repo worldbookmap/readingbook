@@ -56,12 +56,20 @@ function StoryEventNodeCard({ data, selected }: NodeProps<StoryEventFlowNode>) {
   return (
     <div
       data-card-root="true"
-      className="relative w-[200px] rounded-[24px] border-2 bg-white p-4 text-left shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition sm:w-[260px]"
+      className="relative w-[200px] overflow-hidden rounded-[24px] border-2 bg-white p-4 text-left shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition hover:-translate-y-1 sm:w-[260px]"
       style={{
         borderColor: selected ? data.color : "rgba(226,232,240,1)",
-        boxShadow: selected ? `0 18px 40px ${data.color}33` : "0 18px 40px rgba(15,23,42,0.08)",
+        background: `radial-gradient(circle at 92% 8%, ${data.color}40 0, ${data.color}16 24%, transparent 58%), linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96))`,
+        boxShadow: selected
+          ? `0 18px 40px ${data.color}45, 0 0 24px ${data.color}30`
+          : `0 18px 40px rgba(15,23,42,0.08), 0 0 18px ${data.color}18`,
       }}
     >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full blur-2xl"
+        style={{ backgroundColor: data.color, opacity: selected ? 0.28 : 0.16 }}
+      />
       <div className="flex items-center justify-between gap-2">
         {data.yearLabel ? (
           <span className="rounded-full px-2.5 py-1 text-[10px] font-semibold text-white" style={{ backgroundColor: data.color }}>
