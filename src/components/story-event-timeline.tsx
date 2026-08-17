@@ -7,7 +7,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBookOpen,
   faCalendarDays,
-  faCloudArrowUp,
   faGripVertical,
   faLink,
   faPlus,
@@ -18,6 +17,7 @@ import { CharacterMapLibrary, CharacterNode, CharacterRelationship, StoryEventCa
 import characterMapLibrary from "@/data/character-map-library.json";
 import storyEventLibrary from "@/data/story-event-library.json";
 import { CustomSelect } from "@/components/custom-select";
+import { FloatingSyncMenu } from "@/components/floating-sync-menu";
 
 const storageKey = "readingbook-story-event-library";
 const boardWidth = 1100;
@@ -212,7 +212,7 @@ export function StoryEventTimeline() {
   const orderedWorks = works;
   const latestWorkId = orderedWorks[0]?.id ?? "";
   const selectedWork = works.find((work) => work.id === selectedWorkId) ?? works[0] ?? null;
-  const selectedEvent = selectedWork?.events.find((event) => event.id === selectedEventId) ?? null;
+  const selectedEvent = selectedWork?.events.find((event) => event.id === selectedEventId) ?? selectedWork?.events[0] ?? null;
   const detailEvent = selectedWork?.events.find((event) => event.id === detailEventId) ?? null;
 
   const linkedCharacterWork =
@@ -325,50 +325,6 @@ export function StoryEventTimeline() {
     } catch {
       // ignore invalid local cache
     }
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadStoryEvents() {
-      try {
-        const response = await fetch("/api/story-events", { cache: "no-store" });
-        if (!response.ok || cancelled) {
-          return;
-        }
-
-        const payload = (await response.json()) as {
-          data?: StoryTimelineLibrary;
-          remoteEnabled?: boolean;
-          sha?: string | null;
-        };
-
-        if (cancelled || !payload.data?.works?.length) {
-          return;
-        }
-
-        setRemoteEnabled(Boolean(payload.remoteEnabled));
-        setRemoteSha(payload.sha ?? null);
-        setSaveMessage(payload.remoteEnabled ? "연결됨" : "브라우저 로컬 저장 모드");
-
-        if (!payload.remoteEnabled) {
-          return;
-        }
-
-        const latestWork = payload.data.works.at(-1) ?? payload.data.works[0];
-        setWorks(payload.data.works);
-        setSelectedWorkId(latestWork.id);
-        setSelectedEventId(latestWork.events[0]?.id ?? null);
-      } catch {
-        // Keep the local or bundled fallback when remote loading is unavailable.
-      }
-    }
-
-    void loadStoryEvents();
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   useEffect(() => {
@@ -543,8 +499,8 @@ export function StoryEventTimeline() {
       chapter: `챕터 ${nextIndex + 1}`,
       summary: "새 사건을 입력해 주세요.",
       tags: [],
-      x: Math.max(30, x),
-      y: Math.max(30, y),
+      x: clamp(x, 30, Math.max(30, boardMetrics.width - cardWidth)),
+      y: clamp(y, 30, Math.max(30, boardMetrics.height - cardHeight)),
       color: eventPalette[nextIndex % eventPalette.length],
     };
 
@@ -563,8 +519,8 @@ export function StoryEventTimeline() {
     setActiveModal("detail");
   }
 
-  function updateSelectedEvent<T extends keyof StoryEventCard>(eventId: string, field: T, value: StoryEventCard[T]) {
-    if (!selectedWork) {
+  function updateSelectedEvent<T extends keyof StoryEventCard>(field: T, value: StoryEventCard[T]) {
+    if (!selectedEvent || !selectedWork) {
       return;
     }
 
@@ -577,7 +533,7 @@ export function StoryEventTimeline() {
         return {
           ...work,
           events: work.events.map((event) => {
-            if (event.id !== eventId) {
+            if (event.id !== selectedEvent.id) {
               return event;
             }
 
@@ -704,8 +660,16 @@ export function StoryEventTimeline() {
 
       const localX = (moveEvent.clientX - rect.left - boardPan.x) / timelineZoom;
       const localY = (moveEvent.clientY - rect.top - boardPan.y) / timelineZoom;
-      const nextX = Math.max(30, dragRef.current.startCardX + (localX - dragRef.current.startPointerX));
-      const nextY = Math.max(30, dragRef.current.startCardY + (localY - dragRef.current.startPointerY));
+      const nextX = clamp(
+        dragRef.current.startCardX + (localX - dragRef.current.startPointerX),
+        0,
+        Math.max(0, (boardRef.current?.clientWidth ?? boardViewport.width) - (isCompact ? 200 : cardWidth)),
+      );
+      const nextY = clamp(
+        dragRef.current.startCardY + (localY - dragRef.current.startPointerY),
+        0,
+        Math.max(0, (boardRef.current?.clientHeight ?? boardViewport.height) - (isCompact ? 150 : cardHeight)),
+      );
 
       setWorks((current) =>
         current.map((work) => {
@@ -759,11 +723,6 @@ export function StoryEventTimeline() {
         return;
       }
 
-      if (emptyBoardTimerRef.current !== null) {
-        window.clearTimeout(emptyBoardTimerRef.current);
-        emptyBoardTimerRef.current = null;
-      }
-
       setBoardPan({
         x: boardPanRef.current.originX + (moveEvent.clientX - boardPanRef.current.startX),
         y: boardPanRef.current.originY + (moveEvent.clientY - boardPanRef.current.startY),
@@ -785,6 +744,35 @@ export function StoryEventTimeline() {
       ...current,
       [chapter]: !current[chapter],
     }));
+  }
+
+  async function refreshFromGithub() {
+    setSaveMessage("GitHub 내용 불러오는 중...");
+
+    try {
+      const response = await fetch("/api/story-events", { cache: "no-store" });
+      if (!response.ok) throw new Error("GitHub 내용을 불러오지 못했습니다.");
+
+      const payload = (await response.json()) as {
+        data?: StoryTimelineLibrary;
+        remoteEnabled?: boolean;
+        sha?: string | null;
+      };
+      const loadedWorks = payload.data?.works ?? [];
+      if (loadedWorks.length) {
+        setWorks(loadedWorks);
+        setSelectedWorkId((current) => {
+          const nextSelected = loadedWorks.some((work) => work.id === current) ? current : loadedWorks[0].id;
+          setSelectedEventId(loadedWorks.find((work) => work.id === nextSelected)?.events[0]?.id ?? null);
+          return nextSelected;
+        });
+      }
+      setRemoteEnabled(Boolean(payload.remoteEnabled));
+      setRemoteSha(payload.sha ?? null);
+      setSaveMessage(payload.remoteEnabled ? "GitHub 내용이 갱신되었습니다." : "브라우저 로컬 저장 모드");
+    } catch (error) {
+      setSaveMessage(error instanceof Error ? error.message : "GitHub 내용을 불러오지 못했습니다.");
+    }
   }
 
   async function saveToGithub() {
@@ -859,20 +847,10 @@ export function StoryEventTimeline() {
     };
   }, []);
 
-  const boardMetrics = useMemo(() => {
-    const events = selectedWork?.events ?? [];
-    const cardMetrics = isCompact ? { width: 200, height: 150 } : { width: cardWidth, height: cardHeight };
-    const maxEventX = events.reduce((max, event) => Math.max(max, event.x), 0);
-    const maxEventY = events.reduce((max, event) => Math.max(max, event.y), 0);
-
-    return {
-      width: Math.max(
-        isCompact ? Math.max(320, Math.min(boardViewport.width, 420)) : boardWidth,
-        maxEventX + cardMetrics.width + 160,
-      ),
-      height: Math.max(isCompact ? 720 : boardHeight, maxEventY + cardMetrics.height + 120),
-    };
-  }, [boardViewport.width, isCompact, selectedWork]);
+  const boardMetrics = {
+    width: isCompact ? Math.max(320, Math.min(boardViewport.width, 420)) : boardWidth,
+    height: isCompact ? 720 : boardHeight,
+  };
   const boardScaleX = boardMetrics.width / boardWidth;
   const boardScaleY = boardMetrics.height / boardHeight;
   const mapTransform = `translate(${boardPan.x}px, ${boardPan.y}px) scale(${timelineZoom})`;
@@ -903,9 +881,7 @@ export function StoryEventTimeline() {
                     return;
                   }
 
-                  const nextWork = works.find((work) => work.id === nextValue);
                   setSelectedWorkId(nextValue);
-                  setSelectedEventId(nextWork?.events[0]?.id ?? null);
                 }}
                 onEditOption={(nextValue) => {
                   if (nextValue === "__new__") {
@@ -981,22 +957,7 @@ export function StoryEventTimeline() {
           </div>
         </div>
 
-        <div className="fixed inset-x-3 bottom-3 z-40 md:inset-x-auto md:right-6 md:bottom-6 md:w-[360px]">
-          <div className="flex items-center gap-2 rounded-[22px] border border-slate-200 bg-white/90 p-2 shadow-[0_18px_48px_rgba(15,23,42,0.12)] backdrop-blur-xl">
-            <div className="min-w-0 flex-1 px-2 py-1">
-              <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-slate-500">GitHub</p>
-              <p className="mt-0.5 truncate text-[11px] font-medium text-slate-700">{saveMessage}</p>
-            </div>
-            <button
-              type="button"
-              onClick={saveToGithub}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-3.5 py-2.5 text-[11px] font-semibold text-white shadow-[0_12px_26px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 hover:bg-slate-700 active:scale-[0.98]"
-            >
-              <FontAwesomeIcon icon={faCloudArrowUp} className="text-[10px]" />
-              저장
-            </button>
-          </div>
-        </div>
+        <FloatingSyncMenu saveMessage={saveMessage} onRefresh={refreshFromGithub} onSave={saveToGithub} />
 
         <div className="mt-5">
           <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-4">
@@ -1146,8 +1107,8 @@ export function StoryEventTimeline() {
                             const isActive = event.id === selectedEvent?.id;
                             const mobileCardWidth = isCompact ? 200 : cardWidth;
                             const mobileCardHeight = isCompact ? 150 : cardHeight;
-                            const left = Math.max(30, event.x);
-                            const top = Math.max(30, event.y);
+                            const left = clamp(event.x, 0, Math.max(0, boardMetrics.width - mobileCardWidth));
+                            const top = clamp(event.y, 0, Math.max(0, boardMetrics.height - mobileCardHeight));
 
                             return (
                               <div
@@ -1383,28 +1344,28 @@ export function StoryEventTimeline() {
               <div className="mt-5 space-y-3">
                 <input
                   value={selectedEvent.title}
-                  onChange={(event) => updateSelectedEvent(selectedEvent.id, "title", event.target.value)}
+                  onChange={(event) => updateSelectedEvent("title", event.target.value)}
                   className={inputClassName}
                 />
                 <input
                   value={selectedEvent.yearLabel}
-                  onChange={(event) => updateSelectedEvent(selectedEvent.id, "yearLabel", event.target.value)}
+                  onChange={(event) => updateSelectedEvent("yearLabel", event.target.value)}
                   className={inputClassName}
                 />
                 <input
                   value={selectedEvent.chapter ?? ""}
-                  onChange={(event) => updateSelectedEvent(selectedEvent.id, "chapter", event.target.value)}
+                  onChange={(event) => updateSelectedEvent("chapter", event.target.value)}
                   className={inputClassName}
                 />
                 <textarea
                   value={selectedEvent.summary}
-                  onChange={(event) => updateSelectedEvent(selectedEvent.id, "summary", event.target.value)}
+                  onChange={(event) => updateSelectedEvent("summary", event.target.value)}
                   className={textareaClassName}
                 />
                 <input
                   value={selectedEvent.tags.join(", ")}
                   onChange={(event) =>
-                    updateSelectedEvent(selectedEvent.id, "tags", event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean))
+                    updateSelectedEvent("tags", event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean))
                   }
                   className={inputClassName}
                 />
@@ -1531,28 +1492,28 @@ export function StoryEventTimeline() {
                 <div className="space-y-2.5">
                   <input
                     value={detailEvent.title}
-                    onChange={(event) => updateSelectedEvent(detailEvent.id, "title", event.target.value)}
+                    onChange={(event) => updateSelectedEvent("title", event.target.value)}
                     className={inputClassName}
                   />
                   <input
                     value={detailEvent.yearLabel}
-                    onChange={(event) => updateSelectedEvent(detailEvent.id, "yearLabel", event.target.value)}
+                    onChange={(event) => updateSelectedEvent("yearLabel", event.target.value)}
                     className={inputClassName}
                   />
                   <input
                     value={detailEvent.chapter ?? ""}
-                    onChange={(event) => updateSelectedEvent(detailEvent.id, "chapter", event.target.value)}
+                    onChange={(event) => updateSelectedEvent("chapter", event.target.value)}
                     className={inputClassName}
                   />
                   <textarea
                     value={detailEvent.summary}
-                    onChange={(event) => updateSelectedEvent(detailEvent.id, "summary", event.target.value)}
+                    onChange={(event) => updateSelectedEvent("summary", event.target.value)}
                     className={textareaClassName}
                   />
                   <input
                     value={detailEvent.tags.join(", ")}
                     onChange={(event) =>
-                      updateSelectedEvent(detailEvent.id, "tags", event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean))
+                      updateSelectedEvent("tags", event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean))
                     }
                     className={inputClassName}
                   />

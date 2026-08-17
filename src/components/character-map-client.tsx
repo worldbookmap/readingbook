@@ -22,6 +22,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import { CharacterMapLibrary, CharacterNode, CharacterRelationship, RelationshipType } from "@/lib/types";
 import { CustomSelect } from "@/components/custom-select";
+import { FloatingSyncMenu } from "@/components/floating-sync-menu";
 
 const storageKey = "readingbook-character-map-library";
 const relationOptions: RelationshipType[] = ["친구", "부부", "커플", "자식", "사업", "기타"];
@@ -317,6 +318,37 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
 
     void loadRemoteData();
   }, []);
+
+  async function refreshFromGithub() {
+    setSaveMessage("GitHub 내용 불러오는 중...");
+
+    try {
+      const response = await fetch("/api/character-map", { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error("GitHub 내용을 불러오지 못했습니다.");
+      }
+
+      const payload = (await response.json()) as {
+        data?: CharacterMapLibrary;
+        remoteEnabled?: boolean;
+        sha?: string | null;
+      };
+
+      if (payload.data?.works?.length) {
+        setWorks(payload.data.works);
+        setSelectedWorkId((current) =>
+          payload.data?.works?.some((work) => work.id === current)
+            ? current
+            : payload.data?.works?.[0]?.id ?? "",
+        );
+      }
+      setRemoteEnabled(Boolean(payload.remoteEnabled));
+      setRemoteSha(payload.sha ?? null);
+      setSaveMessage(payload.remoteEnabled ? "GitHub 내용이 갱신되었습니다." : "GitHub 동기화가 비활성 상태입니다.");
+    } catch (error) {
+      setSaveMessage(error instanceof Error ? error.message : "GitHub 내용을 불러오지 못했습니다.");
+    }
+  }
 
   async function saveToGithub() {
     setSaveState("saving");
@@ -1099,22 +1131,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         </div>
       </aside>
 
-      <div className="fixed inset-x-3 bottom-3 z-40 md:inset-x-auto md:right-6 md:bottom-6 md:w-[360px]">
-        <div className="flex items-center gap-2 rounded-[22px] border border-slate-200 bg-white/90 p-2 shadow-[0_18px_48px_rgba(15,23,42,0.12)] backdrop-blur-xl">
-          <div className="min-w-0 flex-1 px-2 py-1">
-            <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-slate-500">GitHub</p>
-            <p className="mt-0.5 truncate text-[11px] font-medium text-slate-700">{saveMessage}</p>
-          </div>
-          <button
-            type="button"
-            onClick={saveToGithub}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-3.5 py-2.5 text-[11px] font-semibold text-white shadow-[0_12px_26px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 hover:bg-slate-700 active:scale-[0.98]"
-          >
-            <span aria-hidden="true">⬇</span>
-            저장
-          </button>
-        </div>
-      </div>
+      <FloatingSyncMenu saveMessage={saveMessage} onRefresh={refreshFromGithub} onSave={saveToGithub} />
 
       {isDetailModalOpen && (selectedNode || selectedEdge) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-4 backdrop-blur-[2px]">

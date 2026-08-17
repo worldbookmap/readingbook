@@ -21,6 +21,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { CustomSelect } from "@/components/custom-select";
+import { FloatingSyncMenu } from "@/components/floating-sync-menu";
 
 type KeywordNodeData = {
   label: string;
@@ -463,6 +464,31 @@ export function KeywordMindmap() {
     );
   }
 
+  async function refreshFromGithub() {
+    setSaveMessage("GitHub 내용 불러오는 중...");
+
+    try {
+      const response = await fetch("/api/keyword-map", { cache: "no-store" });
+      if (!response.ok) throw new Error("GitHub 내용을 불러오지 못했습니다.");
+
+      const payload = (await response.json()) as {
+        data?: { documents?: SavedMindmapDocument[] };
+        remoteEnabled?: boolean;
+        sha?: string | null;
+      };
+      const remoteDocuments = payload.data?.documents ?? [];
+      if (remoteDocuments.length) {
+        setDocuments(remoteDocuments);
+        applyDocument(remoteDocuments[remoteDocuments.length - 1]);
+      }
+      setRemoteEnabled(Boolean(payload.remoteEnabled));
+      setRemoteSha(payload.sha ?? null);
+      setSaveMessage(payload.remoteEnabled ? "GitHub 내용이 갱신되었습니다." : "GitHub 동기화가 비활성 상태입니다.");
+    } catch (error) {
+      setSaveMessage(error instanceof Error ? error.message : "GitHub 내용을 불러오지 못했습니다.");
+    }
+  }
+
   async function saveToGithub(nextDocumentsOverride?: SavedMindmapDocument[]) {
     const nextDocuments = nextDocumentsOverride ?? documents;
     setSaveState("saving");
@@ -813,6 +839,8 @@ export function KeywordMindmap() {
           </div>
         )}
       </aside>
+
+      <FloatingSyncMenu saveMessage={saveMessage} onRefresh={refreshFromGithub} onSave={saveCurrentDocument} />
     </div>
   );
 }

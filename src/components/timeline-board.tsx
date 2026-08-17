@@ -15,6 +15,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { TimelineCard, TimelineRegion } from "@/lib/types";
 import { CustomSelect } from "@/components/custom-select";
+import { FloatingSyncMenu } from "@/components/floating-sync-menu";
 
 const defaultRegions: TimelineRegion[] = ["서유럽", "동유럽", "아시아", "미국", "남미", "기타"];
 const storageKey = "readingbook-timeline";
@@ -487,6 +488,31 @@ export function TimelineBoard({ initialCards }: Props) {
     })
     .sort((left, right) => left.year - right.year);
 
+  async function refreshFromGithub() {
+    setSaveMessage("GitHub 내용 불러오는 중...");
+
+    try {
+      const response = await fetch("/api/timeline", { cache: "no-store" });
+      if (!response.ok) throw new Error("GitHub 내용을 불러오지 못했습니다.");
+
+      const payload = (await response.json()) as {
+        data: { cards: TimelineCard[] };
+        remoteEnabled: boolean;
+        sha: string | null;
+      };
+      const parsedRegionOrder = buildRegionOrder(payload.data.cards);
+      const parsed = normalizeCards(payload.data.cards, parsedRegionOrder);
+      setCards(parsed);
+      setRegionNames(parsedRegionOrder);
+      setActiveId(parsed[0]?.id ?? "");
+      setRemoteEnabled(payload.remoteEnabled);
+      setRemoteSha(payload.sha);
+      setSaveMessage(payload.remoteEnabled ? "GitHub 내용이 갱신되었습니다." : "브라우저 로컬 저장 모드");
+    } catch (error) {
+      setSaveMessage(error instanceof Error ? error.message : "GitHub 내용을 불러오지 못했습니다.");
+    }
+  }
+
   async function saveToGithub() {
     setSaveState("saving");
     setSaveMessage(remoteEnabled ? "저장 중..." : "브라우저 로컬 저장 중");
@@ -865,22 +891,7 @@ export function TimelineBoard({ initialCards }: Props) {
           </div>
         </div>
 
-        <div className="fixed inset-x-3 bottom-3 z-40 md:inset-x-auto md:right-6 md:bottom-6 md:w-[360px]">
-        <div className="flex items-center gap-2 rounded-[22px] border border-slate-200 bg-white/90 p-2 shadow-[0_18px_48px_rgba(15,23,42,0.12)] backdrop-blur-xl">
-          <div className="min-w-0 flex-1 px-2 py-1">
-            <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-slate-500">GitHub</p>
-            <p className="mt-0.5 truncate text-[11px] font-medium text-slate-700">{saveMessage}</p>
-          </div>
-          <button
-            type="button"
-            onClick={saveToGithub}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-3.5 py-2.5 text-[11px] font-semibold text-white shadow-[0_12px_26px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 hover:bg-slate-700 active:scale-[0.98]"
-          >
-            <FontAwesomeIcon icon={faCloudArrowUp} className="text-[10px]" />
-            저장
-          </button>
-        </div>
-      </div>
+        <FloatingSyncMenu saveMessage={saveMessage} onRefresh={refreshFromGithub} onSave={saveToGithub} />
 
       <div className="mt-4 lg:hidden">
           <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-4">
