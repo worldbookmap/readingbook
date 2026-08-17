@@ -499,8 +499,8 @@ export function StoryEventTimeline() {
       chapter: `챕터 ${nextIndex + 1}`,
       summary: "새 사건을 입력해 주세요.",
       tags: [],
-      x: clamp(x, 30, Math.max(30, boardMetrics.width - cardWidth)),
-      y: clamp(y, 30, Math.max(30, boardMetrics.height - cardHeight)),
+      x: Math.max(30, x),
+      y: Math.max(30, y),
       color: eventPalette[nextIndex % eventPalette.length],
     };
 
@@ -660,16 +660,8 @@ export function StoryEventTimeline() {
 
       const localX = (moveEvent.clientX - rect.left - boardPan.x) / timelineZoom;
       const localY = (moveEvent.clientY - rect.top - boardPan.y) / timelineZoom;
-      const nextX = clamp(
-        dragRef.current.startCardX + (localX - dragRef.current.startPointerX),
-        0,
-        Math.max(0, (boardRef.current?.clientWidth ?? boardViewport.width) - (isCompact ? 200 : cardWidth)),
-      );
-      const nextY = clamp(
-        dragRef.current.startCardY + (localY - dragRef.current.startPointerY),
-        0,
-        Math.max(0, (boardRef.current?.clientHeight ?? boardViewport.height) - (isCompact ? 150 : cardHeight)),
-      );
+      const nextX = Math.max(30, dragRef.current.startCardX + (localX - dragRef.current.startPointerX));
+      const nextY = Math.max(30, dragRef.current.startCardY + (localY - dragRef.current.startPointerY));
 
       setWorks((current) =>
         current.map((work) => {
@@ -818,10 +810,20 @@ export function StoryEventTimeline() {
     };
   }, []);
 
-  const boardMetrics = {
-    width: isCompact ? Math.max(320, Math.min(boardViewport.width, 420)) : boardWidth,
-    height: isCompact ? 720 : boardHeight,
-  };
+  const boardMetrics = useMemo(() => {
+    const events = selectedWork?.events ?? [];
+    const cardMetrics = isCompact ? { width: 200, height: 150 } : { width: cardWidth, height: cardHeight };
+    const maxEventX = events.reduce((max, event) => Math.max(max, event.x), 0);
+    const maxEventY = events.reduce((max, event) => Math.max(max, event.y), 0);
+
+    return {
+      width: Math.max(
+        isCompact ? Math.max(320, Math.min(boardViewport.width, 420)) : boardWidth,
+        maxEventX + cardMetrics.width + 160,
+      ),
+      height: Math.max(isCompact ? 720 : boardHeight, maxEventY + cardMetrics.height + 120),
+    };
+  }, [boardViewport.width, isCompact, selectedWork]);
   const boardScaleX = boardMetrics.width / boardWidth;
   const boardScaleY = boardMetrics.height / boardHeight;
   const mapTransform = `translate(${boardPan.x}px, ${boardPan.y}px) scale(${timelineZoom})`;
@@ -1093,8 +1095,8 @@ export function StoryEventTimeline() {
                             const isActive = event.id === selectedEvent?.id;
                             const mobileCardWidth = isCompact ? 200 : cardWidth;
                             const mobileCardHeight = isCompact ? 150 : cardHeight;
-                            const left = clamp(event.x, 0, Math.max(0, boardMetrics.width - mobileCardWidth));
-                            const top = clamp(event.y, 0, Math.max(0, boardMetrics.height - mobileCardHeight));
+                            const left = Math.max(30, event.x);
+                            const top = Math.max(30, event.y);
 
                             return (
                               <div
