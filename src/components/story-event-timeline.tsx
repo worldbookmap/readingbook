@@ -200,6 +200,7 @@ export function StoryEventTimeline() {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const emptyBoardTimerRef = useRef<number | null>(null);
   const longPressTimerRef = useRef<number | null>(null);
+  const pinchZoomRef = useRef<{ startDistance: number; startZoom: number } | null>(null);
   const dragRef = useRef<{
     id: string;
     startPointerX: number;
@@ -281,6 +282,21 @@ export function StoryEventTimeline() {
     window.addEventListener("resize", updateLayout);
 
     return () => window.removeEventListener("resize", updateLayout);
+  }, []);
+
+  useEffect(() => {
+    const board = boardRef.current;
+    if (!board || typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const observer = new ResizeObserver(([entry]) => {
+      const width = Math.round(entry.contentRect.width);
+      setBoardViewport((current) => (current.width === width ? current : { ...current, width }));
+    });
+
+    observer.observe(board);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -452,8 +468,8 @@ export function StoryEventTimeline() {
     const nextIndex = selectedWork.events.length;
     const yearLabel = eventDraft.yearLabel.trim();
     const year = parseYear(yearLabel);
-    const xRange = boardWidth - cardWidth - 100;
-    const yRange = boardHeight - cardHeight - 80;
+    const xRange = boardMetrics.width - cardWidth - 100;
+    const yRange = boardMetrics.height - cardHeight - 80;
 
     const nextEvent: StoryEventCard = {
       id: crypto.randomUUID(),
@@ -837,7 +853,7 @@ export function StoryEventTimeline() {
   function handleTimelineZoom(nextDelta: number) {
     setTimelineZoom((current) => {
       const nextValue = Number((current + nextDelta).toFixed(2));
-      return clamp(nextValue, 0.7, 1.6);
+      return clamp(nextValue, 0.4, 1.6);
     });
   }
 
@@ -847,13 +863,40 @@ export function StoryEventTimeline() {
     };
   }, []);
 
-  const boardMetrics = {
-    width: isCompact ? Math.max(320, Math.min(boardViewport.width, 420)) : boardWidth,
-    height: isCompact ? 720 : boardHeight,
-  };
-  const boardScaleX = boardMetrics.width / boardWidth;
-  const boardScaleY = boardMetrics.height / boardHeight;
+  const boardMetrics = useMemo(() => {
+    const events = selectedWork?.events ?? [];
+    const cardMetrics = isCompact ? { width: 200, height: 150 } : { width: cardWidth, height: cardHeight };
+    const maxEventX = events.reduce((max, event) => Math.max(max, event.x), 0);
+    const maxEventY = events.reduce((max, event) => Math.max(max, event.y), 0);
+
+    return {
+      width: Math.max(isCompact ? 320 : boardViewport.width, maxEventX + cardMetrics.width + 120),
+      height: Math.max(isCompact ? 720 : boardHeight, maxEventY + cardMetrics.height + 120),
+    };
+  }, [boardViewport.width, isCompact, selectedWork]);
   const mapTransform = `translate(${boardPan.x}px, ${boardPan.y}px) scale(${timelineZoom})`;
+
+  useEffect(() => {
+    if (!isCompact || !selectedWork?.events.length) {
+      return;
+    }
+
+    const mobileZoom = 0.6;
+    const cardWidthForView = 200;
+    const cardHeightForView = 150;
+    const minX = Math.min(...selectedWork.events.map((event) => event.x));
+    const maxX = Math.max(...selectedWork.events.map((event) => event.x + cardWidthForView));
+    const minY = Math.min(...selectedWork.events.map((event) => event.y));
+    const maxY = Math.max(...selectedWork.events.map((event) => event.y + cardHeightForView));
+    const contentCenterX = (minX + maxX) / 2;
+    const contentCenterY = (minY + maxY) / 2;
+
+    setTimelineZoom(mobileZoom);
+    setBoardPan({
+      x: boardViewport.width / 2 - contentCenterX * mobileZoom,
+      y: boardViewport.height / 2 - contentCenterY * mobileZoom,
+    });
+  }, [boardViewport.height, boardViewport.width, isCompact, selectedWork?.id]);
 
   return (
     <div className="space-y-5">
@@ -909,7 +952,7 @@ export function StoryEventTimeline() {
           </div>
         </div>
 
-        <div className="mt-4 flex flex-col gap-3 rounded-[24px] border border-slate-200 bg-slate-50 p-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="mt-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-200 text-slate-700">
               <FontAwesomeIcon icon={faBookOpen} />
@@ -959,8 +1002,8 @@ export function StoryEventTimeline() {
 
         <FloatingSyncMenu saveMessage={saveMessage} onRefresh={refreshFromGithub} onSave={saveToGithub} />
 
-        <div className="mt-5">
-          <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-4">
+        <div className="-mx-5 mt-5">
+          <div className="mb-3">
             <div className="mb-3 flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
               <span>타임라인 보드</span>
               <span>{selectedWork?.events.length ?? 0}개 사건</span>
@@ -1021,6 +1064,42 @@ export function StoryEventTimeline() {
               </div>
 
               <div
+                onTouchStart={(event) => {
+                  if (event.touches.length !== 2) {
+                    return;
+                  }
+
+                  const [firstTouch, secondTouch] = Array.from(event.touches);
+                  emptyBoardTimerRef.current && window.clearTimeout(emptyBoardTimerRef.current);
+                  emptyBoardTimerRef.current = null;
+                  boardPanRef.current = null;
+                  pinchZoomRef.current = {
+                    startDistance: Math.hypot(
+                      secondTouch.clientX - firstTouch.clientX,
+                      secondTouch.clientY - firstTouch.clientY,
+                    ),
+                    startZoom: timelineZoom,
+                  };
+                }}
+                onTouchMove={(event) => {
+                  if (event.touches.length !== 2 || !pinchZoomRef.current) {
+                    return;
+                  }
+
+                  event.preventDefault();
+                  const [firstTouch, secondTouch] = Array.from(event.touches);
+                  const currentDistance = Math.hypot(
+                    secondTouch.clientX - firstTouch.clientX,
+                    secondTouch.clientY - firstTouch.clientY,
+                  );
+                  const scale = currentDistance / pinchZoomRef.current.startDistance;
+                  setTimelineZoom(clamp(Number((pinchZoomRef.current.startZoom * scale).toFixed(2)), 0.7, 1.6));
+                }}
+                onTouchEnd={(event) => {
+                  if (event.touches.length < 2) {
+                    pinchZoomRef.current = null;
+                  }
+                }}
                 onPointerDown={(event) => {
                   if ((event.target as HTMLElement).closest("[data-card-root='true']")) {
                     beginBoardDrag(event);
@@ -1107,8 +1186,8 @@ export function StoryEventTimeline() {
                             const isActive = event.id === selectedEvent?.id;
                             const mobileCardWidth = isCompact ? 200 : cardWidth;
                             const mobileCardHeight = isCompact ? 150 : cardHeight;
-                            const left = clamp(event.x, 0, Math.max(0, boardMetrics.width - mobileCardWidth));
-                            const top = clamp(event.y, 0, Math.max(0, boardMetrics.height - mobileCardHeight));
+                            const left = clamp(event.x, 30, Math.max(30, boardMetrics.width - mobileCardWidth));
+                            const top = clamp(event.y, 30, Math.max(30, boardMetrics.height - mobileCardHeight));
 
                             return (
                               <div

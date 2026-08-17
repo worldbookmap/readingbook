@@ -13,12 +13,12 @@ type Props = {
 export function FloatingSyncMenu({ saveMessage, onRefresh, onSave }: Props) {
   return (
     <div className="fixed inset-x-3 bottom-3 z-40 flex justify-center md:inset-x-auto md:right-6 md:bottom-6">
-      <div className="flex items-center gap-2 rounded-[30px] border border-white/70 bg-white/35 p-2 shadow-[0_18px_48px_rgba(15,23,42,0.14)] backdrop-blur-xl">
+      <div className="flex items-center gap-1.5 rounded-[24px] border border-white/45 bg-white/20 p-1.5 shadow-[0_14px_34px_rgba(15,23,42,0.1)] backdrop-blur-xl">
         <Link
           href="/"
           aria-label="홈으로 이동"
           title="홈으로 이동"
-          className="flex h-11 w-11 items-center justify-center rounded-[19px] border border-white/70 bg-white/45 text-slate-700 shadow-[0_8px_20px_rgba(255,255,255,0.32)] transition hover:-translate-y-0.5 hover:bg-white/70 active:scale-95"
+          className="flex h-9 w-9 items-center justify-center rounded-[15px] border border-white/45 bg-white/25 text-xs text-slate-700 shadow-[0_6px_16px_rgba(255,255,255,0.22)] transition hover:-translate-y-0.5 hover:bg-white/45 active:scale-95"
         >
           <FontAwesomeIcon icon={faHouse} />
         </Link>
@@ -27,7 +27,7 @@ export function FloatingSyncMenu({ saveMessage, onRefresh, onSave }: Props) {
           onClick={() => void onRefresh()}
           aria-label={`GitHub 내용 새로 불러오기 (${saveMessage})`}
           title="GitHub 내용 새로 불러오기"
-          className="flex h-11 w-11 items-center justify-center rounded-[19px] border border-white/70 bg-white/45 text-slate-700 shadow-[0_8px_20px_rgba(255,255,255,0.32)] transition hover:-translate-y-0.5 hover:bg-white/70 active:scale-95"
+          className="flex h-9 w-9 items-center justify-center rounded-[15px] border border-white/45 bg-white/25 text-xs text-slate-700 shadow-[0_6px_16px_rgba(255,255,255,0.22)] transition hover:-translate-y-0.5 hover:bg-white/45 active:scale-95"
         >
           <FontAwesomeIcon icon={faRotate} />
         </button>
@@ -36,7 +36,7 @@ export function FloatingSyncMenu({ saveMessage, onRefresh, onSave }: Props) {
           onClick={() => void onSave()}
           aria-label={`현재 변경사항을 GitHub에 저장 (${saveMessage})`}
           title="현재 변경사항을 GitHub에 저장"
-          className="flex h-11 w-11 items-center justify-center rounded-[19px] bg-slate-900/85 text-white shadow-[0_10px_24px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5 hover:bg-slate-800 active:scale-95"
+          className="flex h-9 w-9 items-center justify-center rounded-[15px] bg-slate-900/65 text-xs text-white shadow-[0_8px_18px_rgba(15,23,42,0.14)] transition hover:-translate-y-0.5 hover:bg-slate-800/80 active:scale-95"
         >
           <FontAwesomeIcon icon={faCloudArrowUp} />
         </button>
