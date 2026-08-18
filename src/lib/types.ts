@@ -10,13 +10,11 @@ export type CharacterNode = {
   id: string;
   name: string;
   title: string;
-  category?: string;
   summary: string;
   majorActions: string[];
   x: number;
   y: number;
   color: string;
-  size?: number;
 };
 
 export type CharacterRelationship = {
