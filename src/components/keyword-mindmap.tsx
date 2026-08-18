@@ -372,6 +372,16 @@ export function KeywordMindmap() {
     closeNodeEditModal();
   }
 
+  function deleteEditingNode() {
+    if (!editingNodeId) return;
+
+    setSelectedNodeId(editingNodeId);
+    setSelectedEdgeId(null);
+    if (removeSelected()) {
+      closeNodeEditModal();
+    }
+  }
+
   useEffect(() => {
     async function loadRemoteData() {
       try {
@@ -697,7 +707,7 @@ export function KeywordMindmap() {
 
   function removeSelected() {
     const hasConfirmed = window.confirm("정말 삭제하시겠습니까?");
-    if (!hasConfirmed) return;
+    if (!hasConfirmed) return false;
 
     if (selectedNodeId) {
       setNodes((current) => current.filter((node) => node.id !== selectedNodeId));
@@ -707,14 +717,17 @@ export function KeywordMindmap() {
       setSelectedNodeId(null);
       setSelectedEdgeId(null);
       window.alert("삭제 완료되었습니다.");
-      return;
+      return true;
     }
 
     if (selectedEdgeId) {
       setEdges((current) => current.filter((edge) => edge.id !== selectedEdgeId));
       setSelectedEdgeId(null);
       window.alert("삭제 완료되었습니다.");
+      return true;
     }
+
+    return false;
   }
 
   return (
@@ -875,13 +888,18 @@ export function KeywordMindmap() {
                 placeholder="태그를 쉼표로 구분"
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
               />
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex items-center justify-between gap-2 pt-2">
+                <button type="button" onClick={deleteEditingNode} className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">
+                  삭제
+                </button>
+                <div className="flex gap-2">
                 <button type="button" onClick={closeNodeEditModal} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700">
                   취소
                 </button>
                 <button type="button" onClick={saveNodeDraft} className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white">
                   저장
                 </button>
+                </div>
               </div>
             </div>
           </div>
