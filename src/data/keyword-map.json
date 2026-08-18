@@ -1,3 +1,29 @@
 {
-  "documents": []
+  "documents": [
+    {
+      "id": "4175e123-51ee-4991-810c-5aa4224e552f",
+      "title": "실존주의",
+      "updatedAt": "2026-08-18T02:07:29.629Z",
+      "nodes": [
+        {
+          "id": "new-root-1787015979398",
+          "type": "keywordNode",
+          "position": {
+            "x": 220,
+            "y": 200
+          },
+          "data": {
+            "label": "새 시작 키워드 2",
+            "description": "여기에 핵심 키워드를 적고 다른 키워드와 연결해 보세요.",
+            "color": "#f5f3ff"
+          },
+          "measured": {
+            "width": 200,
+            "height": 122
+          }
+        }
+      ],
+      "edges": []
+    }
+  ]
 }
