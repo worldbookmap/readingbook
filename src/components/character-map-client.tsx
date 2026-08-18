@@ -30,6 +30,7 @@ const relationOptions: RelationshipType[] = ["친구", "부부", "커플", "자�
 type CharacterFlowNodeData = {
   label: string;
   subtitle: string;
+  category: string;
   summary: string;
   color: string;
 };
@@ -52,6 +53,7 @@ function toReactNodes(nodes: CharacterNode[]): CharacterFlowNode[] {
     data: {
       label: node.name,
       subtitle: node.title,
+      category: node.category ?? "person",
       summary: node.summary || "설명을 추가해 보세요.",
       color: node.color || colorPalette[index % colorPalette.length],
     },
@@ -63,6 +65,7 @@ function toCharacterNodes(nodes: CharacterFlowNode[]): CharacterNode[] {
     id: node.id,
     name: node.data.label,
     title: node.data.subtitle,
+    category: node.data.category,
     summary: node.data.summary,
     majorActions: [],
     x: Math.round(node.position.x),
@@ -115,13 +118,12 @@ function CharacterNodeCard({ data, selected }: NodeProps<CharacterFlowNode>) {
       <Handle type="target" position={Position.Left} className="!h-3 !w-3 !border-2 !border-white !bg-slate-700" />
       <div className="mb-2 flex items-center justify-center gap-2">
         <span className="rounded-full bg-white/80 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-700">
-          person
+          {data.category || "person"}
         </span>
         <span className="h-2.5 w-2.5 rounded-full bg-slate-900" />
       </div>
       <h3 className="line-clamp-2 text-sm font-semibold tracking-[-0.03em] text-slate-900">{data.label}</h3>
       <p className="mt-1 line-clamp-1 text-[10px] font-medium text-slate-500">{data.subtitle}</p>
-      <p className="mt-2 line-clamp-3 text-[11px] leading-5 text-slate-600">{data.summary}</p>
       <Handle type="source" position={Position.Right} className="!h-3 !w-3 !border-2 !border-white !bg-slate-700" />
     </div>
   );
@@ -252,7 +254,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const [isNewWorkModalOpen, setIsNewWorkModalOpen] = useState(false);
   const [editingWorkId, setEditingWorkId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [nodeDraft, setNodeDraft] = useState<{ label: string; subtitle: string; summary: string } | null>(null);
+  const [nodeDraft, setNodeDraft] = useState<{ label: string; subtitle: string; category: string; summary: string } | null>(null);
   const [edgeDraft, setEdgeDraft] = useState<{ type: RelationshipType; label: string } | null>(null);
   const [newWorkTitle, setNewWorkTitle] = useState("");
   const [draftRelationType, setDraftRelationType] = useState<RelationshipType>("기타");
@@ -467,6 +469,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       setNodeDraft({
         label: selectedNode.data.label,
         subtitle: selectedNode.data.subtitle,
+        category: selectedNode.data.category || "person",
         summary: selectedNode.data.summary,
       });
     } else {
@@ -515,6 +518,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               ...node.data,
               label: nodeDraft.label.trim() || "새 인물",
               subtitle: nodeDraft.subtitle.trim() || "새 인물",
+              category: nodeDraft.category.trim() || "person",
               summary: nodeDraft.summary.trim(),
             },
           }
@@ -715,6 +719,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       data: {
         label: `인물 ${nodes.length + 1}`,
         subtitle: "새 인물",
+        category: "person",
         summary: "이 인물의 역할을 적어보세요.",
         color: colorPalette[nodes.length % colorPalette.length],
       },
@@ -1232,6 +1237,15 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                     onChange={(event) => setNodeDraft((current) => (current ? { ...current, label: event.target.value } : current))}
                     placeholder="인물 이름"
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition selection:bg-slate-200 selection:text-slate-900 focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">상단 태그</label>
+                  <input
+                    value={nodeDraft.category}
+                    onChange={(event) => setNodeDraft((current) => (current ? { ...current, category: event.target.value } : current))}
+                    placeholder="person"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                   />
                 </div>
                 <div>
