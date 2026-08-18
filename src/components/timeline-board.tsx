@@ -109,6 +109,7 @@ type DraftCard = {
   description: string;
   tags: string;
   color: string;
+  size: string;
 };
 
 const defaultDraft: DraftCard = {
@@ -118,6 +119,7 @@ const defaultDraft: DraftCard = {
   description: "",
   tags: "",
   color: cardColors[0],
+  size: "260",
 };
 
 const inputClassName =
@@ -178,6 +180,7 @@ export function TimelineBoard({ initialCards }: Props) {
     tags: string;
     region: TimelineRegion;
     color: string;
+    size: string;
   } | null>(null);
   const didMountRef = useRef(false);
 
@@ -275,6 +278,7 @@ export function TimelineBoard({ initialCards }: Props) {
       description: "설명을 입력해 주세요.",
       tags: [],
       color: cardColors[0],
+      size: 260,
       order: cards.filter((card) => card.region === nextRegion).length,
     };
 
@@ -288,6 +292,7 @@ export function TimelineBoard({ initialCards }: Props) {
       tags: "",
       region: nextRegion,
       color: cardColors[0],
+      size: "260",
     });
     setIsCardModalOpen(true);
   }
@@ -315,6 +320,7 @@ export function TimelineBoard({ initialCards }: Props) {
         .map((tag) => tag.trim())
         .filter(Boolean),
       color: draft.color,
+      size: Math.max(160, Math.min(420, Number(draft.size) || 260)),
       order: cards.filter((card) => card.region === draft.region).length,
     };
 
@@ -400,6 +406,7 @@ export function TimelineBoard({ initialCards }: Props) {
       tags: targetCard.tags.join(", "),
       region: targetCard.region,
       color: targetCard.color ?? cardColors[0],
+      size: String(targetCard.size ?? 260),
     });
     setIsCardModalOpen(true);
   }
@@ -426,6 +433,7 @@ export function TimelineBoard({ initialCards }: Props) {
                 .map((tag) => tag.trim())
                 .filter(Boolean),
               color: modalDraft.color,
+              size: Math.max(160, Math.min(420, Number(modalDraft.size) || 260)),
             },
       ),
     );
@@ -680,6 +688,15 @@ export function TimelineBoard({ initialCards }: Props) {
                   className="h-11 w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 p-1"
                 />
               </div>
+              <input
+                type="number"
+                min="160"
+                max="420"
+                value={modalDraft.size}
+                onChange={(event) => setModalDraft((current) => (current ? { ...current, size: event.target.value } : current))}
+                className={inputClassName}
+                aria-label="카드 크기"
+              />
             </div>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
@@ -818,6 +835,15 @@ export function TimelineBoard({ initialCards }: Props) {
               onChange={(event) => setDraft((current) => ({ ...current, color: event.target.value }))}
               className="h-11 w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 p-1"
               aria-label="카드 색상"
+            />
+            <input
+              type="number"
+              min="160"
+              max="420"
+              value={draft.size}
+              onChange={(event) => setDraft((current) => ({ ...current, size: event.target.value }))}
+              className={inputClassName}
+              aria-label="카드 크기"
             />
             <button
               type="submit"
@@ -960,6 +986,8 @@ export function TimelineBoard({ initialCards }: Props) {
                               onClick={() => openCardModal(card.id)}
                               className="block w-full rounded-[20px] border bg-white p-4 text-left shadow-sm transition active:scale-[0.99]"
                               style={{
+                                width: `min(100%, ${card.size ?? 260}px)`,
+                                minHeight: Math.round((card.size ?? 260) * 0.55),
                                 borderColor: card.color ?? (isActive ? "#38bdf8" : "rgba(226,232,240,1)"),
                                 boxShadow: isActive
                                   ? "0 14px 30px rgba(56,189,248,0.18)"
@@ -1055,6 +1083,8 @@ export function TimelineBoard({ initialCards }: Props) {
                         onClick={() => openCardModal(card.id)}
                         className="block w-full rounded-[24px] border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1"
                         style={{
+                          width: `min(100%, ${card.size ?? 260}px)`,
+                          minHeight: Math.round((card.size ?? 260) * 0.55),
                           borderColor: card.color ?? (isActive ? "#111827" : "rgba(226,232,240,1)"),
                           boxShadow: isActive
                             ? "0 16px 36px rgba(15,23,42,0.08)"

@@ -33,6 +33,7 @@ type CharacterFlowNodeData = {
   category: string;
   summary: string;
   color: string;
+  size: number;
 };
 
 type CharacterFlowNode = Node<CharacterFlowNodeData, "characterNode">;
@@ -56,6 +57,7 @@ function toReactNodes(nodes: CharacterNode[]): CharacterFlowNode[] {
       category: node.category ?? "person",
       summary: node.summary || "설명을 추가해 보세요.",
       color: node.color || colorPalette[index % colorPalette.length],
+      size: node.size ?? 170,
     },
   }));
 }
@@ -71,6 +73,7 @@ function toCharacterNodes(nodes: CharacterFlowNode[]): CharacterNode[] {
     x: Math.round(node.position.x),
     y: Math.round(node.position.y),
     color: node.data.color,
+    size: node.data.size,
   }));
 }
 
@@ -109,8 +112,10 @@ function toCharacterRelationships(edges: CharacterFlowEdge[]): CharacterRelation
 function CharacterNodeCard({ data, selected }: NodeProps<CharacterFlowNode>) {
   return (
     <div
-      className="relative flex h-[140px] w-[140px] flex-col items-center justify-center rounded-full border-2 bg-white p-4 text-center shadow-[0_14px_28px_rgba(15,23,42,0.08)] sm:h-[170px] sm:w-[170px]"
+      className="relative flex flex-col items-center justify-center rounded-full border-2 bg-white p-4 text-center shadow-[0_14px_28px_rgba(15,23,42,0.08)]"
       style={{
+        width: data.size,
+        height: data.size,
         background: `linear-gradient(180deg, ${data.color} 0%, rgba(255,255,255,0.88) 58%)`,
         borderColor: selected ? "#1f2937" : "rgba(148, 163, 184, 0.42)",
       }}
@@ -228,7 +233,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const [isNewWorkModalOpen, setIsNewWorkModalOpen] = useState(false);
   const [editingWorkId, setEditingWorkId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [nodeDraft, setNodeDraft] = useState<{ label: string; subtitle: string; category: string; summary: string; color: string } | null>(null);
+  const [nodeDraft, setNodeDraft] = useState<{ label: string; subtitle: string; category: string; summary: string; color: string; size: string } | null>(null);
   const [edgeDraft, setEdgeDraft] = useState<{ type: RelationshipType; label: string } | null>(null);
   const [newWorkTitle, setNewWorkTitle] = useState("");
   const [draftRelationType, setDraftRelationType] = useState<RelationshipType>("기타");
@@ -445,6 +450,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         category: selectedNode.data.category || "person",
         summary: selectedNode.data.summary,
         color: selectedNode.data.color,
+        size: String(selectedNode.data.size ?? 170),
       });
     } else {
       setNodeDraft(null);
@@ -495,6 +501,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               category: nodeDraft.category.trim() || "person",
               summary: nodeDraft.summary.trim(),
               color: nodeDraft.color,
+              size: Math.max(100, Math.min(320, Number(nodeDraft.size) || 170)),
             },
           }
         : node,
@@ -697,6 +704,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         category: "person",
         summary: "이 인물의 역할을 적어보세요.",
         color: colorPalette[nodes.length % colorPalette.length],
+        size: 170,
       },
     };
 
@@ -1229,6 +1237,17 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                     value={nodeDraft.color}
                     onChange={(event) => setNodeDraft((current) => (current ? { ...current, color: event.target.value } : current))}
                     className="h-11 w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 p-1"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">노드 크기</label>
+                  <input
+                    type="number"
+                    min="100"
+                    max="320"
+                    value={nodeDraft.size}
+                    onChange={(event) => setNodeDraft((current) => (current ? { ...current, size: event.target.value } : current))}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                   />
                 </div>
                 <div>

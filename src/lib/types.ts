@@ -13,6 +13,7 @@ export type CharacterNode = {
   category?: string;
   summary: string;
   majorActions: string[];
+  size?: number;
   x: number;
   y: number;
   color: string;
@@ -80,5 +81,6 @@ export type TimelineCard = {
   description: string;
   tags: string[];
   color?: string;
+  size?: number;
   order?: number;
 };

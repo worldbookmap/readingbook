@@ -27,6 +27,7 @@ type KeywordNodeData = {
   label: string;
   description: string;
   color: string;
+  size?: number;
   category?: string;
   tags?: string[];
 };
@@ -181,8 +182,9 @@ const initialEdges: KeywordEdge[] = [
 function KeywordNodeCard({ data, selected }: NodeProps<KeywordNode>) {
   return (
     <div
-      className="relative w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] rounded-[24px] border-2 bg-white p-3 shadow-[0_18px_38px_rgba(15,23,42,0.08)] sm:w-[200px] sm:max-w-none"
+      className="relative rounded-[24px] border-2 bg-white p-3 shadow-[0_18px_38px_rgba(15,23,42,0.08)]"
       style={{
+        width: data.size ?? 200,
         background: `linear-gradient(180deg, ${data.color} 0%, rgba(255,255,255,0.96) 52%)`,
         borderColor: selected ? "#8b5cf6" : "rgba(148, 163, 184, 0.35)",
       }}
@@ -295,7 +297,7 @@ export function KeywordMindmap() {
   const [newDocumentTitle, setNewDocumentTitle] = useState("");
   const [isNewDocumentModalOpen, setIsNewDocumentModalOpen] = useState(false);
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
-  const [nodeDraft, setNodeDraft] = useState({ label: "", category: "", description: "", tags: "", color: "#f5f3ff" });
+  const [nodeDraft, setNodeDraft] = useState({ label: "", category: "", description: "", tags: "", color: "#f5f3ff", size: "200" });
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialNodes[0].id);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -320,12 +322,13 @@ export function KeywordMindmap() {
       description: node.data.description,
       tags: node.data.tags?.join(", ") ?? "",
       color: node.data.color,
+      size: String(node.data.size ?? 200),
     });
   }
 
   function closeNodeEditModal() {
     setEditingNodeId(null);
-    setNodeDraft({ label: "", category: "", description: "", tags: "", color: "#f5f3ff" });
+    setNodeDraft({ label: "", category: "", description: "", tags: "", color: "#f5f3ff", size: "200" });
   }
 
   function saveNodeDraft() {
@@ -339,7 +342,7 @@ export function KeywordMindmap() {
     setNodes((current) =>
       current.map((node) =>
         node.id === editingNodeId
-          ? { ...node, data: { ...node.data, label: nodeDraft.label.trim(), category: nodeDraft.category.trim() || "concept", description: nodeDraft.description.trim(), tags, color: nodeDraft.color } }
+          ? { ...node, data: { ...node.data, label: nodeDraft.label.trim(), category: nodeDraft.category.trim() || "concept", description: nodeDraft.description.trim(), tags, color: nodeDraft.color, size: Math.max(120, Math.min(360, Number(nodeDraft.size) || 200)) } }
           : node,
       ),
     );
@@ -867,6 +870,16 @@ export function KeywordMindmap() {
                 onChange={(event) => setNodeDraft((current) => ({ ...current, color: event.target.value }))}
                 className="h-11 w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 p-1"
                 aria-label="키워드 카드 색상"
+              />
+              <input
+                type="number"
+                min="120"
+                max="360"
+                value={nodeDraft.size}
+                onChange={(event) => setNodeDraft((current) => ({ ...current, size: event.target.value }))}
+                placeholder="노드 크기"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
+                aria-label="키워드 노드 크기"
               />
               <div className="flex items-center justify-between gap-2 pt-2">
                 <button type="button" onClick={deleteEditingNode} className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">
