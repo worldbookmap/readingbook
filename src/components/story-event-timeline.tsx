@@ -1127,7 +1127,7 @@ export function StoryEventTimeline() {
                         {!collapsed ? (
                           events.map((event) => {
                             const isActive = event.id === selectedEvent?.id;
-                            const mobileCardWidth = isCompact ? Math.min(200, event.size ?? cardWidth) : event.size ?? cardWidth;
+                            const mobileCardWidth = event.size ?? cardWidth;
                             const mobileCardHeight = Math.round(mobileCardWidth * (cardHeight / cardWidth));
                             const left = clamp(event.x, 0, Math.max(0, boardMetrics.width - mobileCardWidth));
                             const top = clamp(event.y, 0, Math.max(0, boardMetrics.height - mobileCardHeight));
