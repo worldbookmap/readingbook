@@ -291,6 +291,7 @@ function makeBlankDocument(title: string, nextNodes: KeywordNode[] = initialNode
 export function KeywordMindmap() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [isLoadingDocument, setIsLoadingDocument] = useState(true);
   const [documents, setDocuments] = useState<SavedMindmapDocument[]>([]);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string>("");
   const [documentTitle, setDocumentTitle] = useState("문서 1");
@@ -408,6 +409,8 @@ export function KeywordMindmap() {
         const firstDocument = makeBlankDocument("문서 1");
         setDocuments([firstDocument]);
         applyDocument(firstDocument);
+      } finally {
+        setIsLoadingDocument(false);
       }
     }
 
@@ -756,25 +759,29 @@ export function KeywordMindmap() {
         </div>
 
         <div className="h-[640px] w-full overflow-hidden rounded-[22px] border border-slate-200 bg-[radial-gradient(circle_at_top,_rgba(167,139,250,0.12),_transparent_35%),linear-gradient(180deg,_#fff_0%,_#f8fafc_100%)]">
-          <ReactFlowProvider>
-            <KeywordMindmapFlow
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={handleConnect}
-              onNodeClick={(_, node) => {
-                setSelectedNodeId(node.id);
-                setSelectedEdgeId(null);
-              }}
-              onNodeDoubleClick={openNodeEditModal}
-              onEdgeClick={(_, edge) => {
-                setSelectedEdgeId(edge.id);
-                setSelectedNodeId(null);
-              }}
-              addKeywordAtPosition={addKeywordAtPosition}
-            />
-          </ReactFlowProvider>
+          {isLoadingDocument ? (
+            <div className="flex h-full items-center justify-center text-sm text-slate-400">키워드맵을 불러오는 중...</div>
+          ) : (
+            <ReactFlowProvider>
+              <KeywordMindmapFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={handleConnect}
+                onNodeClick={(_, node) => {
+                  setSelectedNodeId(node.id);
+                  setSelectedEdgeId(null);
+                }}
+                onNodeDoubleClick={openNodeEditModal}
+                onEdgeClick={(_, edge) => {
+                  setSelectedEdgeId(edge.id);
+                  setSelectedNodeId(null);
+                }}
+                addKeywordAtPosition={addKeywordAtPosition}
+              />
+            </ReactFlowProvider>
+          )}
         </div>
       </div>
 
