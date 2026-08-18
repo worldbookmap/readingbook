@@ -224,7 +224,6 @@ type KeywordMindmapFlowProps = {
   onNodeDoubleClick: (node: KeywordNode) => void;
   onEdgeClick: (event: { clientX: number; clientY: number }, edge: Edge) => void;
   addKeywordAtPosition: (position?: { x: number; y: number }) => void;
-  longPressTimerRef: React.RefObject<number | null>;
 };
 
 function KeywordMindmapFlow({
@@ -237,7 +236,6 @@ function KeywordMindmapFlow({
   onNodeDoubleClick,
   onEdgeClick,
   addKeywordAtPosition,
-  longPressTimerRef,
 }: KeywordMindmapFlowProps) {
   const reactFlowInstance = useReactFlow();
 
@@ -255,30 +253,6 @@ function KeywordMindmapFlow({
         const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY });
         if (event.detail === 2) {
           addKeywordAtPosition(position);
-        }
-      }}
-      onPointerDown={(event) => {
-        if (event.target instanceof HTMLElement && event.target.closest(".react-flow__node")) return;
-
-        if (longPressTimerRef.current) {
-          window.clearTimeout(longPressTimerRef.current);
-        }
-
-        longPressTimerRef.current = window.setTimeout(() => {
-          const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY });
-          addKeywordAtPosition(position);
-        }, 600);
-      }}
-      onPointerUp={() => {
-        if (longPressTimerRef.current) {
-          window.clearTimeout(longPressTimerRef.current);
-          longPressTimerRef.current = null;
-        }
-      }}
-      onPointerLeave={() => {
-        if (longPressTimerRef.current) {
-          window.clearTimeout(longPressTimerRef.current);
-          longPressTimerRef.current = null;
         }
       }}
       nodeTypes={nodeTypes}
@@ -324,7 +298,6 @@ export function KeywordMindmap() {
   const [nodeDraft, setNodeDraft] = useState({ label: "", category: "", description: "", tags: "" });
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialNodes[0].id);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
-  const longPressTimerRef = useRef<number | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveMessage, setSaveMessage] = useState("GitHub 저장 준비 중");
   const [remoteEnabled, setRemoteEnabled] = useState(false);
@@ -796,7 +769,6 @@ export function KeywordMindmap() {
                 setSelectedNodeId(null);
               }}
               addKeywordAtPosition={addKeywordAtPosition}
-              longPressTimerRef={longPressTimerRef}
             />
           </ReactFlowProvider>
         </div>
