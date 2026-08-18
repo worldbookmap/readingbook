@@ -3,27 +3,178 @@
     {
       "id": "4175e123-51ee-4991-810c-5aa4224e552f",
       "title": "실존주의",
-      "updatedAt": "2026-08-18T02:07:29.629Z",
+      "updatedAt": "2026-08-18T02:11:58.097Z",
       "nodes": [
         {
           "id": "new-root-1787015979398",
           "type": "keywordNode",
           "position": {
-            "x": 220,
-            "y": 200
+            "x": 336.5333177037483,
+            "y": 161.9786738347477
           },
           "data": {
-            "label": "새 시작 키워드 2",
+            "label": "장 아메리",
             "description": "여기에 핵심 키워드를 적고 다른 키워드와 연결해 보세요.",
-            "color": "#f5f3ff"
+            "color": "#f5f3ff",
+            "category": "아우슈비츠",
+            "tags": []
           },
           "measured": {
             "width": 200,
             "height": 122
-          }
+          },
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "keyword-1787018979746",
+          "type": "keywordNode",
+          "position": {
+            "x": 555.7522794251872,
+            "y": -21.72610435455052
+          },
+          "data": {
+            "label": "실존주의",
+            "description": "이 키워드의 의미와 연결 포인트를 적어보세요.",
+            "color": "#ecfeff",
+            "category": "실존주의",
+            "tags": []
+          },
+          "measured": {
+            "width": 200,
+            "height": 122
+          },
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "keyword-1787019000065",
+          "type": "keywordNode",
+          "position": {
+            "x": 92.60102117590583,
+            "y": 281.6149448154383
+          },
+          "data": {
+            "label": "구조주의",
+            "description": "이 키워드의 의미와 연결 포인트를 적어보세요.",
+            "color": "#fef3c7",
+            "category": "구조주의",
+            "tags": []
+          },
+          "measured": {
+            "width": 200,
+            "height": 122
+          },
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "keyword-1787019056989",
+          "type": "keywordNode",
+          "position": {
+            "x": 536.1908502307235,
+            "y": 335.86320121882085
+          },
+          "data": {
+            "label": "현상학",
+            "description": "이 키워드의 의미와 연결 포인트를 적어보세요.",
+            "color": "#f5f3ff",
+            "category": "concept",
+            "tags": []
+          },
+          "measured": {
+            "width": 200,
+            "height": 122
+          },
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "keyword-1787019081364",
+          "type": "keywordNode",
+          "position": {
+            "x": 898.0344733323601,
+            "y": 2.44230460130443
+          },
+          "data": {
+            "label": "샤르트르",
+            "description": "타인은 지옥이다",
+            "color": "#dcfce7",
+            "category": "구조주의자",
+            "tags": []
+          },
+          "measured": {
+            "width": 200,
+            "height": 102
+          },
+          "selected": false
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "id": "edge-1787019016293",
+          "source": "keyword-1787019000065",
+          "target": "new-root-1787015979398",
+          "label": "거부",
+          "animated": true,
+          "type": "smoothstep",
+          "style": {
+            "stroke": "#7c3aed"
+          },
+          "markerEnd": {
+            "type": "arrowclosed",
+            "color": "#7c3aed"
+          },
+          "selected": false
+        },
+        {
+          "id": "edge-1787019029450",
+          "source": "new-root-1787015979398",
+          "target": "keyword-1787018979746",
+          "label": "아우슈비츠 후 실존주의에 의지",
+          "animated": true,
+          "type": "smoothstep",
+          "style": {
+            "stroke": "#7c3aed"
+          },
+          "markerEnd": {
+            "type": "arrowclosed",
+            "color": "#7c3aed"
+          },
+          "selected": false
+        },
+        {
+          "id": "edge-1787019066160",
+          "source": "new-root-1787015979398",
+          "target": "keyword-1787019056989",
+          "label": "세상을 바라보는 눈",
+          "animated": true,
+          "type": "smoothstep",
+          "style": {
+            "stroke": "#7c3aed"
+          },
+          "markerEnd": {
+            "type": "arrowclosed",
+            "color": "#7c3aed"
+          },
+          "selected": false
+        },
+        {
+          "id": "edge-1787019111995",
+          "source": "keyword-1787018979746",
+          "target": "keyword-1787019081364",
+          "label": "새 연결의 의미를 적어보세요.",
+          "animated": true,
+          "type": "smoothstep",
+          "style": {
+            "stroke": "#7c3aed"
+          },
+          "markerEnd": {
+            "type": "arrowclosed",
+            "color": "#7c3aed"
+          }
+        }
+      ]
     }
   ]
 }
