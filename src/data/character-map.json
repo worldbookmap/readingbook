@@ -160,10 +160,34 @@
             "category": "person",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
-            "x": 461,
-            "y": 361,
+            "x": 450,
+            "y": 465,
             "color": "#d357fe",
             "size": 120
+          },
+          {
+            "id": "b30eaa6f-29d3-420d-b53e-7820e64839cb",
+            "name": "셰브켓",
+            "title": "아들",
+            "category": "person",
+            "summary": "이 인물의 역할을 적어보세요.",
+            "majorActions": [],
+            "x": 301,
+            "y": 481,
+            "color": "#eff6ff",
+            "size": 100
+          },
+          {
+            "id": "623823e1-65fc-4216-9adb-529b6baa31b6",
+            "name": "히이리예",
+            "title": "아들",
+            "category": "person",
+            "summary": "이 인물의 역할을 적어보세요.",
+            "majorActions": [],
+            "x": 309,
+            "y": 584,
+            "color": "#ecfeff",
+            "size": 100
           }
         ],
         "relationships": [
@@ -229,6 +253,20 @@
             "toId": "5a7130a0-cd9b-40fa-b1a8-8a6be0fb0cc7",
             "type": "기타",
             "label": "아들"
+          },
+          {
+            "id": "edge-1787054941875",
+            "fromId": "b30eaa6f-29d3-420d-b53e-7820e64839cb",
+            "toId": "5a7130a0-cd9b-40fa-b1a8-8a6be0fb0cc7",
+            "type": "기타",
+            "label": "형"
+          },
+          {
+            "id": "edge-1787054952192",
+            "fromId": "623823e1-65fc-4216-9adb-529b6baa31b6",
+            "toId": "5a7130a0-cd9b-40fa-b1a8-8a6be0fb0cc7",
+            "type": "기타",
+            "label": "동생?"
           }
         ]
       }
