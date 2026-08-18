@@ -73,44 +73,164 @@
             "id": "44bfad71-8628-49e5-912e-076404759619",
             "name": "엘레강스",
             "title": "죽은자",
+            "category": "person",
             "summary": "금박 담당 세밀화가",
             "majorActions": [],
-            "x": 575,
-            "y": 614,
-            "color": "#f97316"
+            "x": 808,
+            "y": 146,
+            "color": "#f97316",
+            "size": 170
           },
           {
             "id": "58624393-cb10-4ae0-a16a-1df504e218f8",
             "name": "카라",
             "title": "새 인물",
+            "category": "person",
             "summary": "아직 메모가 없습니다.",
             "majorActions": [],
-            "x": 151,
-            "y": 476,
-            "color": "#0f766e"
+            "x": 80,
+            "y": 271,
+            "color": "#669d34",
+            "size": 120
           },
           {
             "id": "afcad045-1be8-49c2-8225-5656389db757",
-            "name": "인물 3",
+            "name": "살인자",
             "title": "살인자",
+            "category": "person",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
-            "x": 276,
-            "y": 638,
-            "color": "#ecfeff"
+            "x": 1021,
+            "y": 155,
+            "color": "#ecfeff",
+            "size": 170
           },
           {
             "id": "937cdea1-e23b-4dda-a68a-49b8d44d2296",
             "name": "에니시테 에펜디",
             "title": "새 인물",
+            "category": "person",
             "summary": "술탄으로부터 책 제작 맡음\n이야기의 일부로서의 그림이 아닌 그림을 위한 그림에 대한 욕망이 생김",
             "majorActions": [],
-            "x": 497,
-            "y": 247,
-            "color": "#fef3c7"
+            "x": 451,
+            "y": 7,
+            "color": "#fef3c7",
+            "size": 170
+          },
+          {
+            "id": "9e807aae-c477-41e7-9b11-7655c8f5c6e3",
+            "name": "아내",
+            "title": "새 인물",
+            "category": "person",
+            "summary": "이 인물의 역할을 적어보세요.",
+            "majorActions": [],
+            "x": 252,
+            "y": 47,
+            "color": "#fefb41",
+            "size": 100
+          },
+          {
+            "id": "ba0dc475-17f9-4069-b4a4-2be4fc732219",
+            "name": "카라 어머니",
+            "title": "새 인물",
+            "category": "person",
+            "summary": "설명을 추가해 보세요.",
+            "majorActions": [],
+            "x": 79,
+            "y": -18,
+            "color": "#669d34",
+            "size": 100
+          },
+          {
+            "id": "82fbdb29-8c92-497a-970a-61ddcee19c9b",
+            "name": "서큐레",
+            "title": "에니시테 딸",
+            "category": "person",
+            "summary": "이 인물의 역할을 적어보세요.",
+            "majorActions": [],
+            "x": 347,
+            "y": 285,
+            "color": "#fee2e2",
+            "size": 100
+          },
+          {
+            "id": "5a7130a0-cd9b-40fa-b1a8-8a6be0fb0cc7",
+            "name": "오르한",
+            "title": "서큐레 아들",
+            "category": "person",
+            "summary": "이 인물의 역할을 적어보세요.",
+            "majorActions": [],
+            "x": 461,
+            "y": 361,
+            "color": "#d357fe",
+            "size": 120
           }
         ],
-        "relationships": []
+        "relationships": [
+          {
+            "id": "edge-1787054013674",
+            "fromId": "9e807aae-c477-41e7-9b11-7655c8f5c6e3",
+            "toId": "937cdea1-e23b-4dda-a68a-49b8d44d2296",
+            "type": "기타",
+            "label": "부부"
+          },
+          {
+            "id": "edge-1787054100837",
+            "fromId": "ba0dc475-17f9-4069-b4a4-2be4fc732219",
+            "toId": "9e807aae-c477-41e7-9b11-7655c8f5c6e3",
+            "type": "기타",
+            "label": "언니"
+          },
+          {
+            "id": "edge-1787054131593",
+            "fromId": "ba0dc475-17f9-4069-b4a4-2be4fc732219",
+            "toId": "58624393-cb10-4ae0-a16a-1df504e218f8",
+            "type": "기타",
+            "label": "자식"
+          },
+          {
+            "id": "edge-1787054390237",
+            "fromId": "937cdea1-e23b-4dda-a68a-49b8d44d2296",
+            "toId": "44bfad71-8628-49e5-912e-076404759619",
+            "type": "기타",
+            "label": "기타"
+          },
+          {
+            "id": "edge-1787054390259",
+            "fromId": "937cdea1-e23b-4dda-a68a-49b8d44d2296",
+            "toId": "44bfad71-8628-49e5-912e-076404759619",
+            "type": "기타",
+            "label": "기타"
+          },
+          {
+            "id": "edge-1787054390265",
+            "fromId": "937cdea1-e23b-4dda-a68a-49b8d44d2296",
+            "toId": "44bfad71-8628-49e5-912e-076404759619",
+            "type": "사업",
+            "label": "책 제작"
+          },
+          {
+            "id": "edge-1787054475159",
+            "fromId": "82fbdb29-8c92-497a-970a-61ddcee19c9b",
+            "toId": "937cdea1-e23b-4dda-a68a-49b8d44d2296",
+            "type": "자식",
+            "label": "자식"
+          },
+          {
+            "id": "edge-1787054507549",
+            "fromId": "58624393-cb10-4ae0-a16a-1df504e218f8",
+            "toId": "82fbdb29-8c92-497a-970a-61ddcee19c9b",
+            "type": "기타",
+            "label": "짝사랑"
+          },
+          {
+            "id": "edge-1787054624843",
+            "fromId": "82fbdb29-8c92-497a-970a-61ddcee19c9b",
+            "toId": "5a7130a0-cd9b-40fa-b1a8-8a6be0fb0cc7",
+            "type": "기타",
+            "label": "아들"
+          }
+        ]
       }
     }
   ]
