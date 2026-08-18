@@ -295,7 +295,7 @@ export function KeywordMindmap() {
   const [newDocumentTitle, setNewDocumentTitle] = useState("");
   const [isNewDocumentModalOpen, setIsNewDocumentModalOpen] = useState(false);
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
-  const [nodeDraft, setNodeDraft] = useState({ label: "", category: "", description: "", tags: "" });
+  const [nodeDraft, setNodeDraft] = useState({ label: "", category: "", description: "", tags: "", color: "#f5f3ff" });
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialNodes[0].id);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -319,12 +319,13 @@ export function KeywordMindmap() {
       category: node.data.category ?? "concept",
       description: node.data.description,
       tags: node.data.tags?.join(", ") ?? "",
+      color: node.data.color,
     });
   }
 
   function closeNodeEditModal() {
     setEditingNodeId(null);
-    setNodeDraft({ label: "", category: "", description: "", tags: "" });
+    setNodeDraft({ label: "", category: "", description: "", tags: "", color: "#f5f3ff" });
   }
 
   function saveNodeDraft() {
@@ -338,7 +339,7 @@ export function KeywordMindmap() {
     setNodes((current) =>
       current.map((node) =>
         node.id === editingNodeId
-          ? { ...node, data: { ...node.data, label: nodeDraft.label.trim(), category: nodeDraft.category.trim() || "concept", description: nodeDraft.description.trim(), tags } }
+          ? { ...node, data: { ...node.data, label: nodeDraft.label.trim(), category: nodeDraft.category.trim() || "concept", description: nodeDraft.description.trim(), tags, color: nodeDraft.color } }
           : node,
       ),
     );
@@ -859,6 +860,13 @@ export function KeywordMindmap() {
                 onChange={(event) => setNodeDraft((current) => ({ ...current, tags: event.target.value }))}
                 placeholder="태그를 쉼표로 구분"
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
+              />
+              <input
+                type="color"
+                value={nodeDraft.color}
+                onChange={(event) => setNodeDraft((current) => ({ ...current, color: event.target.value }))}
+                className="h-11 w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 p-1"
+                aria-label="키워드 카드 색상"
               />
               <div className="flex items-center justify-between gap-2 pt-2">
                 <button type="button" onClick={deleteEditingNode} className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">

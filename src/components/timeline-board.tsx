@@ -20,6 +20,7 @@ import { FloatingSyncMenu } from "@/components/floating-sync-menu";
 const defaultRegions: TimelineRegion[] = ["서유럽", "동유럽", "아시아", "미국", "남미", "기타"];
 const storageKey = "readingbook-timeline";
 const eraOptions = ["전체", "고대", "중세", "근대", "현대"] as const;
+const cardColors = ["#f59e0b", "#38bdf8", "#a78bfa", "#34d399", "#fb7185", "#f97316"];
 
 function buildRegionOrder(cards: TimelineCard[]) {
   const regionSet = new Set<TimelineRegion>(defaultRegions);
@@ -107,6 +108,7 @@ type DraftCard = {
   region: TimelineRegion;
   description: string;
   tags: string;
+  color: string;
 };
 
 const defaultDraft: DraftCard = {
@@ -115,6 +117,7 @@ const defaultDraft: DraftCard = {
   region: defaultRegions[0],
   description: "",
   tags: "",
+  color: cardColors[0],
 };
 
 const inputClassName =
@@ -174,6 +177,7 @@ export function TimelineBoard({ initialCards }: Props) {
     description: string;
     tags: string;
     region: TimelineRegion;
+    color: string;
   } | null>(null);
   const didMountRef = useRef(false);
 
@@ -270,6 +274,7 @@ export function TimelineBoard({ initialCards }: Props) {
       title: "새 카드",
       description: "설명을 입력해 주세요.",
       tags: [],
+      color: cardColors[0],
       order: cards.filter((card) => card.region === nextRegion).length,
     };
 
@@ -282,6 +287,7 @@ export function TimelineBoard({ initialCards }: Props) {
       description: "설명을 입력해 주세요.",
       tags: "",
       region: nextRegion,
+      color: cardColors[0],
     });
     setIsCardModalOpen(true);
   }
@@ -308,6 +314,7 @@ export function TimelineBoard({ initialCards }: Props) {
         .split(",")
         .map((tag) => tag.trim())
         .filter(Boolean),
+      color: draft.color,
       order: cards.filter((card) => card.region === draft.region).length,
     };
 
@@ -392,6 +399,7 @@ export function TimelineBoard({ initialCards }: Props) {
       description: targetCard.description,
       tags: targetCard.tags.join(", "),
       region: targetCard.region,
+      color: targetCard.color ?? cardColors[0],
     });
     setIsCardModalOpen(true);
   }
@@ -417,6 +425,7 @@ export function TimelineBoard({ initialCards }: Props) {
                 .split(",")
                 .map((tag) => tag.trim())
                 .filter(Boolean),
+              color: modalDraft.color,
             },
       ),
     );
@@ -661,6 +670,16 @@ export function TimelineBoard({ initialCards }: Props) {
                   className={inputClassName}
                 />
               </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">카드 색상</label>
+                <input
+                  type="color"
+                  value={modalDraft.color}
+                  onChange={(event) => setModalDraft((current) => (current ? { ...current, color: event.target.value } : current))}
+                  className="h-11 w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 p-1"
+                />
+              </div>
             </div>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
@@ -792,6 +811,13 @@ export function TimelineBoard({ initialCards }: Props) {
               onChange={(event) => setDraft((current) => ({ ...current, tags: event.target.value }))}
               placeholder="태그를 쉼표로 구분"
               className={inputClassName}
+            />
+            <input
+              type="color"
+              value={draft.color}
+              onChange={(event) => setDraft((current) => ({ ...current, color: event.target.value }))}
+              className="h-11 w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 p-1"
+              aria-label="카드 색상"
             />
             <button
               type="submit"
@@ -934,14 +960,14 @@ export function TimelineBoard({ initialCards }: Props) {
                               onClick={() => openCardModal(card.id)}
                               className="block w-full rounded-[20px] border bg-white p-4 text-left shadow-sm transition active:scale-[0.99]"
                               style={{
-                                borderColor: isActive ? "#38bdf8" : "rgba(226,232,240,1)",
+                                borderColor: card.color ?? (isActive ? "#38bdf8" : "rgba(226,232,240,1)"),
                                 boxShadow: isActive
                                   ? "0 14px 30px rgba(56,189,248,0.18)"
                                   : "0 8px 20px rgba(15,23,42,0.05)",
                               }}
                             >
                               <div className="flex items-center justify-between gap-3">
-                                <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
+                                <span className="rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ backgroundColor: card.color ?? "#38bdf8" }}>
                                   {card.yearLabel}
                                 </span>
                                 <span className="inline-flex items-center gap-1 text-xs text-slate-400">
@@ -1029,7 +1055,7 @@ export function TimelineBoard({ initialCards }: Props) {
                         onClick={() => openCardModal(card.id)}
                         className="block w-full rounded-[24px] border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1"
                         style={{
-                          borderColor: isActive ? "#111827" : "rgba(226,232,240,1)",
+                          borderColor: card.color ?? (isActive ? "#111827" : "rgba(226,232,240,1)"),
                           boxShadow: isActive
                             ? "0 16px 36px rgba(15,23,42,0.08)"
                             : "0 10px 30px rgba(15,23,42,0.04)",
@@ -1164,7 +1190,7 @@ export function TimelineBoard({ initialCards }: Props) {
                               <p className="text-sm font-semibold text-slate-900">{card.title}</p>
                               <p className="text-xs text-slate-500">{card.region}</p>
                             </div>
-                            <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
+                            <span className="rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ backgroundColor: card.color ?? "#38bdf8" }}>
                               {card.yearLabel}
                             </span>
                           </button>

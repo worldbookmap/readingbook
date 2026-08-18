@@ -79,5 +79,6 @@ export type TimelineCard = {
   title: string;
   description: string;
   tags: string[];
+  color?: string;
   order?: number;
 };

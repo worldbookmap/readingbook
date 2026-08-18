@@ -162,7 +162,6 @@ type CharacterMapFlowProps = {
   onEdgeClick: (event: { clientX: number; clientY: number }, edge: Edge) => void;
   onNodeDoubleClick: (event: { clientX: number; clientY: number }, node: Node) => void;
   addNodeAtPosition: (position?: { x: number; y: number }) => void;
-  longPressTimerRef: React.RefObject<number | null>;
 };
 
 function CharacterMapFlow({
@@ -175,7 +174,6 @@ function CharacterMapFlow({
   onEdgeClick,
   onNodeDoubleClick,
   addNodeAtPosition,
-  longPressTimerRef,
 }: CharacterMapFlowProps) {
   const reactFlowInstance = useReactFlow();
 
@@ -193,30 +191,6 @@ function CharacterMapFlow({
         const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY });
         if (event.detail === 2) {
           addNodeAtPosition(position);
-        }
-      }}
-      onPointerDown={(event) => {
-        if (event.target instanceof HTMLElement && event.target.closest(".react-flow__node")) return;
-
-        if (longPressTimerRef.current) {
-          window.clearTimeout(longPressTimerRef.current);
-        }
-
-        longPressTimerRef.current = window.setTimeout(() => {
-          const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY });
-          addNodeAtPosition(position);
-        }, 600);
-      }}
-      onPointerUp={() => {
-        if (longPressTimerRef.current) {
-          window.clearTimeout(longPressTimerRef.current);
-          longPressTimerRef.current = null;
-        }
-      }}
-      onPointerLeave={() => {
-        if (longPressTimerRef.current) {
-          window.clearTimeout(longPressTimerRef.current);
-          longPressTimerRef.current = null;
         }
       }}
       nodeTypes={nodeTypes}
@@ -254,7 +228,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const [isNewWorkModalOpen, setIsNewWorkModalOpen] = useState(false);
   const [editingWorkId, setEditingWorkId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [nodeDraft, setNodeDraft] = useState<{ label: string; subtitle: string; category: string; summary: string } | null>(null);
+  const [nodeDraft, setNodeDraft] = useState<{ label: string; subtitle: string; category: string; summary: string; color: string } | null>(null);
   const [edgeDraft, setEdgeDraft] = useState<{ type: RelationshipType; label: string } | null>(null);
   const [newWorkTitle, setNewWorkTitle] = useState("");
   const [draftRelationType, setDraftRelationType] = useState<RelationshipType>("기타");
@@ -262,7 +236,6 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const [saveMessage, setSaveMessage] = useState("GitHub 저장 준비 중");
   const [remoteEnabled, setRemoteEnabled] = useState(false);
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
-  const longPressTimerRef = useRef<number | null>(null);
 
   const selectedWork = useMemo(
     () => works.find((work) => work.id === selectedWorkId) ?? works[0] ?? null,
@@ -471,6 +444,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         subtitle: selectedNode.data.subtitle,
         category: selectedNode.data.category || "person",
         summary: selectedNode.data.summary,
+        color: selectedNode.data.color,
       });
     } else {
       setNodeDraft(null);
@@ -520,6 +494,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               subtitle: nodeDraft.subtitle.trim() || "새 인물",
               category: nodeDraft.category.trim() || "person",
               summary: nodeDraft.summary.trim(),
+              color: nodeDraft.color,
             },
           }
         : node,
@@ -983,7 +958,6 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                 openDetailModal(node.id);
               }}
               addNodeAtPosition={addNodeAtPosition}
-              longPressTimerRef={longPressTimerRef}
             />
           </ReactFlowProvider>
         </div>
@@ -1246,6 +1220,15 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                     onChange={(event) => setNodeDraft((current) => (current ? { ...current, category: event.target.value } : current))}
                     placeholder="person"
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">노드 색상</label>
+                  <input
+                    type="color"
+                    value={nodeDraft.color}
+                    onChange={(event) => setNodeDraft((current) => (current ? { ...current, color: event.target.value } : current))}
+                    className="h-11 w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 p-1"
                   />
                 </div>
                 <div>
