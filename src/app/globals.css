@@ -94,7 +94,14 @@ textarea::placeholder {
 
 input:focus::placeholder,
 textarea:focus::placeholder {
-  color: transparent;
+  color: transparent !important;
+  opacity: 0 !important;
+}
+
+input:focus::-webkit-input-placeholder,
+textarea:focus::-webkit-input-placeholder {
+  color: transparent !important;
+  opacity: 0 !important;
 }
 
 a {

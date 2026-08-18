@@ -942,6 +942,14 @@ export function KeywordMindmap() {
               <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">가볍게 설명</label>
               <textarea
                 value={selectedNode.data.description}
+                onFocus={(event) => {
+                  clearDefaultValueIfNeeded(
+                    selectedNode.data.description,
+                    ["이 키워드의 의미와 연결 포인트를 적어보세요."],
+                    (nextValue) => handleNodeFieldChange("description", nextValue),
+                    event,
+                  );
+                }}
                 onChange={(event) => handleNodeFieldChange("description", event.target.value)}
                 rows={6}
                 className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-800 placeholder:text-slate-400"
