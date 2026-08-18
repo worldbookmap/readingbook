@@ -11,16 +11,18 @@
             "id": "3bb663cf-a726-4768-a928-8ae2ecafa435",
             "name": "싯다르타",
             "title": "주인공",
+            "category": "person",
             "summary": "설명을 추가해 보세요.",
             "majorActions": [],
             "x": 180,
             "y": 436,
-            "color": "#fdf2f8"
+            "color": "#00ff7b"
           },
           {
             "id": "10da4965-1d05-4d03-a6aa-c832c417a5a9",
             "name": "바라문",
             "title": "아버지",
+            "category": "person",
             "summary": "설명을 추가해 보세요.",
             "majorActions": [],
             "x": 94,
@@ -31,6 +33,7 @@
             "id": "3b6e188c-ec67-424a-94c7-c89c602c2f53",
             "name": "고빈다",
             "title": "친구",
+            "category": "person",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
             "x": 469,
