@@ -106,22 +106,22 @@ function toCharacterRelationships(edges: CharacterFlowEdge[]): CharacterRelation
 function CharacterNodeCard({ data, selected }: NodeProps<CharacterFlowNode>) {
   return (
     <div
-      className="relative w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] rounded-[24px] border-2 bg-white p-3 shadow-[0_18px_36px_rgba(15,23,42,0.08)] sm:w-[210px] sm:max-w-none"
+      className="relative flex h-[180px] w-[180px] flex-col items-center justify-center rounded-full border-2 bg-white p-5 text-center shadow-[0_18px_36px_rgba(15,23,42,0.08)] sm:h-[210px] sm:w-[210px]"
       style={{
         background: `linear-gradient(180deg, ${data.color} 0%, rgba(255,255,255,0.88) 58%)`,
         borderColor: selected ? "#1f2937" : "rgba(148, 163, 184, 0.42)",
       }}
     >
       <Handle type="target" position={Position.Left} className="!h-3 !w-3 !border-2 !border-white !bg-slate-700" />
-      <div className="mb-2 flex items-center justify-between gap-2">
+      <div className="mb-2 flex items-center justify-center gap-2">
         <span className="rounded-full bg-white/80 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-700">
           person
         </span>
         <span className="h-2.5 w-2.5 rounded-full bg-slate-900" />
       </div>
-      <h3 className="text-sm font-semibold tracking-[-0.03em] text-slate-900">{data.label}</h3>
-      <p className="mt-1 text-[10px] font-medium text-slate-500">{data.subtitle}</p>
-      <p className="mt-2 text-[11px] leading-5 text-slate-600">{data.summary}</p>
+      <h3 className="line-clamp-2 text-sm font-semibold tracking-[-0.03em] text-slate-900">{data.label}</h3>
+      <p className="mt-1 line-clamp-1 text-[10px] font-medium text-slate-500">{data.subtitle}</p>
+      <p className="mt-2 line-clamp-3 text-[11px] leading-5 text-slate-600">{data.summary}</p>
       <Handle type="source" position={Position.Right} className="!h-3 !w-3 !border-2 !border-white !bg-slate-700" />
     </div>
   );
