@@ -16,7 +16,8 @@
             "majorActions": [],
             "x": 180,
             "y": 436,
-            "color": "#00ff7b"
+            "color": "#00ff7b",
+            "size": 170
           },
           {
             "id": "10da4965-1d05-4d03-a6aa-c832c417a5a9",
@@ -27,7 +28,8 @@
             "majorActions": [],
             "x": 94,
             "y": 192,
-            "color": "#eff6ff"
+            "color": "#eff6ff",
+            "size": 100
           },
           {
             "id": "3b6e188c-ec67-424a-94c7-c89c602c2f53",
@@ -38,7 +40,8 @@
             "majorActions": [],
             "x": 469,
             "y": 434,
-            "color": "#ecfeff"
+            "color": "#ecfeff",
+            "size": 170
           }
         ],
         "relationships": [
