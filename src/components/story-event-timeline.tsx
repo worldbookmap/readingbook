@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { Background, Controls, Edge, MarkerType, MiniMap, Node, NodeProps, NodeTypes, ReactFlow, ReactFlowProvider, useNodesState, useReactFlow } from "@xyflow/react";
+import { Background, BackgroundVariant, Controls, Edge, MarkerType, MiniMap, Node, NodeProps, NodeTypes, ReactFlow, ReactFlowProvider, useNodesState, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -239,7 +239,7 @@ function StoryEventFlow({ nodes, onNodesChange, onNodeClick, onNodeDoubleClick, 
       maxZoom={1.6}
       proOptions={{ hideAttribution: true }}
     >
-      <Background gap={48} size={1} color="rgba(148,163,184,0.18)" />
+      <Background variant={BackgroundVariant.Lines} gap={48} size={1} color="rgba(148,163,184,0.18)" />
       <MiniMap pannable zoomable nodeColor={(node) => (node.data as StoryEventCard)?.color ?? "#f59e0b"} maskColor="rgba(255,255,255,0.72)" />
       <Controls />
     </ReactFlow>
