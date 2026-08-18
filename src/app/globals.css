@@ -89,6 +89,12 @@ a:focus-visible {
 input::placeholder,
 textarea::placeholder {
   color: rgba(100, 116, 139, 0.8);
+  transition: color 120ms ease;
+}
+
+input:focus::placeholder,
+textarea:focus::placeholder {
+  color: transparent;
 }
 
 a {

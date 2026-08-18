@@ -27,6 +27,7 @@ type KeywordNodeData = {
   label: string;
   description: string;
   color: string;
+  tags?: string[];
 };
 
 type KeywordNode = Node<KeywordNodeData, "keywordNode">;
@@ -79,6 +80,7 @@ const initialNodes: KeywordNode[] = [
       label: "책의 중심 주제",
       description: "이야기의 핵심 감정과 메시지를 한 줄로 압축한 키워드입니다.",
       color: "#fdf2f8",
+      tags: [],
     },
   },
   {
@@ -89,6 +91,7 @@ const initialNodes: KeywordNode[] = [
       label: "기억의 잔상",
       description: "상처와 행복이 섞여 남는 인상적인 장면과 감정의 흐름입니다.",
       color: "#ecfeff",
+      tags: [],
     },
   },
   {
@@ -99,6 +102,7 @@ const initialNodes: KeywordNode[] = [
       label: "선택의 순간",
       description: "인물의 행동을 결정짓는 갈등과 타이밍을 남겼습니다.",
       color: "#fef3c7",
+      tags: [],
     },
   },
   {
@@ -109,6 +113,7 @@ const initialNodes: KeywordNode[] = [
       label: "관계의 균형",
       description: "인물 간의 신뢰와 경계가 어떻게 변화하는지 정리하는 핵심 단어입니다.",
       color: "#eff6ff",
+      tags: [],
     },
   },
   {
@@ -119,6 +124,7 @@ const initialNodes: KeywordNode[] = [
       label: "결말의 여운",
       description: "마지막 장면에서 남는 의미와 구조적 메시지를 정리해두면 좋습니다.",
       color: "#dcfce7",
+      tags: [],
     },
   },
 ];
@@ -184,6 +190,15 @@ function KeywordNodeCard({ data, selected }: NodeProps<KeywordNode>) {
       </div>
       <h3 className="text-sm font-semibold tracking-[-0.03em] text-slate-900">{data.label}</h3>
       <p className="mt-2 text-[11px] leading-5 text-slate-600">{data.description}</p>
+      {data.tags?.length ? (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {data.tags.slice(0, 3).map((tag) => (
+            <span key={tag} className="rounded-full bg-white/75 px-2 py-1 text-[9px] font-medium text-violet-700">
+              #{tag}
+            </span>
+          ))}
+        </div>
+      ) : null}
       <Handle type="source" position={Position.Right} className="!h-3 !w-3 !border-2 !border-white !bg-slate-700" />
     </div>
   );
@@ -200,6 +215,7 @@ type KeywordMindmapFlowProps = {
   onEdgesChange: ReturnType<typeof useEdgesState<KeywordEdge>>[2];
   onConnect: (connection: Connection) => void;
   onNodeClick: (event: { clientX: number; clientY: number }, node: Node) => void;
+  onNodeDoubleClick: (node: KeywordNode) => void;
   onEdgeClick: (event: { clientX: number; clientY: number }, edge: Edge) => void;
   addKeywordAtPosition: (position?: { x: number; y: number }) => void;
   longPressTimerRef: React.RefObject<number | null>;
@@ -212,6 +228,7 @@ function KeywordMindmapFlow({
   onEdgesChange,
   onConnect,
   onNodeClick,
+  onNodeDoubleClick,
   onEdgeClick,
   addKeywordAtPosition,
   longPressTimerRef,
@@ -226,6 +243,7 @@ function KeywordMindmapFlow({
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
       onNodeClick={onNodeClick}
+      onNodeDoubleClick={(_, node) => onNodeDoubleClick(node as KeywordNode)}
       onEdgeClick={onEdgeClick}
       onPaneClick={(event) => {
         const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY });
@@ -296,6 +314,8 @@ export function KeywordMindmap() {
   const [documentTitle, setDocumentTitle] = useState("문서 1");
   const [newDocumentTitle, setNewDocumentTitle] = useState("");
   const [isNewDocumentModalOpen, setIsNewDocumentModalOpen] = useState(false);
+  const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
+  const [nodeDraft, setNodeDraft] = useState({ label: "", description: "", tags: "" });
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialNodes[0].id);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const longPressTimerRef = useRef<number | null>(null);
@@ -311,6 +331,38 @@ export function KeywordMindmap() {
     setDocumentTitle(document.title);
     setSelectedNodeId(document.nodes[0]?.id ?? null);
     setSelectedEdgeId(null);
+  }
+
+  function openNodeEditModal(node: KeywordNode) {
+    setEditingNodeId(node.id);
+    setNodeDraft({
+      label: node.data.label,
+      description: node.data.description,
+      tags: node.data.tags?.join(", ") ?? "",
+    });
+  }
+
+  function closeNodeEditModal() {
+    setEditingNodeId(null);
+    setNodeDraft({ label: "", description: "", tags: "" });
+  }
+
+  function saveNodeDraft() {
+    if (!editingNodeId) return;
+
+    const tags = nodeDraft.tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+
+    setNodes((current) =>
+      current.map((node) =>
+        node.id === editingNodeId
+          ? { ...node, data: { ...node.data, label: nodeDraft.label.trim(), description: nodeDraft.description.trim(), tags } }
+          : node,
+      ),
+    );
+    closeNodeEditModal();
   }
 
   useEffect(() => {
@@ -718,6 +770,7 @@ export function KeywordMindmap() {
                 setSelectedNodeId(node.id);
                 setSelectedEdgeId(null);
               }}
+              onNodeDoubleClick={openNodeEditModal}
               onEdgeClick={(_, edge) => {
                 setSelectedEdgeId(edge.id);
                 setSelectedNodeId(null);
@@ -769,6 +822,52 @@ export function KeywordMindmap() {
                   className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white"
                 >
                   만들기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {editingNodeId ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 p-3 backdrop-blur-[2px]">
+          <div className="w-full max-w-md rounded-[24px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.12)]">
+            <div className="flex items-center justify-between gap-3 pb-3">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-500">keyword editor</p>
+                <h3 className="text-lg font-semibold text-slate-900">키워드 수정</h3>
+              </div>
+              <button type="button" onClick={closeNodeEditModal} className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-600">
+                닫기
+              </button>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <input
+                value={nodeDraft.label}
+                onChange={(event) => setNodeDraft((current) => ({ ...current, label: event.target.value }))}
+                placeholder="키워드"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
+              />
+              <textarea
+                value={nodeDraft.description}
+                onChange={(event) => setNodeDraft((current) => ({ ...current, description: event.target.value }))}
+                placeholder="키워드 설명"
+                rows={5}
+                className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-800 outline-none focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
+              />
+              <input
+                value={nodeDraft.tags}
+                onChange={(event) => setNodeDraft((current) => ({ ...current, tags: event.target.value }))}
+                placeholder="태그를 쉼표로 구분"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
+              />
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={closeNodeEditModal} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700">
+                  취소
+                </button>
+                <button type="button" onClick={saveNodeDraft} className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white">
+                  저장
                 </button>
               </div>
             </div>
