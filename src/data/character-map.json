@@ -1,159 +1,57 @@
 {
   "works": [
     {
-      "id": "default",
-      "title": "기본 인물관계도",
-      "titleKo": "기본 인물관계도",
-      "author": "Readingbook",
+      "id": "b14851ac-8b0b-4fcf-a12a-9f603f5b95bf",
+      "title": "싯다르타",
+      "titleKo": "싯다르타",
+      "author": "새 작품",
       "seed": {
         "nodes": [
           {
-            "id": "hero",
-            "name": "주인공",
-            "title": "관찰자",
-            "summary": "이야기의 중심에서 사건을 목격하고 연결점을 찾아가는 인물입니다.",
-            "majorActions": [
-              "첫 장면에서 의문의 편지를 받음",
-              "조력자와 함께 과거 사건을 조사함"
-            ],
-            "x": 380,
-            "y": 260,
-            "color": "#f97316"
-          },
-          {
-            "id": "ally",
-            "name": "조력자",
-            "title": "친구",
-            "summary": "필요한 정보를 모아 주고 위험한 장면에서 주인공을 도와줍니다.",
-            "majorActions": [
-              "비밀 장소 지도를 건넴"
-            ],
-            "x": 468.20089476449147,
-            "y": 505.5819193522134,
-            "color": "#0f766e"
-          },
-          {
-            "id": "rival",
-            "name": "경쟁자",
-            "title": "사업 파트너",
-            "summary": "주인공과 같은 목표를 노리지만 접근 방식이 다릅니다.",
-            "majorActions": [
-              "협력 제안을 했다가 갑자기 철회함"
-            ],
-            "x": 650,
-            "y": 160,
-            "color": "#7c3aed"
-          },
-          {
-            "id": "mentor",
-            "name": "멘토",
-            "title": "가족 친구",
-            "summary": "과거의 단서를 알고 있는 인물로 결정적인 조언을 제공합니다.",
-            "majorActions": [
-              "숨겨진 기록 보관소 위치를 알려줌"
-            ],
-            "x": 222.84224146888369,
-            "y": 525.950949532645,
-            "color": "#1d4ed8"
-          }
-        ],
-        "relationships": [
-          {
-            "id": "rel-1",
-            "fromId": "hero",
-            "toId": "ally",
-            "type": "친구"
-          },
-          {
-            "id": "rel-2",
-            "fromId": "hero",
-            "toId": "rival",
-            "type": "사업",
-            "label": "공동 투자 후보"
-          },
-          {
-            "id": "rel-3",
-            "fromId": "mentor",
-            "toId": "hero",
-            "type": "기타",
-            "label": "과거의 증인"
-          },
-          {
-            "id": "378b6e76-fd9a-45e6-a387-4f13527ce4b1",
-            "fromId": "ally",
-            "toId": "mentor",
-            "type": "기타",
-            "label": "행인"
-          }
-        ]
-      }
-    },
-    {
-      "id": "1d05bc8d-2299-487e-8a84-4e90edd3780c",
-      "title": "Crime and Punishment",
-      "titleKo": "죄와 벌",
-      "author": "표도르 도스토옙스키",
-      "seed": {
-        "nodes": [
-          {
-            "id": "74c9c456-64c5-4095-94ce-ade0dfd4b9dc",
-            "name": "로지온 라스콜니코프",
+            "id": "3bb663cf-a726-4768-a928-8ae2ecafa435",
+            "name": "싯다르타",
             "title": "주인공",
-            "summary": "가난한 전직 대학생. 자신의 이론을 시험하려 살인을 저지르고 죄책감에 시달린다.",
+            "summary": "설명을 추가해 보세요.",
             "majorActions": [],
-            "x": 463.2187194824219,
-            "y": 705.37890625,
-            "color": "#f97316"
+            "x": 180,
+            "y": 436,
+            "color": "#fdf2f8"
           },
           {
-            "id": "d03cff58-68e4-4a67-80fc-47d243c59be3",
-            "name": "소피야 ‘소냐’ 마르멜라도바",
-            "title": "새 인물",
-            "summary": "가족을 부양하기 위해 희생하는 여성으로 라스콜니코프에게 도덕적·영적 버팀목이 된다.",
+            "id": "10da4965-1d05-4d03-a6aa-c832c417a5a9",
+            "name": "바라문",
+            "title": "아버지",
+            "summary": "설명을 추가해 보세요.",
             "majorActions": [],
-            "x": 720,
-            "y": 694.3984688000801,
-            "color": "#f97316"
+            "x": 94,
+            "y": 192,
+            "color": "#eff6ff"
           },
           {
-            "id": "0863e89e-e728-4835-a7ba-7be793acc359",
-            "name": "포르피리 페트로비치",
-            "title": "새 인물",
-            "summary": "살인 사건을 수사하며 심리적으로 라스콜니코프를 압박하는 수사관.",
+            "id": "3b6e188c-ec67-424a-94c7-c89c602c2f53",
+            "name": "고빈다",
+            "title": "친구",
+            "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
-            "x": 348.0000226925581,
-            "y": 516.2582006209936,
-            "color": "#2563eb"
-          },
-          {
-            "id": "31d9a546-a305-482b-8ca8-e17a71d7aba8",
-            "name": "아브도티야 ‘두냐’ 로마노브나",
-            "title": "딸",
-            "summary": "라스콜니코프의 여동생.",
-            "majorActions": [],
-            "x": 582.2890319824219,
-            "y": 541.94140625,
-            "color": "#f97316"
+            "x": 469,
+            "y": 434,
+            "color": "#ecfeff"
           }
         ],
         "relationships": [
           {
-            "id": "5e81a421-7ec8-46dc-8af1-7de17b7cdbaa",
-            "fromId": "74c9c456-64c5-4095-94ce-ade0dfd4b9dc",
-            "toId": "d03cff58-68e4-4a67-80fc-47d243c59be3",
-            "type": "친구"
+            "id": "edge-1787025296345",
+            "fromId": "3bb663cf-a726-4768-a928-8ae2ecafa435",
+            "toId": "3b6e188c-ec67-424a-94c7-c89c602c2f53",
+            "type": "친구",
+            "label": "친구"
           },
           {
-            "id": "4f9bea62-2c35-4753-80ee-2a88cf08a1be",
-            "fromId": "0863e89e-e728-4835-a7ba-7be793acc359",
-            "toId": "31d9a546-a305-482b-8ca8-e17a71d7aba8",
-            "type": "자식"
-          },
-          {
-            "id": "89165bd4-3dc3-4af1-a573-7a80b5566f13",
-            "fromId": "31d9a546-a305-482b-8ca8-e17a71d7aba8",
-            "toId": "74c9c456-64c5-4095-94ce-ade0dfd4b9dc",
-            "type": "커플"
+            "id": "edge-1787025327737",
+            "fromId": "10da4965-1d05-4d03-a6aa-c832c417a5a9",
+            "toId": "3bb663cf-a726-4768-a928-8ae2ecafa435",
+            "type": "기타",
+            "label": "부모"
           }
         ]
       }
