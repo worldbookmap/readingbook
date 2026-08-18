@@ -27,6 +27,7 @@ type KeywordNodeData = {
   label: string;
   description: string;
   color: string;
+  category?: string;
   tags?: string[];
 };
 
@@ -80,6 +81,7 @@ const initialNodes: KeywordNode[] = [
       label: "책의 중심 주제",
       description: "이야기의 핵심 감정과 메시지를 한 줄로 압축한 키워드입니다.",
       color: "#fdf2f8",
+      category: "concept",
       tags: [],
     },
   },
@@ -91,6 +93,7 @@ const initialNodes: KeywordNode[] = [
       label: "기억의 잔상",
       description: "상처와 행복이 섞여 남는 인상적인 장면과 감정의 흐름입니다.",
       color: "#ecfeff",
+      category: "concept",
       tags: [],
     },
   },
@@ -102,6 +105,7 @@ const initialNodes: KeywordNode[] = [
       label: "선택의 순간",
       description: "인물의 행동을 결정짓는 갈등과 타이밍을 남겼습니다.",
       color: "#fef3c7",
+      category: "concept",
       tags: [],
     },
   },
@@ -113,6 +117,7 @@ const initialNodes: KeywordNode[] = [
       label: "관계의 균형",
       description: "인물 간의 신뢰와 경계가 어떻게 변화하는지 정리하는 핵심 단어입니다.",
       color: "#eff6ff",
+      category: "concept",
       tags: [],
     },
   },
@@ -124,6 +129,7 @@ const initialNodes: KeywordNode[] = [
       label: "결말의 여운",
       description: "마지막 장면에서 남는 의미와 구조적 메시지를 정리해두면 좋습니다.",
       color: "#dcfce7",
+      category: "concept",
       tags: [],
     },
   },
@@ -184,7 +190,7 @@ function KeywordNodeCard({ data, selected }: NodeProps<KeywordNode>) {
       <Handle type="target" position={Position.Left} className="!h-3 !w-3 !border-2 !border-white !bg-slate-700" />
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="rounded-full bg-white/80 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-violet-700">
-          concept
+          {data.category || "concept"}
         </span>
         <span className="h-2.5 w-2.5 rounded-full bg-violet-500" />
       </div>
@@ -315,7 +321,7 @@ export function KeywordMindmap() {
   const [newDocumentTitle, setNewDocumentTitle] = useState("");
   const [isNewDocumentModalOpen, setIsNewDocumentModalOpen] = useState(false);
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
-  const [nodeDraft, setNodeDraft] = useState({ label: "", description: "", tags: "" });
+  const [nodeDraft, setNodeDraft] = useState({ label: "", category: "", description: "", tags: "" });
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialNodes[0].id);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const longPressTimerRef = useRef<number | null>(null);
@@ -337,6 +343,7 @@ export function KeywordMindmap() {
     setEditingNodeId(node.id);
     setNodeDraft({
       label: node.data.label,
+      category: node.data.category ?? "concept",
       description: node.data.description,
       tags: node.data.tags?.join(", ") ?? "",
     });
@@ -344,7 +351,7 @@ export function KeywordMindmap() {
 
   function closeNodeEditModal() {
     setEditingNodeId(null);
-    setNodeDraft({ label: "", description: "", tags: "" });
+    setNodeDraft({ label: "", category: "", description: "", tags: "" });
   }
 
   function saveNodeDraft() {
@@ -358,7 +365,7 @@ export function KeywordMindmap() {
     setNodes((current) =>
       current.map((node) =>
         node.id === editingNodeId
-          ? { ...node, data: { ...node.data, label: nodeDraft.label.trim(), description: nodeDraft.description.trim(), tags } }
+          ? { ...node, data: { ...node.data, label: nodeDraft.label.trim(), category: nodeDraft.category.trim() || "concept", description: nodeDraft.description.trim(), tags } }
           : node,
       ),
     );
@@ -847,6 +854,12 @@ export function KeywordMindmap() {
                 value={nodeDraft.label}
                 onChange={(event) => setNodeDraft((current) => ({ ...current, label: event.target.value }))}
                 placeholder="키워드"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
+              />
+              <input
+                value={nodeDraft.category}
+                onChange={(event) => setNodeDraft((current) => ({ ...current, category: event.target.value }))}
+                placeholder="카드 상단 라벨"
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
               />
               <textarea
