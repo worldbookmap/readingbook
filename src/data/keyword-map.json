@@ -3,7 +3,7 @@
     {
       "id": "4175e123-51ee-4991-810c-5aa4224e552f",
       "title": "실존주의",
-      "updatedAt": "2026-08-18T02:11:58.097Z",
+      "updatedAt": "2026-08-18T02:39:15.326Z",
       "nodes": [
         {
           "id": "new-root-1787015979398",
@@ -23,7 +23,7 @@
             "width": 200,
             "height": 122
           },
-          "selected": false,
+          "selected": true,
           "dragging": false
         },
         {
@@ -35,14 +35,14 @@
           },
           "data": {
             "label": "실존주의",
-            "description": "이 키워드의 의미와 연결 포인트를 적어보세요.",
+            "description": "",
             "color": "#ecfeff",
             "category": "실존주의",
             "tags": []
           },
           "measured": {
             "width": 200,
-            "height": 122
+            "height": 82
           },
           "selected": false,
           "dragging": false
@@ -56,14 +56,14 @@
           },
           "data": {
             "label": "구조주의",
-            "description": "이 키워드의 의미와 연결 포인트를 적어보세요.",
+            "description": "",
             "color": "#fef3c7",
             "category": "구조주의",
             "tags": []
           },
           "measured": {
             "width": 200,
-            "height": 122
+            "height": 82
           },
           "selected": false,
           "dragging": false
@@ -77,14 +77,14 @@
           },
           "data": {
             "label": "현상학",
-            "description": "이 키워드의 의미와 연결 포인트를 적어보세요.",
+            "description": "",
             "color": "#f5f3ff",
             "category": "concept",
             "tags": []
           },
           "measured": {
             "width": 200,
-            "height": 122
+            "height": 82
           },
           "selected": false,
           "dragging": false
