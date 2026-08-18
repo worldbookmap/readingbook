@@ -374,6 +374,7 @@ export function KeywordMindmap() {
           if (payload.data?.documents?.length) {
             setDocuments(payload.data.documents);
             applyDocument(payload.data.documents[payload.data.documents.length - 1]);
+            setIsLoadingDocument(false);
             return;
           }
         }
