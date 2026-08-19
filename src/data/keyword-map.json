@@ -3,7 +3,7 @@
     {
       "id": "4175e123-51ee-4991-810c-5aa4224e552f",
       "title": "실존주의",
-      "updatedAt": "2026-08-19T08:39:03.913Z",
+      "updatedAt": "2026-08-19T08:39:21.618Z",
       "nodes": [
         {
           "id": "new-root-1787015979398",
@@ -65,7 +65,7 @@
             "width": 200,
             "height": 82
           },
-          "selected": true,
+          "selected": false,
           "dragging": false
         },
         {
@@ -137,7 +137,7 @@
           "id": "edge-1787019016293",
           "source": "keyword-1787019000065",
           "target": "new-root-1787015979398",
-          "label": "거부",
+          "label": "장아메리 거부",
           "animated": true,
           "type": "smoothstep",
           "style": {
@@ -147,7 +147,7 @@
             "type": "arrowclosed",
             "color": "#7c3aed"
           },
-          "selected": false
+          "selected": true
         },
         {
           "id": "edge-1787019029450",
