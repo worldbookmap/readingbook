@@ -212,6 +212,18 @@
             "y": -112,
             "color": "#f5f3ff",
             "size": 100
+          },
+          {
+            "id": "806435f5-f6c7-4aa9-bdf6-f00f798b34ad",
+            "name": "에스테르",
+            "title": "방울장수",
+            "category": "person",
+            "summary": "셰크레가 카라에게 주는 편지를 전함",
+            "majorActions": [],
+            "x": 45,
+            "y": 460,
+            "color": "#dcfce7",
+            "size": 100
           }
         ],
         "relationships": [
