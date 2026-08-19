@@ -3,7 +3,7 @@
     {
       "id": "4175e123-51ee-4991-810c-5aa4224e552f",
       "title": "실존주의",
-      "updatedAt": "2026-08-18T02:39:15.326Z",
+      "updatedAt": "2026-08-19T08:39:03.913Z",
       "nodes": [
         {
           "id": "new-root-1787015979398",
@@ -23,7 +23,7 @@
             "width": 200,
             "height": 122
           },
-          "selected": true,
+          "selected": false,
           "dragging": false
         },
         {
@@ -51,8 +51,8 @@
           "id": "keyword-1787019000065",
           "type": "keywordNode",
           "position": {
-            "x": 92.60102117590583,
-            "y": 281.6149448154383
+            "x": -52.69170720808818,
+            "y": 146.9770165129372
           },
           "data": {
             "label": "구조주의",
@@ -65,15 +65,15 @@
             "width": 200,
             "height": 82
           },
-          "selected": false,
+          "selected": true,
           "dragging": false
         },
         {
           "id": "keyword-1787019056989",
           "type": "keywordNode",
           "position": {
-            "x": 536.1908502307235,
-            "y": 335.86320121882085
+            "x": 280.71699946714534,
+            "y": 452.9839210058767
           },
           "data": {
             "label": "현상학",
@@ -108,6 +108,28 @@
             "height": 102
           },
           "selected": false
+        },
+        {
+          "id": "keyword-1787128611852",
+          "type": "keywordNode",
+          "position": {
+            "x": 90.88173434480507,
+            "y": 576.872248740781
+          },
+          "data": {
+            "label": "에드문트 후설",
+            "description": "사태 자체로: 선입견을 버리고 내 의식에 닿는 순수한 경험 그 자체를 본다.이 키워드의 의미와 연결 포인트를 적어보세요.",
+            "color": "#bdbdbd",
+            "category": "창시자",
+            "tags": [],
+            "size": 180
+          },
+          "measured": {
+            "width": 180,
+            "height": 162
+          },
+          "selected": false,
+          "dragging": false
         }
       ],
       "edges": [
@@ -144,22 +166,6 @@
           "selected": false
         },
         {
-          "id": "edge-1787019066160",
-          "source": "new-root-1787015979398",
-          "target": "keyword-1787019056989",
-          "label": "세상을 바라보는 눈",
-          "animated": true,
-          "type": "smoothstep",
-          "style": {
-            "stroke": "#7c3aed"
-          },
-          "markerEnd": {
-            "type": "arrowclosed",
-            "color": "#7c3aed"
-          },
-          "selected": false
-        },
-        {
           "id": "edge-1787019111995",
           "source": "keyword-1787018979746",
           "target": "keyword-1787019081364",
@@ -173,6 +179,38 @@
             "type": "arrowclosed",
             "color": "#7c3aed"
           }
+        },
+        {
+          "id": "edge-1787128680878",
+          "source": "keyword-1787128611852",
+          "target": "keyword-1787019056989",
+          "label": "창시",
+          "animated": true,
+          "type": "smoothstep",
+          "style": {
+            "stroke": "#7c3aed"
+          },
+          "markerEnd": {
+            "type": "arrowclosed",
+            "color": "#7c3aed"
+          },
+          "selected": false
+        },
+        {
+          "id": "edge-1787128716095",
+          "source": "keyword-1787019056989",
+          "target": "new-root-1787015979398",
+          "label": "세상을 바라보는 눈",
+          "animated": true,
+          "type": "smoothstep",
+          "style": {
+            "stroke": "#7c3aed"
+          },
+          "markerEnd": {
+            "type": "arrowclosed",
+            "color": "#7c3aed"
+          },
+          "selected": false
         }
       ]
     }
