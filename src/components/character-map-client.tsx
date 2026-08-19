@@ -1175,6 +1175,38 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         </div>
       </aside>
 
+      <section className="col-span-full rounded-[28px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-sm">
+        <div className="flex items-end justify-between gap-3 border-b border-slate-200 pb-3">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">Library</p>
+            <h2 className="mt-1 text-xl font-semibold text-slate-900">전체 작품</h2>
+          </div>
+          <span className="text-xs text-slate-500">{works.length}개 작품</span>
+        </div>
+        <div className="mt-3 divide-y divide-slate-200">
+          {works.map((work) => {
+            const isActive = work.id === selectedWorkId;
+
+            return (
+              <button
+                key={work.id}
+                type="button"
+                onClick={() => setSelectedWorkId(work.id)}
+                className={`flex w-full items-center justify-between gap-4 px-2 py-3 text-left transition hover:bg-slate-50 ${isActive ? "text-[#1e3038]" : "text-slate-700"}`}
+              >
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold">{work.titleKo ?? work.title}</span>
+                  <span className="mt-1 block truncate text-xs text-slate-500">{work.author ?? "작가 정보 없음"}</span>
+                </span>
+                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${isActive ? "bg-[#f2dfd0] text-[#a85f35]" : "bg-slate-100 text-slate-500"}`}>
+                  {work.seed.nodes.length}명 · {work.seed.relationships.length}관계
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       <FloatingSyncMenu saveMessage={saveMessage} onRefresh={refreshFromGithub} onSave={saveToGithub} />
 
       {isDetailModalOpen && (selectedNode || selectedEdge) && (

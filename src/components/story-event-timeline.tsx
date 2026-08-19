@@ -1338,6 +1338,38 @@ export function StoryEventTimeline() {
         </div>
       </section>
 
+      <section className="rounded-[28px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-sm">
+        <div className="flex items-end justify-between gap-3 border-b border-slate-200 pb-3">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">Library</p>
+            <h2 className="mt-1 text-xl font-semibold text-slate-900">전체 작품</h2>
+          </div>
+          <span className="text-xs text-slate-500">{orderedWorks.length}개 작품</span>
+        </div>
+        <div className="mt-3 divide-y divide-slate-200">
+          {orderedWorks.map((work) => {
+            const isActive = work.id === selectedWorkId;
+
+            return (
+              <button
+                key={work.id}
+                type="button"
+                onClick={() => setSelectedWorkId(work.id)}
+                className={`flex w-full items-center justify-between gap-4 px-2 py-3 text-left transition hover:bg-slate-50 ${isActive ? "text-[#1e3038]" : "text-slate-700"}`}
+              >
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold">{work.titleKo ?? work.title}</span>
+                  <span className="mt-1 block truncate text-xs text-slate-500">{work.author ?? "작가 정보 없음"}</span>
+                </span>
+                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${isActive ? "bg-[#f2dfd0] text-[#a85f35]" : "bg-slate-100 text-slate-500"}`}>
+                  {work.events.length}개 사건
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       {activeModal ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-4 backdrop-blur-[2px]">
           <div className="w-full max-w-xl rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_26px_80px_rgba(15,23,42,0.18)]">

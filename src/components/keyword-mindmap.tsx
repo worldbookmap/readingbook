@@ -1004,6 +1004,38 @@ export function KeywordMindmap() {
         )}
       </aside>
 
+      <section className="col-span-full rounded-[28px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-sm">
+        <div className="flex items-end justify-between gap-3 border-b border-slate-200 pb-3">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">Library</p>
+            <h2 className="mt-1 text-xl font-semibold text-slate-900">전체 문서</h2>
+          </div>
+          <span className="text-xs text-slate-500">{documents.length}개 문서</span>
+        </div>
+        <div className="mt-3 divide-y divide-slate-200">
+          {documents.map((document) => {
+            const isActive = document.id === selectedDocumentId;
+
+            return (
+              <button
+                key={document.id}
+                type="button"
+                onClick={() => loadDocument(document.id)}
+                className={`flex w-full items-center justify-between gap-4 px-2 py-3 text-left transition hover:bg-slate-50 ${isActive ? "text-[#1e3038]" : "text-slate-700"}`}
+              >
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold">{document.title}</span>
+                  <span className="mt-1 block truncate text-xs text-slate-500">{document.nodes.length}개 키워드 · {document.edges.length}개 연결</span>
+                </span>
+                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${isActive ? "bg-[#f2dfd0] text-[#a85f35]" : "bg-slate-100 text-slate-500"}`}>
+                  {new Date(document.updatedAt).toLocaleDateString("ko-KR")}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       <FloatingSyncMenu saveMessage={saveMessage} onRefresh={refreshFromGithub} onSave={saveCurrentDocument} />
     </div>
   );
