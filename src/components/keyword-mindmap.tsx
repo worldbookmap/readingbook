@@ -46,6 +46,7 @@ type SavedMindmapDocument = {
 
 const storageKey = "readingbook-keyword-mindmap";
 const documentsStorageKey = "readingbook-keyword-mindmap-documents";
+const selectedDocumentStorageKey = "readingbook-keyword-mindmap-selected-document";
 
 const colorPalette = [
   "#fdf2f8",
@@ -292,6 +293,12 @@ function makeBlankDocument(title: string, nextNodes: KeywordNode[] = initialNode
   };
 }
 
+function getLatestDocument(documents: SavedMindmapDocument[]) {
+  return documents.reduce((latest, document) =>
+    document.updatedAt > latest.updatedAt ? document : latest,
+  );
+}
+
 export function KeywordMindmap() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -314,6 +321,7 @@ export function KeywordMindmap() {
     setNodes(document.nodes);
     setEdges(document.edges);
     setSelectedDocumentId(document.id);
+    window.localStorage.setItem(selectedDocumentStorageKey, document.id);
     setDocumentTitle(document.title);
     setSelectedNodeId(document.nodes[0]?.id ?? null);
     setSelectedEdgeId(null);
@@ -377,7 +385,9 @@ export function KeywordMindmap() {
 
           if (payload.data?.documents?.length) {
             setDocuments(payload.data.documents);
-            applyDocument(payload.data.documents[payload.data.documents.length - 1]);
+            const savedDocumentId = window.localStorage.getItem(selectedDocumentStorageKey);
+            const selectedDocument = payload.data.documents.find((document) => document.id === savedDocumentId) ?? getLatestDocument(payload.data.documents);
+            applyDocument(selectedDocument);
             return;
           }
         }
@@ -393,7 +403,9 @@ export function KeywordMindmap() {
           const parsedDocuments = JSON.parse(savedDocuments) as SavedMindmapDocument[];
           if (Array.isArray(parsedDocuments) && parsedDocuments.length > 0) {
             setDocuments(parsedDocuments);
-            applyDocument(parsedDocuments[parsedDocuments.length - 1]);
+            const savedDocumentId = window.localStorage.getItem(selectedDocumentStorageKey);
+            const selectedDocument = parsedDocuments.find((document) => document.id === savedDocumentId) ?? getLatestDocument(parsedDocuments);
+            applyDocument(selectedDocument);
             return;
           }
         }
@@ -714,8 +726,8 @@ export function KeywordMindmap() {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/90 p-3 pb-24 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-sm sm:p-4">
-        <div className="mb-3 rounded-[18px] border border-violet-100 bg-violet-50/70 px-3 py-2">
+      <div className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/90 pb-24 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-sm">
+        <div className="border-b border-violet-100 bg-violet-50/70 px-4 py-3">
           <div className="mb-2">
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-violet-500">Keyword Map</p>
             <h2 className="mt-1 text-base font-semibold tracking-[-0.03em] text-slate-900">핵심 키워드 연결지도</h2>
@@ -760,7 +772,7 @@ export function KeywordMindmap() {
           </div>
         </div>
 
-        <div className="relative h-[640px] w-full overflow-hidden rounded-[22px] border border-slate-200 bg-[radial-gradient(circle_at_top,_rgba(167,139,250,0.12),_transparent_35%),linear-gradient(180deg,_#fff_0%,_#f8fafc_100%)]">
+        <div className="relative h-[640px] w-full overflow-hidden border-b border-slate-200 bg-[radial-gradient(circle_at_top,_rgba(167,139,250,0.12),_transparent_35%),linear-gradient(180deg,_#fff_0%,_#f8fafc_100%)]">
           <ReactFlowProvider>
             <KeywordMindmapFlow
               nodes={nodes}

@@ -27,6 +27,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMap } from "@fortawesome/free-solid-svg-icons";
 
 const storageKey = "readingbook-character-map-library";
+const selectedWorkStorageKey = "readingbook-character-map-selected-work";
 const relationOptions: RelationshipType[] = ["친구", "부부", "커플", "자식", "사업", "기타"];
 
 type CharacterFlowNodeData = {
@@ -246,11 +247,20 @@ function CharacterMapFlow({
 export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const latestWork = library.works.at(-1) ?? library.works[0] ?? null;
   const [works, setWorks] = useState<CharacterMapLibrary["works"]>(library.works);
-  const [selectedWorkId, setSelectedWorkId] = useState<string>(
-    defaultWorkId && library.works.some((work) => work.id === defaultWorkId)
-      ? defaultWorkId
-      : latestWork?.id ?? "",
-  );
+  const [selectedWorkId, setSelectedWorkId] = useState<string>(() => {
+    if (defaultWorkId && library.works.some((work) => work.id === defaultWorkId)) {
+      return defaultWorkId;
+    }
+
+    if (typeof window !== "undefined") {
+      const savedWorkId = window.localStorage.getItem(selectedWorkStorageKey);
+      if (savedWorkId && library.works.some((work) => work.id === savedWorkId)) {
+        return savedWorkId;
+      }
+    }
+
+    return latestWork?.id ?? "";
+  });
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -281,6 +291,12 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
 
   const [nodes, setNodes, onNodesChange] = useNodesState<CharacterFlowNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<CharacterFlowEdge>([]);
+
+  useEffect(() => {
+    if (selectedWorkId) {
+      window.localStorage.setItem(selectedWorkStorageKey, selectedWorkId);
+    }
+  }, [selectedWorkId]);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(storageKey);

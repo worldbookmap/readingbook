@@ -22,10 +22,11 @@ import { CustomSelect } from "@/components/custom-select";
 import { FloatingSyncMenu } from "@/components/floating-sync-menu";
 
 const storageKey = "readingbook-story-event-library";
+const selectedWorkStorageKey = "readingbook-story-event-selected-work";
 const boardWidth = 1100;
 const boardHeight = 560;
-const cardWidth = 260;
-const cardHeight = 180;
+const cardWidth = 220;
+const cardHeight = 150;
 const eventPalette = ["#f59e0b", "#0f766e", "#2563eb", "#7c3aed", "#ef4444", "#f97316"];
 
 type WorkDraft = {
@@ -256,7 +257,16 @@ function StoryEventFlow({ nodes, onNodesChange, onNodeClick, onNodeDoubleClick, 
 export function StoryEventTimeline() {
   const latestInitialWork = buildInitialWorks().at(-1) ?? buildInitialWorks()[0] ?? null;
   const [works, setWorks] = useState<StoryTimelineWork[]>(buildInitialWorks);
-  const [selectedWorkId, setSelectedWorkId] = useState<string>(latestInitialWork?.id ?? "");
+  const [selectedWorkId, setSelectedWorkId] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      const savedWorkId = window.localStorage.getItem(selectedWorkStorageKey);
+      if (savedWorkId && buildInitialWorks().some((work) => work.id === savedWorkId)) {
+        return savedWorkId;
+      }
+    }
+
+    return latestInitialWork?.id ?? "";
+  });
   const [selectedEventId, setSelectedEventId] = useState<string | null>(latestInitialWork?.events[0]?.id ?? null);
   const [workDraft, setWorkDraft] = useState<WorkDraft>(defaultWorkDraft);
   const [eventDraft, setEventDraft] = useState<EventDraft>(defaultEventDraft);
@@ -289,6 +299,12 @@ export function StoryEventTimeline() {
     startCardY: number;
   } | null>(null);
   const boardPanRef = useRef<{ startX: number; startY: number; originX: number; originY: number } | null>(null);
+
+  useEffect(() => {
+    if (selectedWorkId) {
+      window.localStorage.setItem(selectedWorkStorageKey, selectedWorkId);
+    }
+  }, [selectedWorkId]);
 
   const orderedWorks = works;
   const latestWorkId = orderedWorks[0]?.id ?? "";
@@ -409,7 +425,8 @@ export function StoryEventTimeline() {
     try {
       const parsed = JSON.parse(saved) as StoryTimelineLibrary;
       if (parsed.works?.length) {
-        const latestWork = parsed.works.at(-1) ?? parsed.works[0];
+        const savedWorkId = window.localStorage.getItem(selectedWorkStorageKey);
+        const latestWork = parsed.works.find((work) => work.id === savedWorkId) ?? parsed.works.at(-1) ?? parsed.works[0];
         setWorks(parsed.works);
         setSelectedWorkId(latestWork.id);
         setSelectedEventId(latestWork.events[0]?.id ?? null);
@@ -987,8 +1004,8 @@ export function StoryEventTimeline() {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-[32px] border border-slate-200 bg-white/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.04)]">
-        <div className="flex flex-col gap-4 border-b border-slate-200 pb-4 xl:flex-row xl:items-center xl:justify-between">
+      <section className="overflow-hidden rounded-[32px] border border-slate-200 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.04)]">
+        <div className="flex flex-col gap-4 border-b border-slate-200 px-5 pt-5 pb-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <div className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-600">
               Story Timeline
@@ -1039,7 +1056,7 @@ export function StoryEventTimeline() {
           </div>
         </div>
 
-        <div className="mt-4 flex flex-col gap-3 rounded-[24px] border border-slate-200 bg-slate-50 p-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="mx-5 mt-4 flex flex-col gap-3 rounded-[24px] border border-slate-200 bg-slate-50 p-3 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-200 text-slate-700">
               <FontAwesomeIcon icon={faBookOpen} />
@@ -1089,18 +1106,16 @@ export function StoryEventTimeline() {
 
         <FloatingSyncMenu saveMessage={saveMessage} onRefresh={refreshFromGithub} onSave={saveToGithub} />
 
-        <div className="mt-5">
-          <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-4">
-            <div className="mb-3 flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-              <span>타임라인 보드</span>
-              <span>{selectedWork?.events.length ?? 0}개 사건</span>
-            </div>
-
-            <div
-              ref={boardRef}
-              className="relative overflow-hidden rounded-[26px] border border-amber-200 bg-white shadow-inner"
-              style={{ width: "100%", height: boardMetrics.height }}
-            >
+        <div className="mt-5 border-t border-slate-200">
+          <div className="flex items-center justify-between gap-3 px-5 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+            <h3>타임라인 보드</h3>
+            <span>{selectedWork?.events.length ?? 0}개 사건</span>
+          </div>
+          <div
+            ref={boardRef}
+            className="relative overflow-hidden bg-white shadow-inner"
+            style={{ width: "100%", height: boardMetrics.height }}
+          >
               <div className="pointer-events-none absolute inset-x-3 top-3 z-30 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
@@ -1297,7 +1312,7 @@ export function StoryEventTimeline() {
                 </div>
               </div>
 
-              <div className="absolute inset-0 pt-12">
+              <div className="absolute inset-0">
                 <ReactFlowProvider>
                   <StoryEventFlow
                     nodes={flowNodes}
@@ -1319,14 +1334,7 @@ export function StoryEventTimeline() {
               >
                 <FontAwesomeIcon icon={faMap} />
               </button>
-            </div>
           </div>
-        </div>
-
-        <div className="mt-6 rounded-[24px] border border-slate-200 bg-white p-4 text-sm text-slate-600">
-          <p className={`text-xs font-semibold uppercase tracking-[0.22em] ${saveState === "error" ? "text-rose-500" : "text-slate-500"}`}>
-            {saveMessage}
-          </p>
         </div>
       </section>
 
