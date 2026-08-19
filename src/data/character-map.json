@@ -172,8 +172,8 @@
             "category": "person",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
-            "x": 301,
-            "y": 481,
+            "x": 303,
+            "y": 604,
             "color": "#eff6ff",
             "size": 100
           },
@@ -184,8 +184,8 @@
             "category": "person",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
-            "x": 309,
-            "y": 584,
+            "x": 304,
+            "y": 723,
             "color": "#ecfeff",
             "size": 100
           },
@@ -220,9 +220,21 @@
             "category": "person",
             "summary": "셰크레가 카라에게 주는 편지를 전함",
             "majorActions": [],
-            "x": 45,
-            "y": 460,
+            "x": 222,
+            "y": 430,
             "color": "#dcfce7",
+            "size": 100
+          },
+          {
+            "id": "7ed1a50c-ea86-4b79-8890-06908032ac35",
+            "name": "남편",
+            "title": "남편",
+            "category": "person",
+            "summary": "4년째 전쟁터에서 안돌아옴",
+            "majorActions": [],
+            "x": 498,
+            "y": 287,
+            "color": "#fee2e2",
             "size": 100
           }
         ],
@@ -310,6 +322,27 @@
             "toId": "44bfad71-8628-49e5-912e-076404759619",
             "type": "기타",
             "label": "책 제작 명령"
+          },
+          {
+            "id": "edge-1787120987500",
+            "fromId": "806435f5-f6c7-4aa9-bdf6-f00f798b34ad",
+            "toId": "82fbdb29-8c92-497a-970a-61ddcee19c9b",
+            "type": "기타",
+            "label": "편지부탁"
+          },
+          {
+            "id": "edge-1787121021832",
+            "fromId": "58624393-cb10-4ae0-a16a-1df504e218f8",
+            "toId": "806435f5-f6c7-4aa9-bdf6-f00f798b34ad",
+            "type": "기타",
+            "label": "편지건내줌"
+          },
+          {
+            "id": "edge-1787121065374",
+            "fromId": "82fbdb29-8c92-497a-970a-61ddcee19c9b",
+            "toId": "7ed1a50c-ea86-4b79-8890-06908032ac35",
+            "type": "기타",
+            "label": "남편"
           }
         ]
       }
