@@ -3,7 +3,7 @@
     {
       "id": "4175e123-51ee-4991-810c-5aa4224e552f",
       "title": "실존주의",
-      "updatedAt": "2026-08-19T08:39:21.618Z",
+      "updatedAt": "2026-08-19T08:39:48.402Z",
       "nodes": [
         {
           "id": "new-root-1787015979398",
@@ -147,7 +147,7 @@
             "type": "arrowclosed",
             "color": "#7c3aed"
           },
-          "selected": true
+          "selected": false
         },
         {
           "id": "edge-1787019029450",
@@ -164,21 +164,6 @@
             "color": "#7c3aed"
           },
           "selected": false
-        },
-        {
-          "id": "edge-1787019111995",
-          "source": "keyword-1787018979746",
-          "target": "keyword-1787019081364",
-          "label": "새 연결의 의미를 적어보세요.",
-          "animated": true,
-          "type": "smoothstep",
-          "style": {
-            "stroke": "#7c3aed"
-          },
-          "markerEnd": {
-            "type": "arrowclosed",
-            "color": "#7c3aed"
-          }
         },
         {
           "id": "edge-1787128680878",
@@ -211,6 +196,21 @@
             "color": "#7c3aed"
           },
           "selected": false
+        },
+        {
+          "id": "edge-1787128778397",
+          "source": "keyword-1787018979746",
+          "target": "keyword-1787019081364",
+          "label": "구조주의자",
+          "animated": true,
+          "type": "smoothstep",
+          "style": {
+            "stroke": "#7c3aed"
+          },
+          "markerEnd": {
+            "type": "arrowclosed",
+            "color": "#7c3aed"
+          }
         }
       ]
     }
