@@ -22,6 +22,8 @@ import {
 import "@xyflow/react/dist/style.css";
 import { CustomSelect } from "@/components/custom-select";
 import { FloatingSyncMenu } from "@/components/floating-sync-menu";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMap } from "@fortawesome/free-solid-svg-icons";
 
 type KeywordNodeData = {
   label: string;
@@ -226,6 +228,7 @@ type KeywordMindmapFlowProps = {
   onNodeDoubleClick: (node: KeywordNode) => void;
   onEdgeClick: (event: { clientX: number; clientY: number }, edge: Edge) => void;
   addKeywordAtPosition: (position?: { x: number; y: number }) => void;
+  showMiniMap: boolean;
 };
 
 function KeywordMindmapFlow({
@@ -238,6 +241,7 @@ function KeywordMindmapFlow({
   onNodeDoubleClick,
   onEdgeClick,
   addKeywordAtPosition,
+  showMiniMap,
 }: KeywordMindmapFlowProps) {
   const reactFlowInstance = useReactFlow();
 
@@ -267,12 +271,12 @@ function KeywordMindmapFlow({
       proOptions={{ hideAttribution: true }}
     >
       <Background gap={18} size={1} color="#dfe7f1" />
-      <MiniMap
+      {showMiniMap ? <MiniMap
         pannable
         zoomable
         nodeColor={(node) => (node.data?.color as string) ?? "#c4b5fd"}
         maskColor="rgba(255,255,255,0.75)"
-      />
+      /> : null}
       <Controls />
     </ReactFlow>
   );
@@ -291,7 +295,6 @@ function makeBlankDocument(title: string, nextNodes: KeywordNode[] = initialNode
 export function KeywordMindmap() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [isLoadingDocument, setIsLoadingDocument] = useState(true);
   const [documents, setDocuments] = useState<SavedMindmapDocument[]>([]);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string>("");
   const [documentTitle, setDocumentTitle] = useState("문서 1");
@@ -305,6 +308,7 @@ export function KeywordMindmap() {
   const [saveMessage, setSaveMessage] = useState("GitHub 저장 준비 중");
   const [remoteEnabled, setRemoteEnabled] = useState(false);
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
+  const [showMiniMap, setShowMiniMap] = useState(false);
 
   function applyDocument(document: SavedMindmapDocument) {
     setNodes(document.nodes);
@@ -374,7 +378,6 @@ export function KeywordMindmap() {
           if (payload.data?.documents?.length) {
             setDocuments(payload.data.documents);
             applyDocument(payload.data.documents[payload.data.documents.length - 1]);
-            setIsLoadingDocument(false);
             return;
           }
         }
@@ -410,8 +413,6 @@ export function KeywordMindmap() {
         const firstDocument = makeBlankDocument("문서 1");
         setDocuments([firstDocument]);
         applyDocument(firstDocument);
-      } finally {
-        setIsLoadingDocument(false);
       }
     }
 
@@ -759,30 +760,36 @@ export function KeywordMindmap() {
           </div>
         </div>
 
-        <div className="h-[640px] w-full overflow-hidden rounded-[22px] border border-slate-200 bg-[radial-gradient(circle_at_top,_rgba(167,139,250,0.12),_transparent_35%),linear-gradient(180deg,_#fff_0%,_#f8fafc_100%)]">
-          {isLoadingDocument ? (
-            <div className="flex h-full items-center justify-center text-sm text-slate-400">키워드맵을 불러오는 중...</div>
-          ) : (
-            <ReactFlowProvider>
-              <KeywordMindmapFlow
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={handleConnect}
-                onNodeClick={(_, node) => {
-                  setSelectedNodeId(node.id);
-                  setSelectedEdgeId(null);
-                }}
-                onNodeDoubleClick={openNodeEditModal}
-                onEdgeClick={(_, edge) => {
-                  setSelectedEdgeId(edge.id);
-                  setSelectedNodeId(null);
-                }}
-                addKeywordAtPosition={addKeywordAtPosition}
-              />
-            </ReactFlowProvider>
-          )}
+        <div className="relative h-[640px] w-full overflow-hidden rounded-[22px] border border-slate-200 bg-[radial-gradient(circle_at_top,_rgba(167,139,250,0.12),_transparent_35%),linear-gradient(180deg,_#fff_0%,_#f8fafc_100%)]">
+          <ReactFlowProvider>
+            <KeywordMindmapFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={handleConnect}
+              onNodeClick={(_, node) => {
+                setSelectedNodeId(node.id);
+                setSelectedEdgeId(null);
+              }}
+              onNodeDoubleClick={openNodeEditModal}
+              onEdgeClick={(_, edge) => {
+                setSelectedEdgeId(edge.id);
+                setSelectedNodeId(null);
+              }}
+              addKeywordAtPosition={addKeywordAtPosition}
+              showMiniMap={showMiniMap}
+            />
+          </ReactFlowProvider>
+          <button
+            type="button"
+            onClick={() => setShowMiniMap((current) => !current)}
+            className={`absolute bottom-4 z-20 flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white/90 text-sm text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.14)] backdrop-blur-sm transition hover:border-slate-300 hover:bg-white ${showMiniMap ? "right-36" : "right-4"}`}
+            aria-label={showMiniMap ? "축약지도 숨기기" : "축약지도 보기"}
+            title={showMiniMap ? "축약지도 숨기기" : "축약지도 보기"}
+          >
+            <FontAwesomeIcon icon={faMap} />
+          </button>
         </div>
       </div>
 
@@ -879,16 +886,22 @@ export function KeywordMindmap() {
                 className="h-11 w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 p-1"
                 aria-label="키워드 카드 색상"
               />
-              <input
-                type="number"
-                min="120"
-                max="360"
-                value={nodeDraft.size}
-                onChange={(event) => setNodeDraft((current) => ({ ...current, size: event.target.value }))}
-                placeholder="노드 크기"
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
-                aria-label="키워드 노드 크기"
-              />
+              <div>
+                <label className="mb-1 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                  <span>노드 크기</span>
+                  <span>{nodeDraft.size}px</span>
+                </label>
+                <input
+                  type="range"
+                  min="120"
+                  max="360"
+                  step="10"
+                  value={nodeDraft.size}
+                  onChange={(event) => setNodeDraft((current) => ({ ...current, size: event.target.value }))}
+                  className="mt-3 w-full accent-[#b86b3d]"
+                  aria-label="키워드 노드 크기"
+                />
+              </div>
               <div className="flex items-center justify-between gap-2 pt-2">
                 <button type="button" onClick={deleteEditingNode} className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">
                   삭제

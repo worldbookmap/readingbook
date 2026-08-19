@@ -102,6 +102,21 @@ function reorderCards(
   return normalizeCards([...otherCards, ...nextTargetCards], regionOrder);
 }
 
+function reorderRegions(
+  regions: TimelineRegion[],
+  draggedRegion: TimelineRegion,
+  targetRegion: TimelineRegion,
+) {
+  if (draggedRegion === targetRegion) {
+    return regions;
+  }
+
+  const nextRegions = regions.filter((region) => region !== draggedRegion);
+  const targetIndex = nextRegions.indexOf(targetRegion);
+  nextRegions.splice(targetIndex, 0, draggedRegion);
+  return nextRegions;
+}
+
 type DraftCard = {
   title: string;
   yearLabel: string;
@@ -160,6 +175,7 @@ export function TimelineBoard({ initialCards }: Props) {
   const normalizedInitialCards = normalizeCards(initialCards, initialRegionOrder);
   const [cards, setCards] = useState<TimelineCard[]>(normalizedInitialCards);
   const [regionNames, setRegionNames] = useState<TimelineRegion[]>(initialRegionOrder);
+  const [draggedRegion, setDraggedRegion] = useState<TimelineRegion | null>(null);
   const [activeId, setActiveId] = useState<string>(normalizedInitialCards[0]?.id ?? "");
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<DraftCard>(defaultDraft);
@@ -337,6 +353,15 @@ export function TimelineBoard({ initialCards }: Props) {
     setCards((current) => reorderCards(current, cardId, region, regionNames, targetId));
   }
 
+  function moveRegion(targetRegion: TimelineRegion) {
+    if (!draggedRegion) {
+      return;
+    }
+
+    setRegionNames((current) => reorderRegions(current, draggedRegion, targetRegion));
+    setDraggedRegion(null);
+  }
+
   function patchActiveCard(field: "yearLabel" | "title" | "description" | "tags", value: string) {
     if (!activeCard) {
       return;
@@ -486,6 +511,8 @@ export function TimelineBoard({ initialCards }: Props) {
         return "from-rose-100 to-pink-50 text-rose-700 border-rose-200";
       case "기타":
         return "from-slate-100 to-slate-50 text-slate-700 border-slate-200";
+      default:
+        return "from-lime-100 to-green-50 text-lime-700 border-lime-200";
     }
   }
 
@@ -578,7 +605,7 @@ export function TimelineBoard({ initialCards }: Props) {
     <>
       {isCardModalOpen && modalDraft ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_28px_80px_rgba(15,23,42,0.2)]">
+          <div className="w-full max-w-lg rounded-[28px] border border-[#1e3038]/15 bg-[#fffdf9] p-5 shadow-[0_28px_80px_rgba(30,48,56,0.22)]">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">카드 수정</p>
@@ -688,15 +715,22 @@ export function TimelineBoard({ initialCards }: Props) {
                   className="h-11 w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 p-1"
                 />
               </div>
-              <input
-                type="number"
-                min="160"
-                max="420"
-                value={modalDraft.size}
-                onChange={(event) => setModalDraft((current) => (current ? { ...current, size: event.target.value } : current))}
-                className={inputClassName}
-                aria-label="카드 크기"
-              />
+              <div>
+                <label className="mb-1 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  <span>카드 크기</span>
+                  <span>{modalDraft.size}px</span>
+                </label>
+                <input
+                  type="range"
+                  min="160"
+                  max="420"
+                  step="10"
+                  value={modalDraft.size}
+                  onChange={(event) => setModalDraft((current) => (current ? { ...current, size: event.target.value } : current))}
+                  className="mt-3 w-full accent-[#b86b3d]"
+                  aria-label="카드 크기"
+                />
+              </div>
             </div>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
@@ -722,9 +756,9 @@ export function TimelineBoard({ initialCards }: Props) {
 
       <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
       <aside className="space-y-6">
-        <section className="rounded-[28px] border border-slate-300/80 bg-white/90 p-5 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
+        <section className="rounded-[28px] border border-[#1e3038]/15 bg-[#fffdf9]/95 p-5 shadow-[0_18px_45px_rgba(45,43,37,0.1)]">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f2dfd0] text-[#a85f35]">
               <FontAwesomeIcon icon={faCalendarDays} />
             </div>
             <div>
@@ -836,15 +870,22 @@ export function TimelineBoard({ initialCards }: Props) {
               className="h-11 w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 p-1"
               aria-label="카드 색상"
             />
-            <input
-              type="number"
-              min="160"
-              max="420"
-              value={draft.size}
-              onChange={(event) => setDraft((current) => ({ ...current, size: event.target.value }))}
-              className={inputClassName}
-              aria-label="카드 크기"
-            />
+            <div>
+              <label className="mb-1 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                <span>카드 크기</span>
+                <span>{draft.size}px</span>
+              </label>
+              <input
+                type="range"
+                min="160"
+                max="420"
+                step="10"
+                value={draft.size}
+                onChange={(event) => setDraft((current) => ({ ...current, size: event.target.value }))}
+                className="mt-3 w-full accent-[#b86b3d]"
+                aria-label="카드 크기"
+              />
+            </div>
             <button
               type="submit"
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-[0_12px_26px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 hover:bg-slate-700 active:scale-[0.99]"
@@ -876,7 +917,7 @@ export function TimelineBoard({ initialCards }: Props) {
           </form>
         </section>
 
-        <section className="rounded-[28px] border border-slate-300/80 bg-[linear-gradient(180deg,_#fafaf8_0%,_#f4f4ef_100%)] p-5 text-slate-700 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
+        <section className="rounded-[28px] border border-[#1e3038]/15 bg-[linear-gradient(180deg,_#f8f1e8_0%,_#eee6d9_100%)] p-5 text-slate-700 shadow-[0_18px_45px_rgba(45,43,37,0.08)]">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm text-slate-600">선택한 카드</p>
@@ -931,14 +972,14 @@ export function TimelineBoard({ initialCards }: Props) {
         </section>
       </aside>
 
-      <section className="rounded-[32px] border border-slate-300/80 bg-white p-6 pb-24 shadow-[0_18px_45px_rgba(0,0,0,0.04)]">
+      <section className="rounded-[32px] border border-[#1e3038]/15 bg-[#fffdf9]/95 p-6 pb-24 shadow-[0_24px_60px_rgba(45,43,37,0.1)]">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">Timeline Board</p>
-            <h2 className="mt-1 text-2xl font-semibold text-slate-900">역사 연표</h2>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#b86b3d]">Timeline Board</p>
+            <h2 className="mt-1 text-2xl font-semibold text-[#1e3038]">역사 연표</h2>
           </div>
-          <div className="hidden items-center gap-3 rounded-full bg-slate-100 px-4 py-2 text-sm text-slate-600 lg:flex">
-            <FontAwesomeIcon icon={faArrowsLeftRight} className="text-slate-700" />
+          <div className="hidden items-center gap-3 rounded-xl border border-[#1e3038]/10 bg-[#f4f0e8] px-4 py-2 text-sm text-slate-600 lg:flex">
+            <FontAwesomeIcon icon={faArrowsLeftRight} className="text-[#b86b3d]" />
             카드를 드래그해서 다른 지역으로 이동하거나 순서를 바꾸세요.
           </div>
         </div>
@@ -946,7 +987,7 @@ export function TimelineBoard({ initialCards }: Props) {
         <FloatingSyncMenu saveMessage={saveMessage} onRefresh={refreshFromGithub} onSave={saveToGithub} />
 
       <div className="mt-4 lg:hidden">
-          <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-4">
+          <div className="rounded-[28px] border border-[#1e3038]/10 bg-[#f4f0e8] p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-slate-700">모바일 연표</p>
               <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-500 shadow-sm">
@@ -954,7 +995,7 @@ export function TimelineBoard({ initialCards }: Props) {
               </span>
             </div>
             <p className="mt-2 text-xs leading-5 text-slate-500">
-              모바일에서는 지역별로 세로로 읽고, 카드를 눌러 아래 편집 패널에서 수정합니다.
+              모바일에서는 지역별로 세로로 읽고, 카드를 눌러 선택하거나 더블클릭해 수정합니다.
             </p>
 
             <div className="mt-4 space-y-4">
@@ -983,7 +1024,8 @@ export function TimelineBoard({ initialCards }: Props) {
                             <button
                               key={card.id}
                               type="button"
-                              onClick={() => openCardModal(card.id)}
+                              onClick={() => setActiveId(card.id)}
+                              onDoubleClick={() => openCardModal(card.id)}
                               className="block w-full rounded-[20px] border bg-white p-4 text-left shadow-sm transition active:scale-[0.99]"
                               style={{
                                 width: `min(100%, ${card.size ?? 260}px)`,
@@ -1049,10 +1091,10 @@ export function TimelineBoard({ initialCards }: Props) {
                     setDraggedId(null);
                   }
                 }}
-                className="rounded-[28px] border border-slate-300 bg-[linear-gradient(180deg,_#fcfcfb_0%,_#f6f6f2_100%)] p-4"
+                className="rounded-[28px] border border-[#1e3038]/12 bg-[linear-gradient(180deg,_#fcfaf5_0%,_#f0e9de_100%)] p-4 shadow-[0_12px_28px_rgba(45,43,37,0.05)]"
               >
                 <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-sky-600">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f2dfd0] text-[#a85f35]">
                     <FontAwesomeIcon icon={faGlobe} />
                   </div>
                   <div>
@@ -1080,7 +1122,8 @@ export function TimelineBoard({ initialCards }: Props) {
                             setDraggedId(null);
                           }
                         }}
-                        onClick={() => openCardModal(card.id)}
+                        onClick={() => setActiveId(card.id)}
+                        onDoubleClick={() => openCardModal(card.id)}
                         className="block w-full rounded-[24px] border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1"
                         style={{
                           width: `min(100%, ${card.size ?? 260}px)`,
@@ -1124,7 +1167,7 @@ export function TimelineBoard({ initialCards }: Props) {
         <div className="mt-8 rounded-[28px] border border-slate-200 bg-white/90 p-4 shadow-sm">
           <div className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-200/80 pb-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-sky-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#1e3038] text-[#f4e4d7]">
                 <FontAwesomeIcon icon={faTable} />
               </div>
               <div>
@@ -1150,13 +1193,33 @@ export function TimelineBoard({ initialCards }: Props) {
 
           <div className="mt-4 hidden overflow-x-auto lg:block">
             <div className="min-w-[920px]">
-                <div className="grid grid-cols-[140px_repeat(6,minmax(120px,1fr))] gap-px rounded-3xl bg-slate-200 p-px">
+                <div
+                  className="grid gap-px rounded-3xl bg-slate-200 p-px"
+                  style={{
+                    gridTemplateColumns: `140px repeat(${regionNames.length}, minmax(120px, 1fr))`,
+                  }}
+                >
                 <div className="bg-emerald-100 px-4 py-3 text-sm font-semibold text-emerald-900">연도</div>
-                {regionNames.map((region) => (
-                  <div key={region} className="bg-emerald-100 px-4 py-3 text-sm font-semibold text-emerald-900">
-                    {region}
-                  </div>
-                ))}
+                {regionNames.map((region) => {
+                  const accent = getRegionAccent(region);
+
+                  return (
+                    <div
+                      key={region}
+                      draggable
+                      onDragStart={() => setDraggedRegion(region)}
+                      onDragOver={(event) => event.preventDefault()}
+                      onDrop={(event) => {
+                        event.preventDefault();
+                        moveRegion(region);
+                      }}
+                      onDragEnd={() => setDraggedRegion(null)}
+                      className={`cursor-grab border-b bg-gradient-to-br px-4 py-3 text-sm font-semibold transition active:cursor-grabbing ${accent}`}
+                    >
+                      {region}
+                    </div>
+                  );
+                })}
 
                 {yearRows.map((row) => (
                   <div key={`${row.year}-${row.yearLabel}`} className="contents">
@@ -1178,7 +1241,8 @@ export function TimelineBoard({ initialCards }: Props) {
                                 <button
                                   key={card.id}
                                   type="button"
-                                  onClick={() => openCardModal(card.id)}
+                                  onClick={() => setActiveId(card.id)}
+                                  onDoubleClick={() => openCardModal(card.id)}
                                   className="block rounded-2xl bg-slate-50 px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100"
                                 >
                                   {card.title}
@@ -1213,7 +1277,8 @@ export function TimelineBoard({ initialCards }: Props) {
                           <button
                             key={card.id}
                             type="button"
-                            onClick={() => openCardModal(card.id)}
+                            onClick={() => setActiveId(card.id)}
+                            onDoubleClick={() => openCardModal(card.id)}
                             className="flex w-full items-center justify-between gap-3 rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-left shadow-sm"
                           >
                             <div>

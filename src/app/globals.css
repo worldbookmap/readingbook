@@ -2,18 +2,19 @@
 
 :root {
   color-scheme: light;
-  --surface: #fcfbf8;
+  --surface: #f4f0e8;
   --surface-strong: #ffffff;
-  --surface-soft: #f7f3ee;
-  --text: #0f172a;
-  --text-soft: #475569;
-  --muted: #64748b;
-  --border: rgba(148, 163, 184, 0.24);
-  --border-strong: rgba(71, 85, 105, 0.2);
-  --accent: #f59e0b;
-  --accent-soft: #fff5df;
-  --shadow-soft: 0 14px 34px rgba(15, 23, 42, 0.06);
-  --shadow-card: 0 18px 45px rgba(15, 23, 42, 0.05);
+  --surface-soft: #eee8dc;
+  --text: #18232f;
+  --text-soft: #53616c;
+  --muted: #78817f;
+  --border: rgba(54, 68, 75, 0.16);
+  --border-strong: rgba(54, 68, 75, 0.28);
+  --accent: #b86b3d;
+  --accent-soft: #f2dfd0;
+  --ink: #1e3038;
+  --shadow-soft: 0 18px 40px rgba(45, 43, 37, 0.08);
+  --shadow-card: 0 22px 55px rgba(45, 43, 37, 0.1);
 }
 
 * {
@@ -28,12 +29,12 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(255,255,255,0.95), rgba(251,246,240,0.84) 30%, rgba(243,237,230,0.9) 100%),
-    linear-gradient(180deg, rgba(255,255,255,0.18), rgba(245,241,235,0.8)),
+    linear-gradient(115deg, rgba(255,255,255,0.84), rgba(244,239,231,0.76) 42%, rgba(226,220,208,0.9)),
+    radial-gradient(circle at 85% 12%, rgba(184,107,61,0.1), transparent 28%),
     url("/assets/bgBooks.jpeg") center/cover no-repeat fixed;
   color: var(--text);
-  font-family: "Inter", "Pretendard", "Segoe UI", sans-serif;
-  letter-spacing: -0.01em;
+  font-family: "Avenir Next", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  letter-spacing: 0;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
@@ -42,8 +43,18 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0));
+  background: repeating-linear-gradient(0deg, rgba(30,48,56,0.018) 0, rgba(30,48,56,0.018) 1px, transparent 1px, transparent 5px);
   pointer-events: none;
+  opacity: 0.7;
+  mix-blend-mode: multiply;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: "Iowan Old Style", "Palatino Linotype", "Apple SD Gothic Neo", serif;
+  letter-spacing: 0;
 }
 
 @keyframes loading {
@@ -110,5 +121,83 @@ a {
 }
 
 ::selection {
-  background: rgba(245, 158, 11, 0.2);
+  background: rgba(184, 107, 61, 0.22);
+}
+
+.archive-nav {
+  border: 1px solid rgba(244, 228, 215, 0.16);
+  background: #1e3038;
+  box-shadow: 0 18px 40px rgba(30, 48, 56, 0.16);
+  color: #fff;
+}
+
+.archive-brand {
+  color: #fff;
+}
+
+.archive-mark {
+  border: 1px solid rgba(217, 154, 112, 0.7);
+  background: #b86b3d;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.archive-nav-link {
+  color: rgb(203 213 225);
+}
+
+.archive-nav-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.archive-nav-link-active {
+  background: #f4e4d7;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  color: #1e3038;
+}
+
+.archive-hero {
+  border: 1px solid rgba(30, 48, 56, 0.15);
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.94), rgba(241, 233, 221, 0.92));
+  box-shadow: 0 22px 55px rgba(45, 43, 37, 0.1);
+}
+
+.archive-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #b86b3d;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.archive-eyebrow::before {
+  content: "";
+  width: 2rem;
+  height: 1px;
+  background: #b86b3d;
+}
+
+.archive-note {
+  border-left: 2px solid rgba(184, 107, 61, 0.6);
+  color: #53616c;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(30, 48, 56, 0.06);
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: rgba(30, 48, 56, 0.28);
+  background-clip: padding-box;
 }

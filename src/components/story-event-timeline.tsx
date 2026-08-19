@@ -10,6 +10,7 @@ import {
   faCloudArrowUp,
   faGripVertical,
   faLink,
+  faMap,
   faPlus,
   faRotateLeft,
   faTrash,
@@ -18,6 +19,7 @@ import { CharacterMapLibrary, CharacterNode, CharacterRelationship, StoryEventCa
 import characterMapLibrary from "@/data/character-map-library.json";
 import storyEventLibrary from "@/data/story-event-library.json";
 import { CustomSelect } from "@/components/custom-select";
+import { FloatingSyncMenu } from "@/components/floating-sync-menu";
 
 const storageKey = "readingbook-story-event-library";
 const boardWidth = 1100;
@@ -221,9 +223,10 @@ type StoryEventFlowProps = {
   onNodeDoubleClick: (node: StoryEventFlowNode) => void;
   onNodeDragStop: (node: StoryEventFlowNode) => void;
   onCreateEvent: (position: { x: number; y: number }) => void;
+  showMiniMap: boolean;
 };
 
-function StoryEventFlow({ nodes, onNodesChange, onNodeClick, onNodeDoubleClick, onNodeDragStop, onCreateEvent }: StoryEventFlowProps) {
+function StoryEventFlow({ nodes, onNodesChange, onNodeClick, onNodeDoubleClick, onNodeDragStop, onCreateEvent, showMiniMap }: StoryEventFlowProps) {
   const reactFlowInstance = useReactFlow();
   return (
     <ReactFlow
@@ -244,7 +247,7 @@ function StoryEventFlow({ nodes, onNodesChange, onNodeClick, onNodeDoubleClick, 
       proOptions={{ hideAttribution: true }}
     >
       <Background variant={BackgroundVariant.Lines} gap={48} size={1} color="rgba(148,163,184,0.18)" />
-      <MiniMap pannable zoomable nodeColor={(node) => (node.data as StoryEventCard)?.color ?? "#f59e0b"} maskColor="rgba(255,255,255,0.72)" />
+      {showMiniMap ? <MiniMap pannable zoomable nodeColor={(node) => (node.data as StoryEventCard)?.color ?? "#f59e0b"} maskColor="rgba(255,255,255,0.72)" /> : null}
       <Controls />
     </ReactFlow>
   );
@@ -269,6 +272,7 @@ export function StoryEventTimeline() {
   const [collapsedChapters, setCollapsedChapters] = useState<Record<string, boolean>>({});
   const [isCompact, setIsCompact] = useState(false);
   const [timelineZoom, setTimelineZoom] = useState(1);
+  const [showMiniMap, setShowMiniMap] = useState(false);
   const [boardViewport, setBoardViewport] = useState({ width: boardWidth, height: boardHeight });
   const [activeModal, setActiveModal] = useState<"work" | "event" | "edit" | "detail" | "linked" | null>(null);
   const [detailEventId, setDetailEventId] = useState<string | null>(null);
@@ -844,6 +848,35 @@ export function StoryEventTimeline() {
     }));
   }
 
+  async function refreshFromGithub() {
+    setSaveMessage("GitHub 내용 불러오는 중...");
+
+    try {
+      const response = await fetch("/api/story-events", { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error("GitHub 내용을 불러오지 못했습니다.");
+      }
+
+      const payload = (await response.json()) as {
+        data: StoryTimelineLibrary;
+        remoteEnabled: boolean;
+        sha: string | null;
+      };
+      const loadedWorks = payload.data.works ?? [];
+      setWorks(loadedWorks);
+      setSelectedWorkId((current) => {
+        const nextSelected = loadedWorks.find((work) => work.id === current)?.id ?? loadedWorks[0]?.id ?? "";
+        setSelectedEventId(loadedWorks.find((work) => work.id === nextSelected)?.events[0]?.id ?? null);
+        return nextSelected;
+      });
+      setRemoteEnabled(payload.remoteEnabled);
+      setRemoteSha(payload.sha);
+      setSaveMessage(payload.remoteEnabled ? "GitHub 내용이 갱신되었습니다." : "GitHub 동기화가 비활성 상태입니다.");
+    } catch (error) {
+      setSaveMessage(error instanceof Error ? error.message : "GitHub 내용을 불러오지 못했습니다.");
+    }
+  }
+
   async function saveToGithub() {
     setSaveState("saving");
     setSaveMessage(remoteEnabled ? "저장 중..." : "브라우저 로컬 저장 중");
@@ -1054,22 +1087,7 @@ export function StoryEventTimeline() {
           </div>
         </div>
 
-        <div className="fixed inset-x-3 bottom-3 z-40 md:inset-x-auto md:right-6 md:bottom-6 md:w-[360px]">
-          <div className="flex items-center gap-2 rounded-[22px] border border-slate-200 bg-white/90 p-2 shadow-[0_18px_48px_rgba(15,23,42,0.12)] backdrop-blur-xl">
-            <div className="min-w-0 flex-1 px-2 py-1">
-              <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-slate-500">GitHub</p>
-              <p className="mt-0.5 truncate text-[11px] font-medium text-slate-700">{saveMessage}</p>
-            </div>
-            <button
-              type="button"
-              onClick={saveToGithub}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-3.5 py-2.5 text-[11px] font-semibold text-white shadow-[0_12px_26px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 hover:bg-slate-700 active:scale-[0.98]"
-            >
-              <FontAwesomeIcon icon={faCloudArrowUp} className="text-[10px]" />
-              저장
-            </button>
-          </div>
-        </div>
+        <FloatingSyncMenu saveMessage={saveMessage} onRefresh={refreshFromGithub} onSave={saveToGithub} />
 
         <div className="mt-5">
           <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-4">
@@ -1288,9 +1306,19 @@ export function StoryEventTimeline() {
                     onNodeDoubleClick={(node) => openDetailModal(node.id)}
                     onNodeDragStop={handleFlowNodeDragStop}
                     onCreateEvent={(position) => createEventAtBoardPosition(position.x - cardWidth / 2, position.y - cardHeight / 2)}
+                    showMiniMap={showMiniMap}
                   />
                 </ReactFlowProvider>
               </div>
+              <button
+                type="button"
+                onClick={() => setShowMiniMap((current) => !current)}
+                className={`absolute bottom-4 z-20 flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white/90 text-sm text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.14)] backdrop-blur-sm transition hover:border-slate-300 hover:bg-white ${showMiniMap ? "right-36" : "right-4"}`}
+                aria-label={showMiniMap ? "축약지도 숨기기" : "축약지도 보기"}
+                title={showMiniMap ? "축약지도 숨기기" : "축약지도 보기"}
+              >
+                <FontAwesomeIcon icon={faMap} />
+              </button>
             </div>
           </div>
         </div>
@@ -1303,29 +1331,37 @@ export function StoryEventTimeline() {
       </section>
 
       {activeModal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/15 p-3 backdrop-blur-[1px]">
-          <div className="w-full max-w-md rounded-[24px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.12)]">
-            <div className="flex items-center justify-between gap-3 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-sm text-slate-700">
-                  {activeModal === "work" ? "📚" : activeModal === "event" ? "✨" : "📝"}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-4 backdrop-blur-[2px]">
+          <div className="w-full max-w-xl rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_26px_80px_rgba(15,23,42,0.18)]">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+                  <FontAwesomeIcon icon={faBookOpen} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                    {activeModal === "work" ? "new work" : activeModal === "event" ? "new event" : "edit event"}
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-500">
+                    {activeModal === "work" ? "new work" : activeModal === "event" ? "new event" : activeModal === "edit" ? "edit event" : "event detail"}
                   </p>
-                  <h3 className="text-lg font-semibold text-slate-900">
-                    {activeModal === "work" ? "소설 추가" : activeModal === "event" ? "이벤트 카드 생성" : "선택한 사건 수정"}
+                  <h3 className="mt-1 text-2xl font-semibold text-slate-900">
+                    {activeModal === "work" ? "소설 추가" : activeModal === "event" ? "이벤트 카드 생성" : activeModal === "edit" ? "선택한 사건 수정" : detailEvent?.title ?? "사건 세부정보"}
                   </h3>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setActiveModal(null)}
-                className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-600"
-              >
-                닫기
-              </button>
+              <div className="flex items-center gap-2">
+                {activeModal === "detail" ? (
+                  <>
+                    <button type="button" onClick={openEventEditModal} className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-base text-slate-700 transition hover:border-slate-300 hover:bg-slate-100" aria-label="수정" title="수정">
+                      ✎
+                    </button>
+                    <button type="button" onClick={() => { deleteSelectedEvent(); setActiveModal(null); }} className="flex h-9 w-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-base text-rose-600 transition hover:bg-rose-100" aria-label="삭제" title="삭제">
+                      🗑
+                    </button>
+                  </>
+                ) : null}
+                <button type="button" onClick={() => setActiveModal(null)} className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-lg text-slate-700 transition hover:border-slate-300 hover:bg-slate-100" aria-label="닫기" title="닫기">
+                  ✕
+                </button>
+              </div>
             </div>
 
             {activeModal === "work" ? (
@@ -1458,6 +1494,34 @@ export function StoryEventTimeline() {
                   placeholder="태그를 쉼표로 구분"
                   className={inputClassName}
                 />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">노드 색상</label>
+                    <input
+                      type="color"
+                      value={eventDraft.color}
+                      onChange={(event) => setEventDraft((current) => ({ ...current, color: event.target.value }))}
+                      className="h-11 w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 p-1"
+                      aria-label="사건 노드 색상"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                      <span>노드 크기</span>
+                      <span>{eventDraft.size}px</span>
+                    </label>
+                    <input
+                      type="range"
+                      min="140"
+                      max="360"
+                      step="10"
+                      value={eventDraft.size}
+                      onChange={(event) => setEventDraft((current) => ({ ...current, size: event.target.value }))}
+                      className="mt-3 w-full accent-[#b86b3d]"
+                      aria-label="사건 노드 크기"
+                    />
+                  </div>
+                </div>
                 <div className="flex justify-end gap-2 pt-2">
                   <button type="button" onClick={() => setActiveModal(null)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700">취소</button>
                   <button type="submit" className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white">추가하기</button>
@@ -1499,15 +1563,22 @@ export function StoryEventTimeline() {
                   className="h-11 w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 p-1"
                   aria-label="사건 노드 색상"
                 />
-                <input
-                  type="number"
-                  min="140"
-                  max="360"
-                  value={editingEventDraft?.size ?? String(selectedEvent.size ?? cardWidth)}
-                  onChange={(event) => setEditingEventDraft((current) => current ? { ...current, size: event.target.value } : current)}
-                  className={inputClassName}
-                  aria-label="사건 노드 크기"
-                />
+                <div>
+                  <label className="mb-1 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                    <span>노드 크기</span>
+                    <span>{editingEventDraft?.size ?? String(selectedEvent.size ?? cardWidth)}px</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="140"
+                    max="360"
+                    step="10"
+                    value={editingEventDraft?.size ?? String(selectedEvent.size ?? cardWidth)}
+                    onChange={(event) => setEditingEventDraft((current) => current ? { ...current, size: event.target.value } : current)}
+                    className="mt-3 w-full accent-[#b86b3d]"
+                    aria-label="사건 노드 크기"
+                  />
+                </div>
                 <div className="flex justify-end gap-2 pt-2">
                   <button type="button" onClick={() => { setEditingEventDraft(null); setActiveModal("detail"); }} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700">취소</button>
                   <button type="button" onClick={saveEventEdit} className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white">저장</button>
@@ -1612,11 +1683,6 @@ export function StoryEventTimeline() {
 
             {activeModal === "detail" && detailEvent ? (
               <div className="mt-5 space-y-4">
-                <div className="flex justify-end">
-                  <button type="button" onClick={openEventEditModal} className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-base text-slate-700 transition hover:border-slate-300 hover:bg-slate-100" aria-label="수정" title="수정">
-                    ✎
-                  </button>
-                </div>
                 <div className="rounded-[18px] border border-slate-200 bg-slate-50 p-3">
                   <div className="flex items-center justify-between gap-3">
                     {detailEvent.yearLabel ? (
@@ -1631,7 +1697,7 @@ export function StoryEventTimeline() {
                     <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">{detailEvent.chapter}</span>
                   </div>
                   <h4 className="mt-3 text-xl font-semibold text-slate-900">{detailEvent.title}</h4>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{detailEvent.summary}</p>
+                  <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">{detailEvent.summary}</p>
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-white p-3">
@@ -1655,19 +1721,6 @@ export function StoryEventTimeline() {
                   </a>
                 ) : null}
 
-                <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-end">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      deleteSelectedEvent();
-                      setActiveModal(null);
-                    }}
-                    className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100"
-                  >
-                    삭제
-                  </button>
-                  <button type="button" onClick={() => setActiveModal(null)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700">닫기</button>
-                </div>
               </div>
             ) : null}
           </div>

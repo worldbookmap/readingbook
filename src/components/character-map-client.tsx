@@ -23,6 +23,8 @@ import "@xyflow/react/dist/style.css";
 import { CharacterMapLibrary, CharacterNode, CharacterRelationship, RelationshipType } from "@/lib/types";
 import { CustomSelect } from "@/components/custom-select";
 import { FloatingSyncMenu } from "@/components/floating-sync-menu";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMap } from "@fortawesome/free-solid-svg-icons";
 
 const storageKey = "readingbook-character-map-library";
 const relationOptions: RelationshipType[] = ["친구", "부부", "커플", "자식", "사업", "기타"];
@@ -30,7 +32,6 @@ const relationOptions: RelationshipType[] = ["친구", "부부", "커플", "자�
 type CharacterFlowNodeData = {
   label: string;
   subtitle: string;
-  category: string;
   summary: string;
   color: string;
   size: number;
@@ -54,10 +55,9 @@ function toReactNodes(nodes: CharacterNode[]): CharacterFlowNode[] {
     data: {
       label: node.name,
       subtitle: node.title,
-      category: node.category ?? "person",
       summary: node.summary || "설명을 추가해 보세요.",
       color: node.color || colorPalette[index % colorPalette.length],
-      size: node.size ?? 170,
+      size: node.size ?? 220,
     },
   }));
 }
@@ -67,7 +67,6 @@ function toCharacterNodes(nodes: CharacterFlowNode[]): CharacterNode[] {
     id: node.id,
     name: node.data.label,
     title: node.data.subtitle,
-    category: node.data.category,
     summary: node.data.summary,
     majorActions: [],
     x: Math.round(node.position.x),
@@ -112,7 +111,7 @@ function toCharacterRelationships(edges: CharacterFlowEdge[]): CharacterRelation
 function CharacterNodeCard({ data, selected }: NodeProps<CharacterFlowNode>) {
   return (
     <div
-      className="relative flex flex-col items-center justify-center rounded-full border-2 bg-white p-4 text-center shadow-[0_14px_28px_rgba(15,23,42,0.08)]"
+      className="relative flex flex-col items-center justify-center rounded-full border-2 bg-white p-4 text-center shadow-[0_18px_36px_rgba(15,23,42,0.08)]"
       style={{
         width: data.size,
         height: data.size,
@@ -121,14 +120,11 @@ function CharacterNodeCard({ data, selected }: NodeProps<CharacterFlowNode>) {
       }}
     >
       <Handle type="target" position={Position.Left} className="!h-3 !w-3 !border-2 !border-white !bg-slate-700" />
-      <div className="mb-2 flex items-center justify-center gap-2">
-        <span className="rounded-full bg-white/80 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-700">
-          {data.category || "person"}
-        </span>
-        <span className="h-2.5 w-2.5 rounded-full bg-slate-900" />
+      <div className="absolute right-5 top-5">
+        <span className="block h-2.5 w-2.5 rounded-full bg-slate-900" />
       </div>
-      <h3 className="line-clamp-2 text-sm font-semibold tracking-[-0.03em] text-slate-900">{data.label}</h3>
-      <p className="mt-1 line-clamp-1 text-[10px] font-medium text-slate-500">{data.subtitle}</p>
+      <h3 className="line-clamp-2 text-sm font-semibold text-slate-900">{data.label}</h3>
+      <p className="mt-1 max-w-[80%] text-[10px] font-medium text-slate-500">{data.subtitle}</p>
       <Handle type="source" position={Position.Right} className="!h-3 !w-3 !border-2 !border-white !bg-slate-700" />
     </div>
   );
@@ -167,6 +163,8 @@ type CharacterMapFlowProps = {
   onEdgeClick: (event: { clientX: number; clientY: number }, edge: Edge) => void;
   onNodeDoubleClick: (event: { clientX: number; clientY: number }, node: Node) => void;
   addNodeAtPosition: (position?: { x: number; y: number }) => void;
+  longPressTimerRef: React.RefObject<number | null>;
+  showMiniMap: boolean;
 };
 
 function CharacterMapFlow({
@@ -179,6 +177,8 @@ function CharacterMapFlow({
   onEdgeClick,
   onNodeDoubleClick,
   addNodeAtPosition,
+  longPressTimerRef,
+  showMiniMap,
 }: CharacterMapFlowProps) {
   const reactFlowInstance = useReactFlow();
 
@@ -198,6 +198,30 @@ function CharacterMapFlow({
           addNodeAtPosition(position);
         }
       }}
+      onPointerDown={(event) => {
+        if (event.target instanceof HTMLElement && event.target.closest(".react-flow__node")) return;
+
+        if (longPressTimerRef.current) {
+          window.clearTimeout(longPressTimerRef.current);
+        }
+
+        longPressTimerRef.current = window.setTimeout(() => {
+          const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY });
+          addNodeAtPosition(position);
+        }, 600);
+      }}
+      onPointerUp={() => {
+        if (longPressTimerRef.current) {
+          window.clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
+        }
+      }}
+      onPointerLeave={() => {
+        if (longPressTimerRef.current) {
+          window.clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
+        }
+      }}
       nodeTypes={nodeTypes}
       fitView
       fitViewOptions={{ padding: 0.2 }}
@@ -208,12 +232,12 @@ function CharacterMapFlow({
       proOptions={{ hideAttribution: true }}
     >
       <Background gap={18} size={1} color="#dfe7f1" />
-      <MiniMap
+      {showMiniMap ? <MiniMap
         pannable
         zoomable
         nodeColor={(node) => (node.data?.color as string) ?? "#c4b5fd"}
         maskColor="rgba(255,255,255,0.78)"
-      />
+      /> : null}
       <Controls />
     </ReactFlow>
   );
@@ -233,7 +257,13 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const [isNewWorkModalOpen, setIsNewWorkModalOpen] = useState(false);
   const [editingWorkId, setEditingWorkId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [nodeDraft, setNodeDraft] = useState<{ label: string; subtitle: string; category: string; summary: string; color: string; size: string } | null>(null);
+  const [nodeDraft, setNodeDraft] = useState<{
+    label: string;
+    subtitle: string;
+    summary: string;
+    color: string;
+    size: string;
+  } | null>(null);
   const [edgeDraft, setEdgeDraft] = useState<{ type: RelationshipType; label: string } | null>(null);
   const [newWorkTitle, setNewWorkTitle] = useState("");
   const [draftRelationType, setDraftRelationType] = useState<RelationshipType>("기타");
@@ -241,6 +271,8 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const [saveMessage, setSaveMessage] = useState("GitHub 저장 준비 중");
   const [remoteEnabled, setRemoteEnabled] = useState(false);
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
+  const [showMiniMap, setShowMiniMap] = useState(false);
+  const longPressTimerRef = useRef<number | null>(null);
 
   const selectedWork = useMemo(
     () => works.find((work) => work.id === selectedWorkId) ?? works[0] ?? null,
@@ -317,11 +349,12 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       if (payload.data?.works?.length) {
         setWorks(payload.data.works);
         setSelectedWorkId((current) =>
-          payload.data?.works?.some((work) => work.id === current)
+          payload.data?.works.some((work) => work.id === current)
             ? current
-            : payload.data?.works?.[0]?.id ?? "",
+            : payload.data?.works[0]?.id ?? "",
         );
       }
+
       setRemoteEnabled(Boolean(payload.remoteEnabled));
       setRemoteSha(payload.sha ?? null);
       setSaveMessage(payload.remoteEnabled ? "GitHub 내용이 갱신되었습니다." : "GitHub 동기화가 비활성 상태입니다.");
@@ -447,10 +480,9 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       setNodeDraft({
         label: selectedNode.data.label,
         subtitle: selectedNode.data.subtitle,
-        category: selectedNode.data.category || "person",
         summary: selectedNode.data.summary,
         color: selectedNode.data.color,
-        size: String(selectedNode.data.size ?? 170),
+        size: String(selectedNode.data.size),
       });
     } else {
       setNodeDraft(null);
@@ -498,10 +530,9 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               ...node.data,
               label: nodeDraft.label.trim() || "새 인물",
               subtitle: nodeDraft.subtitle.trim() || "새 인물",
-              category: nodeDraft.category.trim() || "person",
               summary: nodeDraft.summary.trim(),
               color: nodeDraft.color,
-              size: Math.max(100, Math.min(320, Number(nodeDraft.size) || 170)),
+              size: Math.max(160, Math.min(340, Number(nodeDraft.size) || 220)),
             },
           }
         : node,
@@ -701,10 +732,9 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       data: {
         label: `인물 ${nodes.length + 1}`,
         subtitle: "새 인물",
-        category: "person",
         summary: "이 인물의 역할을 적어보세요.",
         color: colorPalette[nodes.length % colorPalette.length],
-        size: 170,
+        size: 220,
       },
     };
 
@@ -948,7 +978,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
           </div>
         </div>
 
-        <div className="h-[660px] w-full overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.12),_transparent_35%),linear-gradient(180deg,_#fff_0%,_#f8fafc_100%)]">
+        <div className="relative h-[660px] w-full overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.12),_transparent_35%),linear-gradient(180deg,_#fff_0%,_#f8fafc_100%)]">
           <ReactFlowProvider>
             <CharacterMapFlow
               nodes={nodes}
@@ -966,8 +996,19 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                 openDetailModal(node.id);
               }}
               addNodeAtPosition={addNodeAtPosition}
+              longPressTimerRef={longPressTimerRef}
+              showMiniMap={showMiniMap}
             />
           </ReactFlowProvider>
+          <button
+            type="button"
+            onClick={() => setShowMiniMap((current) => !current)}
+            className={`absolute bottom-4 z-20 flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white/90 text-sm text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.14)] backdrop-blur-sm transition hover:border-slate-300 hover:bg-white ${showMiniMap ? "right-36" : "right-4"}`}
+            aria-label={showMiniMap ? "축약지도 숨기기" : "축약지도 보기"}
+            title={showMiniMap ? "축약지도 숨기기" : "축약지도 보기"}
+          >
+            <FontAwesomeIcon icon={faMap} />
+          </button>
         </div>
       </section>
 
@@ -1222,35 +1263,6 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">상단 태그</label>
-                  <input
-                    value={nodeDraft.category}
-                    onChange={(event) => setNodeDraft((current) => (current ? { ...current, category: event.target.value } : current))}
-                    placeholder="person"
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">노드 색상</label>
-                  <input
-                    type="color"
-                    value={nodeDraft.color}
-                    onChange={(event) => setNodeDraft((current) => (current ? { ...current, color: event.target.value } : current))}
-                    className="h-11 w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 p-1"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">노드 크기</label>
-                  <input
-                    type="number"
-                    min="100"
-                    max="320"
-                    value={nodeDraft.size}
-                    onChange={(event) => setNodeDraft((current) => (current ? { ...current, size: event.target.value } : current))}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
-                  />
-                </div>
-                <div>
                   <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">호칭/역할</label>
                   <input
                     value={nodeDraft.subtitle}
@@ -1288,6 +1300,34 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                     placeholder="이 인물의 역할을 적어보세요."
                     className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-800 outline-none transition selection:bg-slate-200 selection:text-slate-900 focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                   />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">노드 색상</label>
+                    <input
+                      type="color"
+                      value={nodeDraft.color}
+                      onChange={(event) => setNodeDraft((current) => (current ? { ...current, color: event.target.value } : current))}
+                      className="h-11 w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 p-1"
+                      aria-label="노드 색상"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                      <span>노드 크기</span>
+                      <span>{nodeDraft.size}px</span>
+                    </label>
+                    <input
+                      type="range"
+                      min="160"
+                      max="340"
+                      step="10"
+                      value={nodeDraft.size}
+                      onChange={(event) => setNodeDraft((current) => (current ? { ...current, size: event.target.value } : current))}
+                      className="mt-3 w-full accent-[#b86b3d]"
+                      aria-label="노드 크기"
+                    />
+                  </div>
                 </div>
               </div>
             )}
