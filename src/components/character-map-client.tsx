@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
   Connection,
@@ -277,7 +277,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const [edgeDraft, setEdgeDraft] = useState<{ type: RelationshipType; label: string } | null>(null);
   const [newWorkTitle, setNewWorkTitle] = useState("");
   const [draftRelationType, setDraftRelationType] = useState<RelationshipType>("기타");
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveMessage, setSaveMessage] = useState("GitHub 저장 준비 중");
   const [remoteEnabled, setRemoteEnabled] = useState(false);
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
@@ -305,11 +305,15 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
     try {
       const parsed = JSON.parse(saved) as CharacterMapLibrary;
       if (parsed.works?.length) {
-        setWorks(parsed.works);
-        const nextSelected = parsed.works.some((work) => work.id === selectedWorkId)
-          ? selectedWorkId
+        const savedWorkId = window.localStorage.getItem(selectedWorkStorageKey);
+        const nextSelected = parsed.works.some((work) => work.id === savedWorkId)
+          ? savedWorkId ?? ""
           : parsed.works[0]?.id ?? "";
-        setSelectedWorkId(nextSelected);
+
+        startTransition(() => {
+          setWorks(parsed.works);
+          setSelectedWorkId(nextSelected);
+        });
       }
     } catch {
       // ignore invalid cached data
@@ -330,8 +334,9 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
 
         if (payload.data?.works?.length) {
           setWorks(payload.data.works);
-          const nextSelected = payload.data.works.some((work) => work.id === selectedWorkId)
-            ? selectedWorkId
+          const savedWorkId = window.localStorage.getItem(selectedWorkStorageKey);
+          const nextSelected = payload.data.works.some((work) => work.id === savedWorkId)
+            ? savedWorkId ?? ""
             : payload.data.works[0]?.id ?? "";
           setSelectedWorkId(nextSelected);
         }
@@ -473,9 +478,11 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       return nextEdges;
     });
 
-    setSelectedNodeId((current) => current && nextNodes.some((node) => node.id === current) ? current : nextNodes[0]?.id ?? null);
-    setSelectedEdgeId(null);
-  }, [selectedWork]);
+    startTransition(() => {
+      setSelectedNodeId((current) => current && nextNodes.some((node) => node.id === current) ? current : nextNodes[0]?.id ?? null);
+      setSelectedEdgeId(null);
+    });
+  }, [selectedWork, setEdges, setNodes]);
 
   useEffect(() => {
     window.localStorage.setItem(storageKey, JSON.stringify({ works }));
@@ -492,26 +499,28 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   );
 
   useEffect(() => {
-    if (selectedNode) {
-      setNodeDraft({
-        label: selectedNode.data.label,
-        subtitle: selectedNode.data.subtitle,
-        summary: selectedNode.data.summary,
-        color: selectedNode.data.color,
-        size: String(selectedNode.data.size),
-      });
-    } else {
-      setNodeDraft(null);
-    }
+    startTransition(() => {
+        if (selectedNode) {
+          setNodeDraft({
+            label: selectedNode.data.label,
+            subtitle: selectedNode.data.subtitle,
+            summary: selectedNode.data.summary,
+            color: selectedNode.data.color,
+            size: String(selectedNode.data.size),
+          });
+        } else {
+          setNodeDraft(null);
+        }
 
-    if (selectedEdge) {
-      setEdgeDraft({
-        type: (selectedEdge.data?.type as RelationshipType) ?? "기타",
-        label: typeof selectedEdge.label === "string" ? selectedEdge.label : selectedEdge.data?.label ?? "",
-      });
-    } else {
-      setEdgeDraft(null);
-    }
+        if (selectedEdge) {
+          setEdgeDraft({
+            type: (selectedEdge.data?.type as RelationshipType) ?? "기타",
+            label: typeof selectedEdge.label === "string" ? selectedEdge.label : selectedEdge.data?.label ?? "",
+          });
+        } else {
+          setEdgeDraft(null);
+        }
+    });
   }, [selectedNode, selectedEdge]);
 
   function openDetailModal(nodeId?: string, edgeId?: string) {

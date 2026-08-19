@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import timelineSeed from "@/data/timeline.json";
 import { TimelineBoard } from "@/components/timeline-board";
 import { TimelineCard } from "@/lib/types";

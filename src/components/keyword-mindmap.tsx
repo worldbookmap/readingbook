@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Background,
   Connection,
@@ -311,13 +311,13 @@ export function KeywordMindmap() {
   const [nodeDraft, setNodeDraft] = useState({ label: "", category: "", description: "", tags: "", color: "#f5f3ff", size: "200" });
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialNodes[0].id);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveMessage, setSaveMessage] = useState("GitHub 저장 준비 중");
   const [remoteEnabled, setRemoteEnabled] = useState(false);
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
   const [showMiniMap, setShowMiniMap] = useState(false);
 
-  function applyDocument(document: SavedMindmapDocument) {
+  const applyDocument = useCallback((document: SavedMindmapDocument) => {
     setNodes(document.nodes);
     setEdges(document.edges);
     setSelectedDocumentId(document.id);
@@ -325,7 +325,7 @@ export function KeywordMindmap() {
     setDocumentTitle(document.title);
     setSelectedNodeId(document.nodes[0]?.id ?? null);
     setSelectedEdgeId(null);
-  }
+  }, [setEdges, setNodes]);
 
   function openNodeEditModal(node: KeywordNode) {
     setEditingNodeId(node.id);
@@ -429,7 +429,7 @@ export function KeywordMindmap() {
     }
 
     void loadRemoteData();
-  }, []);
+  }, [applyDocument]);
 
   useEffect(() => {
     if (!documents.length) return;
@@ -488,10 +488,6 @@ export function KeywordMindmap() {
     setNodes((current) => [...current, nextNode]);
     setSelectedNodeId(nextNode.id);
     setSelectedEdgeId(null);
-  }
-
-  function addKeyword() {
-    addKeywordAtPosition();
   }
 
   function handleNodeFieldChange(field: "label" | "description", value: string) {

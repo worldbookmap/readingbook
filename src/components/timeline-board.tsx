@@ -4,7 +4,6 @@ import { FormEvent, startTransition, useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowsLeftRight,
-  faCalendarDays,
   faCloudArrowUp,
   faGripVertical,
   faTable,
@@ -117,6 +116,11 @@ function reorderRegions(
   return nextRegions;
 }
 
+const inputClassName =
+  "w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-800 shadow-[0_2px_8px_rgba(15,23,42,0.03)] outline-none transition-all duration-200 placeholder:text-slate-400 selection:bg-slate-200 selection:text-slate-900 hover:border-slate-300 focus:border-slate-700 focus:ring-4 focus:ring-slate-200/80 invalid:border-rose-300 invalid:text-rose-700 invalid:focus:ring-rose-100";
+const textareaClassName = `${inputClassName} h-28`;
+const secondaryButtonClassName =
+  "inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200/80";
 type DraftCard = {
   title: string;
   yearLabel: string;
@@ -136,15 +140,6 @@ const defaultDraft: DraftCard = {
   color: cardColors[0],
   size: "260",
 };
-
-const inputClassName =
-  "w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-800 shadow-[0_2px_8px_rgba(15,23,42,0.03)] outline-none transition-all duration-200 placeholder:text-slate-400 selection:bg-slate-200 selection:text-slate-900 hover:border-slate-300 focus:border-slate-700 focus:ring-4 focus:ring-slate-200/80 invalid:border-rose-300 invalid:text-rose-700 invalid:focus:ring-rose-100";
-const textareaClassName = `${inputClassName} h-28`;
-const secondaryButtonClassName =
-  "inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200/80";
-const checkboxClassName =
-  "h-4 w-4 rounded border-slate-300 bg-white text-slate-900 shadow-sm accent-slate-900 transition focus:ring-4 focus:ring-slate-200";
-
 function clearDefaultValueIfNeeded(
   currentValue: string,
   defaultValues: string[],
@@ -178,8 +173,6 @@ export function TimelineBoard({ initialCards }: Props) {
   const [draggedRegion, setDraggedRegion] = useState<TimelineRegion | null>(null);
   const [activeId, setActiveId] = useState<string>(normalizedInitialCards[0]?.id ?? "");
   const [draggedId, setDraggedId] = useState<string | null>(null);
-  const [draft, setDraft] = useState<DraftCard>(defaultDraft);
-  const [newRegionName, setNewRegionName] = useState("");
   const [summarySearch, setSummarySearch] = useState("");
   const [eraFilter, setEraFilter] = useState<(typeof eraOptions)[number]>("전체");
   const [saveState, setSaveState] = useState<SaveState>("idle");
@@ -187,7 +180,7 @@ export function TimelineBoard({ initialCards }: Props) {
   const [remoteEnabled, setRemoteEnabled] = useState(false);
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
-  const longPressTimerRef = useRef<number | null>(null);
+  const [isCreatingCard, setIsCreatingCard] = useState(false);
   const [modalDraft, setModalDraft] = useState<{
     id: string;
     title: string;
@@ -198,6 +191,8 @@ export function TimelineBoard({ initialCards }: Props) {
     color: string;
     size: string;
   } | null>(null);
+  const [draft, setDraft] = useState<DraftCard>(defaultDraft);
+  const [newRegionName, setNewRegionName] = useState("");
   const didMountRef = useRef(false);
 
   useEffect(() => {
@@ -310,43 +305,30 @@ export function TimelineBoard({ initialCards }: Props) {
       color: cardColors[0],
       size: "260",
     });
+    setIsCreatingCard(true);
     setIsCardModalOpen(true);
   }
 
   function createCard(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+  }
 
-    if (!draft.title.trim() || !draft.yearLabel.trim()) {
+  function resetCards() {
+    setCards(normalizedInitialCards);
+    setRegionNames(initialRegionOrder);
+    setActiveId(normalizedInitialCards[0]?.id ?? "");
+    window.localStorage.removeItem(storageKey);
+  }
+
+  function createRegion() {
+    const trimmedRegion = newRegionName.trim();
+    if (!trimmedRegion || regionNames.includes(trimmedRegion)) {
       return;
     }
 
-    setRegionNames((current) =>
-      current.includes(draft.region) ? current : [...current, draft.region],
-    );
-
-    const nextCard: TimelineCard = {
-      id: crypto.randomUUID(),
-      title: draft.title.trim(),
-      yearLabel: draft.yearLabel.trim(),
-      year: parseYear(draft.yearLabel),
-      region: draft.region,
-      description: draft.description.trim(),
-      tags: draft.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
-      color: draft.color,
-      size: Math.max(160, Math.min(420, Number(draft.size) || 260)),
-      order: cards.filter((card) => card.region === draft.region).length,
-    };
-
-    const nextRegionOrder = regionNames.includes(draft.region)
-      ? regionNames
-      : [...regionNames, draft.region];
-    const nextCards = normalizeCards([...cards, nextCard], nextRegionOrder);
-    setCards(nextCards);
-    setActiveId(nextCard.id);
-    setDraft(defaultDraft);
+    setRegionNames((current) => [...current, trimmedRegion]);
+    setDraft((current) => ({ ...current, region: trimmedRegion }));
+    setNewRegionName("");
   }
 
   function moveCard(cardId: string, region: TimelineRegion, targetId?: string) {
@@ -360,43 +342,6 @@ export function TimelineBoard({ initialCards }: Props) {
 
     setRegionNames((current) => reorderRegions(current, draggedRegion, targetRegion));
     setDraggedRegion(null);
-  }
-
-  function patchActiveCard(field: "yearLabel" | "title" | "description" | "tags", value: string) {
-    if (!activeCard) {
-      return;
-    }
-
-    setCards((current) =>
-      current.map((card) => {
-        if (card.id !== activeCard.id) {
-          return card;
-        }
-
-        if (field === "tags") {
-          return {
-            ...card,
-            tags: value
-              .split(",")
-              .map((tag) => tag.trim())
-              .filter(Boolean),
-          };
-        }
-
-        if (field === "yearLabel") {
-          return { ...card, yearLabel: value, year: parseYear(value) };
-        }
-
-        return { ...card, [field]: value };
-      }),
-    );
-  }
-
-  function resetCards() {
-    setCards(normalizedInitialCards);
-    setRegionNames(initialRegionOrder);
-    setActiveId(normalizedInitialCards[0]?.id ?? "");
-    window.localStorage.removeItem(storageKey);
   }
 
   function deleteActiveCard(targetId?: string) {
@@ -413,6 +358,7 @@ export function TimelineBoard({ initialCards }: Props) {
     setActiveId(nextCards[0]?.id ?? "");
     setIsCardModalOpen(false);
     setModalDraft(null);
+    setIsCreatingCard(false);
     window.alert("삭제 완료되었습니다.");
   }
 
@@ -433,6 +379,7 @@ export function TimelineBoard({ initialCards }: Props) {
       color: targetCard.color ?? cardColors[0],
       size: String(targetCard.size ?? 260),
     });
+    setIsCreatingCard(false);
     setIsCardModalOpen(true);
   }
 
@@ -464,17 +411,7 @@ export function TimelineBoard({ initialCards }: Props) {
     );
     setIsCardModalOpen(false);
     setModalDraft(null);
-  }
-
-  function createRegion() {
-    const trimmedRegion = newRegionName.trim();
-    if (!trimmedRegion || regionNames.includes(trimmedRegion)) {
-      return;
-    }
-
-    setRegionNames((current) => [...current, trimmedRegion]);
-    setDraft((current) => ({ ...current, region: trimmedRegion }));
-    setNewRegionName("");
+    setIsCreatingCard(false);
   }
 
   function matchesEra(card: TimelineCard) {
@@ -601,6 +538,16 @@ export function TimelineBoard({ initialCards }: Props) {
     }
   }
 
+  function closeCardModal() {
+    if (isCreatingCard && modalDraft) {
+      setCards((current) => normalizeCards(current.filter((card) => card.id !== modalDraft.id), regionNames));
+    }
+
+    setIsCardModalOpen(false);
+    setModalDraft(null);
+    setIsCreatingCard(false);
+  }
+
   return (
     <>
       {isCardModalOpen && modalDraft ? (
@@ -608,15 +555,12 @@ export function TimelineBoard({ initialCards }: Props) {
           <div className="w-full max-w-lg rounded-[28px] border border-[#1e3038]/15 bg-[#fffdf9] p-5 shadow-[0_28px_80px_rgba(30,48,56,0.22)]">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">카드 수정</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">{isCreatingCard ? "카드 추가" : "카드 수정"}</p>
                 <h3 className="mt-2 text-2xl font-semibold text-slate-900">{modalDraft.title || "새 카드"}</h3>
               </div>
               <button
                 type="button"
-                onClick={() => {
-                  setIsCardModalOpen(false);
-                  setModalDraft(null);
-                }}
+                onClick={closeCardModal}
                 className="rounded-full border border-slate-200 px-3 py-1.5 text-sm text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
               >
                 닫기
@@ -754,12 +698,11 @@ export function TimelineBoard({ initialCards }: Props) {
         </div>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
-      <aside className="space-y-6">
+      <div className="grid gap-6">
+      {false && <aside>
         <section className="rounded-[28px] border border-[#1e3038]/15 bg-[#fffdf9]/95 p-5 shadow-[0_18px_45px_rgba(45,43,37,0.1)]">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f2dfd0] text-[#a85f35]">
-              <FontAwesomeIcon icon={faCalendarDays} />
             </div>
             <div>
               <p className="text-sm font-semibold text-slate-500">역사 카드 추가</p>
@@ -970,21 +913,42 @@ export function TimelineBoard({ initialCards }: Props) {
             </button>
           </div>
         </section>
-      </aside>
+      </aside>}
 
-      <section className="rounded-[32px] border border-[#1e3038]/15 bg-[#fffdf9]/95 p-6 pb-24 shadow-[0_24px_60px_rgba(45,43,37,0.1)]">
+      <section className="relative rounded-[32px] border border-[#1e3038]/15 bg-[#fffdf9]/95 p-6 pb-24 shadow-[0_24px_60px_rgba(45,43,37,0.1)]">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#b86b3d]">Timeline Board</p>
             <h2 className="mt-1 text-2xl font-semibold text-[#1e3038]">역사 연표</h2>
           </div>
-          <div className="hidden items-center gap-3 rounded-xl border border-[#1e3038]/10 bg-[#f4f0e8] px-4 py-2 text-sm text-slate-600 lg:flex">
-            <FontAwesomeIcon icon={faArrowsLeftRight} className="text-[#b86b3d]" />
-            카드를 드래그해서 다른 지역으로 이동하거나 순서를 바꾸세요.
+          <div className="flex items-center gap-3">
+            <div className="hidden items-center gap-3 rounded-xl border border-[#1e3038]/10 bg-[#f4f0e8] px-4 py-2 text-sm text-slate-600 lg:flex">
+              <FontAwesomeIcon icon={faArrowsLeftRight} className="text-[#b86b3d]" />
+              카드를 드래그해서 다른 지역으로 이동하거나 순서를 바꾸세요.
+            </div>
+            <button
+              type="button"
+              onClick={openNewCardModalForBlankSpace}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#1e3038] text-lg text-white shadow-[0_10px_24px_rgba(30,48,56,0.18)] transition hover:-translate-y-0.5 hover:bg-[#2b4650] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#b86b3d]/30"
+              aria-label="새 역사 카드 추가"
+              title="새 역사 카드 추가"
+            >
+              <FontAwesomeIcon icon={faPlus} />
+            </button>
           </div>
         </div>
 
         <FloatingSyncMenu saveMessage={saveMessage} onRefresh={refreshFromGithub} onSave={saveToGithub} />
+
+        <button
+          type="button"
+          onClick={openNewCardModalForBlankSpace}
+          className="fixed bottom-6 left-6 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#b86b3d] text-xl text-white shadow-[0_14px_30px_rgba(184,107,61,0.3)] transition hover:-translate-y-1 hover:bg-[#9d5832] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#b86b3d]/30"
+          aria-label="새 역사 카드 추가"
+          title="새 역사 카드 추가"
+        >
+          <FontAwesomeIcon icon={faPlus} />
+        </button>
 
       <div className="mt-4 lg:hidden">
           <div className="rounded-[28px] border border-[#1e3038]/10 bg-[#f4f0e8] p-4">
@@ -1006,7 +970,17 @@ export function TimelineBoard({ initialCards }: Props) {
                 const accent = getRegionAccent(region);
 
                 return (
-                  <section key={region} className={`rounded-[24px] border bg-gradient-to-br ${accent} p-4`}>
+                  <section
+                    key={region}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={() => {
+                      if (draggedId) {
+                        moveCard(draggedId, region);
+                        setDraggedId(null);
+                      }
+                    }}
+                    className={`rounded-[24px] border bg-gradient-to-br ${accent} p-4`}
+                  >
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <h3 className="text-base font-semibold">{region}</h3>
@@ -1024,6 +998,9 @@ export function TimelineBoard({ initialCards }: Props) {
                             <button
                               key={card.id}
                               type="button"
+                              draggable
+                              onDragStart={() => setDraggedId(card.id)}
+                              onDragEnd={() => setDraggedId(null)}
                               onClick={() => setActiveId(card.id)}
                               onDoubleClick={() => openCardModal(card.id)}
                               className="block w-full rounded-[20px] border bg-white p-4 text-left shadow-sm transition active:scale-[0.99]"

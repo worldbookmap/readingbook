@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { StoryEventTimeline } from "@/components/story-event-timeline";
 
 export default function StoryEventsPage() {

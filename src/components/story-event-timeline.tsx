@@ -1,19 +1,17 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { Background, BackgroundVariant, Controls, Edge, MarkerType, MiniMap, Node, NodeProps, NodeTypes, ReactFlow, ReactFlowProvider, useNodesState, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBookOpen,
   faCalendarDays,
-  faCloudArrowUp,
   faGripVertical,
   faLink,
   faMap,
   faPlus,
   faRotateLeft,
-  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { CharacterMapLibrary, CharacterNode, CharacterRelationship, StoryEventCard, StoryTimelineLibrary, StoryTimelineWork } from "@/lib/types";
 import characterMapLibrary from "@/data/character-map-library.json";
@@ -64,10 +62,6 @@ const defaultEventDraft: EventDraft = {
 const inputClassName =
   "w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-2.5 text-sm text-slate-800 shadow-[0_2px_8px_rgba(15,23,42,0.03)] outline-none transition-all duration-200 placeholder:text-slate-400 selection:bg-slate-200 selection:text-slate-900 hover:border-slate-300 focus:border-slate-700 focus:ring-4 focus:ring-slate-200/80 invalid:border-rose-300 invalid:text-rose-700 invalid:focus:ring-rose-100";
 const textareaClassName = `${inputClassName} min-h-[110px] resize-y`;
-const secondaryButtonClassName =
-  "inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200/80 disabled:cursor-not-allowed disabled:opacity-50";
-const checkboxClassName =
-  "h-4 w-4 rounded border-slate-300 bg-white text-slate-900 shadow-sm accent-slate-900 transition focus:ring-4 focus:ring-slate-200";
 const previewPalette = ["#fdf2f8", "#eff6ff", "#ecfeff", "#fef3c7", "#f5f3ff", "#dcfce7", "#fee2e2"];
 
 function buildPreviewNodes(nodes: CharacterNode[]): Node[] {
@@ -172,11 +166,6 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
-function getYearPosition(year: number, minYear: number, maxYear: number) {
-  const range = maxYear - minYear || 1;
-  return 80 + ((year - minYear) / range) * (boardWidth - 180);
-}
-
 function buildInitialWorks(): StoryTimelineWork[] {
   return (storyEventLibrary as StoryTimelineLibrary).works;
 }
@@ -271,7 +260,7 @@ export function StoryEventTimeline() {
   const [workDraft, setWorkDraft] = useState<WorkDraft>(defaultWorkDraft);
   const [eventDraft, setEventDraft] = useState<EventDraft>(defaultEventDraft);
   const [editingEventDraft, setEditingEventDraft] = useState<EventDraft | null>(null);
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveMessage, setSaveMessage] = useState("브라우저 로컬 저장 사용 중");
   const [remoteEnabled, setRemoteEnabled] = useState(false);
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
@@ -307,7 +296,6 @@ export function StoryEventTimeline() {
   }, [selectedWorkId]);
 
   const orderedWorks = works;
-  const latestWorkId = orderedWorks[0]?.id ?? "";
   const selectedWork = works.find((work) => work.id === selectedWorkId) ?? works[0] ?? null;
   const selectedEvent = selectedWork?.events.find((event) => event.id === selectedEventId) ?? selectedWork?.events[0] ?? null;
   const detailEvent = selectedWork?.events.find((event) => event.id === detailEventId) ?? null;
@@ -427,9 +415,11 @@ export function StoryEventTimeline() {
       if (parsed.works?.length) {
         const savedWorkId = window.localStorage.getItem(selectedWorkStorageKey);
         const latestWork = parsed.works.find((work) => work.id === savedWorkId) ?? parsed.works.at(-1) ?? parsed.works[0];
-        setWorks(parsed.works);
-        setSelectedWorkId(latestWork.id);
-        setSelectedEventId(latestWork.events[0]?.id ?? null);
+        startTransition(() => {
+          setWorks(parsed.works);
+          setSelectedWorkId(latestWork.id);
+          setSelectedEventId(latestWork.events[0]?.id ?? null);
+        });
       }
     } catch {
       // ignore invalid local cache
@@ -451,13 +441,15 @@ export function StoryEventTimeline() {
     });
 
     if (!selectedWork.linkedCharacterWorkId && fallbackMatch) {
-      setWorks((current) =>
-        current.map((work) =>
-          work.id === selectedWork.id
-            ? { ...work, linkedCharacterWorkId: fallbackMatch.id }
-            : work,
-        ),
-      );
+      startTransition(() => {
+        setWorks((current) =>
+          current.map((work) =>
+            work.id === selectedWork.id
+              ? { ...work, linkedCharacterWorkId: fallbackMatch.id }
+              : work,
+          ),
+        );
+      });
     }
   }, [characterWorks, selectedWork]);
 
@@ -471,17 +463,6 @@ export function StoryEventTimeline() {
   }, [works]);
 
   const didMount = useRef(false);
-
-  useEffect(() => {
-    if (!selectedWork || !selectedWork.events.length) {
-      setSelectedEventId(null);
-      return;
-    }
-
-    if (!selectedWork.events.some((event) => event.id === selectedEventId)) {
-      setSelectedEventId(selectedWork.events[0].id);
-    }
-  }, [selectedWork, selectedEventId]);
 
   useEffect(() => {
     setFlowNodes(storyEventNodes);
@@ -718,14 +699,6 @@ export function StoryEventTimeline() {
     }
 
     window.alert("삭제 완료되었습니다.");
-  }
-
-  function deleteSelectedWork() {
-    if (!selectedWork) {
-      return;
-    }
-
-    deleteWorkEntry(selectedWork.id);
   }
 
   function resetWorks() {
@@ -998,8 +971,6 @@ export function StoryEventTimeline() {
     width: isCompact ? Math.max(320, Math.min(boardViewport.width, 420)) : boardWidth,
     height: isCompact ? 720 : boardHeight,
   };
-  const boardScaleX = boardMetrics.width / boardWidth;
-  const boardScaleY = boardMetrics.height / boardHeight;
   const mapTransform = `translate(${boardPan.x}px, ${boardPan.y}px) scale(${timelineZoom})`;
 
   return (
