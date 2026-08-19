@@ -180,7 +180,7 @@
           {
             "id": "623823e1-65fc-4216-9adb-529b6baa31b6",
             "name": "히이리예",
-            "title": "아들",
+            "title": "하녀",
             "category": "person",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
@@ -196,8 +196,8 @@
             "category": "person",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
-            "x": 957,
-            "y": 175,
+            "x": 943,
+            "y": 159,
             "color": "#fef3c7",
             "size": 100
           },
@@ -290,7 +290,7 @@
             "fromId": "623823e1-65fc-4216-9adb-529b6baa31b6",
             "toId": "5a7130a0-cd9b-40fa-b1a8-8a6be0fb0cc7",
             "type": "기타",
-            "label": "동생?"
+            "label": "하녀"
           },
           {
             "id": "edge-1787100071609",
