@@ -73,7 +73,6 @@
             "id": "44bfad71-8628-49e5-912e-076404759619",
             "name": "엘레강스",
             "title": "죽은자",
-            "category": "person",
             "summary": "금박 담당 세밀화가\n이니시테: 다르게 그림을 그리는 것이 다르게 본다?",
             "majorActions": [],
             "x": 755,
@@ -85,7 +84,6 @@
             "id": "58624393-cb10-4ae0-a16a-1df504e218f8",
             "name": "카라",
             "title": "새 인물",
-            "category": "person",
             "summary": "셰큐레를 오랫동안짝사랑 해옴",
             "majorActions": [],
             "x": 80,
@@ -97,7 +95,6 @@
             "id": "afcad045-1be8-49c2-8225-5656389db757",
             "name": "살인자",
             "title": "살인자",
-            "category": "person",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
             "x": 962,
@@ -109,7 +106,6 @@
             "id": "937cdea1-e23b-4dda-a68a-49b8d44d2296",
             "name": "에니시테 에펜디",
             "title": "새 인물",
-            "category": "person",
             "summary": "술탄으로부터 책 제작 맡음\n이야기의 일부로서의 그림이 아닌 그림을 위한 그림에 대한 욕망이 생김",
             "majorActions": [],
             "x": 451,
@@ -121,7 +117,6 @@
             "id": "9e807aae-c477-41e7-9b11-7655c8f5c6e3",
             "name": "아내",
             "title": "새 인물",
-            "category": "person",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
             "x": 252,
@@ -133,7 +128,6 @@
             "id": "ba0dc475-17f9-4069-b4a4-2be4fc732219",
             "name": "카라 어머니",
             "title": "새 인물",
-            "category": "person",
             "summary": "설명을 추가해 보세요.",
             "majorActions": [],
             "x": 79,
@@ -145,7 +139,6 @@
             "id": "82fbdb29-8c92-497a-970a-61ddcee19c9b",
             "name": "서큐레",
             "title": "에니시테 딸",
-            "category": "person",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
             "x": 347,
@@ -157,7 +150,6 @@
             "id": "5a7130a0-cd9b-40fa-b1a8-8a6be0fb0cc7",
             "name": "오르한",
             "title": "서큐레 아들",
-            "category": "person",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
             "x": 450,
@@ -169,7 +161,6 @@
             "id": "b30eaa6f-29d3-420d-b53e-7820e64839cb",
             "name": "셰브켓",
             "title": "아들",
-            "category": "person",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
             "x": 303,
@@ -181,7 +172,6 @@
             "id": "623823e1-65fc-4216-9adb-529b6baa31b6",
             "name": "히이리예",
             "title": "하녀",
-            "category": "person",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
             "x": 304,
@@ -193,7 +183,6 @@
             "id": "0efa1a76-b1c0-4c3b-a76f-6a49e99d3f6d",
             "name": "오스만",
             "title": "화원장",
-            "category": "person",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
             "x": 943,
@@ -205,11 +194,10 @@
             "id": "2e43acdb-cfac-4b76-9ded-dec75b305945",
             "name": "술탄",
             "title": "새 인물",
-            "category": "person",
             "summary": "해지라 1000년에 맞추어 책 제작하라고 함",
             "majorActions": [],
-            "x": 767,
-            "y": -112,
+            "x": 655,
+            "y": -226,
             "color": "#f5f3ff",
             "size": 100
           },
@@ -217,7 +205,6 @@
             "id": "806435f5-f6c7-4aa9-bdf6-f00f798b34ad",
             "name": "에스테르",
             "title": "방울장수",
-            "category": "person",
             "summary": "셰크레가 카라에게 주는 편지를 전함",
             "majorActions": [],
             "x": 222,
@@ -229,13 +216,23 @@
             "id": "7ed1a50c-ea86-4b79-8890-06908032ac35",
             "name": "남편",
             "title": "남편",
-            "category": "person",
             "summary": "4년째 전쟁터에서 안돌아옴",
             "majorActions": [],
             "x": 498,
             "y": 287,
             "color": "#fee2e2",
             "size": 100
+          },
+          {
+            "id": "f9b61598-95c4-4144-bedd-3dc59cec51f6",
+            "name": "인물 15",
+            "title": "새 인물",
+            "summary": "이 인물의 역할을 적어보세요.",
+            "majorActions": [],
+            "x": 775,
+            "y": 419,
+            "color": "#fdf2f8",
+            "size": 220
           }
         ],
         "relationships": [
@@ -317,13 +314,6 @@
             "label": "하녀"
           },
           {
-            "id": "edge-1787100071609",
-            "fromId": "2e43acdb-cfac-4b76-9ded-dec75b305945",
-            "toId": "44bfad71-8628-49e5-912e-076404759619",
-            "type": "기타",
-            "label": "책 제작 명령"
-          },
-          {
             "id": "edge-1787120987500",
             "fromId": "806435f5-f6c7-4aa9-bdf6-f00f798b34ad",
             "toId": "82fbdb29-8c92-497a-970a-61ddcee19c9b",
@@ -343,6 +333,13 @@
             "toId": "7ed1a50c-ea86-4b79-8890-06908032ac35",
             "type": "기타",
             "label": "남편"
+          },
+          {
+            "id": "edge-1787193243661",
+            "fromId": "2e43acdb-cfac-4b76-9ded-dec75b305945",
+            "toId": "937cdea1-e23b-4dda-a68a-49b8d44d2296",
+            "type": "기타",
+            "label": "책 제장 명령\n메디나 1000년에 맞춰"
           }
         ]
       }
