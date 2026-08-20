@@ -222,17 +222,6 @@
             "y": 287,
             "color": "#fee2e2",
             "size": 100
-          },
-          {
-            "id": "f9b61598-95c4-4144-bedd-3dc59cec51f6",
-            "name": "인물 15",
-            "title": "새 인물",
-            "summary": "이 인물의 역할을 적어보세요.",
-            "majorActions": [],
-            "x": 775,
-            "y": 419,
-            "color": "#fdf2f8",
-            "size": 220
           }
         ],
         "relationships": [
