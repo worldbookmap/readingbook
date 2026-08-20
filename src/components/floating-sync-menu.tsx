@@ -4,7 +4,7 @@ import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCloudArrowUp, faHouse, faRotate } from "@fortawesome/free-solid-svg-icons";
 
-type Props = { saveMessage: string; onRefresh: () => void | Promise<void>; onSave: () => void | Promise<void> };
+type Props = { saveMessage: string; onRefresh: () => void | Promise<void>; onSave: () => void | Promise<boolean | void> };
 
 export function FloatingSyncMenu({ saveMessage, onRefresh, onSave }: Props) {
 	return (

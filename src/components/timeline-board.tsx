@@ -15,6 +15,7 @@ import {
 import { TimelineCard, TimelineRegion } from "@/lib/types";
 import { CustomSelect } from "@/components/custom-select";
 import { FloatingSyncMenu } from "@/components/floating-sync-menu";
+import { useNavigationGuard } from "@/components/navigation-guard";
 
 const defaultRegions: TimelineRegion[] = ["서유럽", "동유럽", "아시아", "미국", "남미", "기타"];
 const storageKey = "readingbook-timeline";
@@ -194,6 +195,7 @@ export function TimelineBoard({ initialCards }: Props) {
   const [draft, setDraft] = useState<DraftCard>(defaultDraft);
   const [newRegionName, setNewRegionName] = useState("");
   const didMountRef = useRef(false);
+  const [savedSnapshot, setSavedSnapshot] = useState(JSON.stringify(normalizedInitialCards));
 
   useEffect(() => {
     let cancelled = false;
@@ -217,6 +219,7 @@ export function TimelineBoard({ initialCards }: Props) {
 
         const parsedRegionOrder = buildRegionOrder(payload.data.cards);
         const parsed = normalizeCards(payload.data.cards, parsedRegionOrder);
+        setSavedSnapshot(JSON.stringify(parsed));
         startTransition(() => {
           setCards(parsed);
           setRegionNames(parsedRegionOrder);
@@ -238,6 +241,7 @@ export function TimelineBoard({ initialCards }: Props) {
         const savedCards = JSON.parse(saved) as TimelineCard[];
         const parsedRegionOrder = buildRegionOrder(savedCards);
         const parsed = normalizeCards(savedCards, parsedRegionOrder);
+        setSavedSnapshot(JSON.stringify(parsed));
         startTransition(() => {
           setCards(parsed);
           setRegionNames(parsedRegionOrder);
@@ -483,6 +487,7 @@ export function TimelineBoard({ initialCards }: Props) {
       };
       const parsedRegionOrder = buildRegionOrder(payload.data.cards);
       const parsed = normalizeCards(payload.data.cards, parsedRegionOrder);
+      setSavedSnapshot(JSON.stringify(parsed));
       setCards(parsed);
       setRegionNames(parsedRegionOrder);
       setActiveId(parsed[0]?.id ?? "");
@@ -532,11 +537,19 @@ export function TimelineBoard({ initialCards }: Props) {
       setSaveState("saved");
       setSaveMessage("저장 완료! 최신 데이터가 반영되었습니다.");
       window.alert("저장 완료! GitHub에 반영되었습니다.");
+      setSavedSnapshot(JSON.stringify(nextCards));
+      return true;
     } catch (error) {
       setSaveState("error");
       setSaveMessage(error instanceof Error ? error.message : "GitHub 저장에 실패했습니다.");
+      return false;
     }
   }
+
+  useNavigationGuard({
+    isDirty: JSON.stringify(cards) !== savedSnapshot,
+    onSave: saveToGithub,
+  });
 
   function closeCardModal() {
     if (isCreatingCard && modalDraft) {

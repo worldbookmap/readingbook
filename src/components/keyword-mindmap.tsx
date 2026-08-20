@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
   Connection,
@@ -22,8 +22,9 @@ import {
 import "@xyflow/react/dist/style.css";
 import { CustomSelect } from "@/components/custom-select";
 import { FloatingSyncMenu } from "@/components/floating-sync-menu";
+import { useNavigationGuard } from "@/components/navigation-guard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMap } from "@fortawesome/free-solid-svg-icons";
+import { faFloppyDisk, faMap, faPlus } from "@fortawesome/free-solid-svg-icons";
 
 type KeywordNodeData = {
   label: string;
@@ -308,7 +309,9 @@ export function KeywordMindmap() {
   const [newDocumentTitle, setNewDocumentTitle] = useState("");
   const [isNewDocumentModalOpen, setIsNewDocumentModalOpen] = useState(false);
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
+  const [editingEdgeId, setEditingEdgeId] = useState<string | null>(null);
   const [nodeDraft, setNodeDraft] = useState({ label: "", category: "", description: "", tags: "", color: "#f5f3ff", size: "200" });
+  const [edgeDraft, setEdgeDraft] = useState("");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialNodes[0].id);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -316,6 +319,8 @@ export function KeywordMindmap() {
   const [remoteEnabled, setRemoteEnabled] = useState(false);
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
   const [showMiniMap, setShowMiniMap] = useState(false);
+  const [savedSnapshot, setSavedSnapshot] = useState(JSON.stringify([]));
+  const hasLoadedDocumentsRef = useRef(false);
 
   const applyDocument = useCallback((document: SavedMindmapDocument) => {
     setNodes(document.nodes);
@@ -342,6 +347,42 @@ export function KeywordMindmap() {
   function closeNodeEditModal() {
     setEditingNodeId(null);
     setNodeDraft({ label: "", category: "", description: "", tags: "", color: "#f5f3ff", size: "200" });
+  }
+
+  function openEdgeEditModal(edge: Edge) {
+    setSelectedNodeId(null);
+    setSelectedEdgeId(edge.id);
+    setEditingEdgeId(edge.id);
+    setEdgeDraft(typeof edge.label === "string" ? edge.label : "");
+  }
+
+  function closeEdgeEditModal() {
+    setEditingEdgeId(null);
+    setEdgeDraft("");
+  }
+
+  function saveEdgeDraft() {
+    if (!editingEdgeId) return;
+
+    setEdges((current) =>
+      current.map((edge) =>
+        edge.id === editingEdgeId
+          ? { ...edge, label: edgeDraft.trim() || "연결 설명을 추가해 보세요." }
+          : edge,
+      ),
+    );
+    closeEdgeEditModal();
+    setSelectedEdgeId(null);
+  }
+
+  function deleteEditingEdge() {
+    if (!editingEdgeId) return;
+
+    setSelectedNodeId(null);
+    setSelectedEdgeId(editingEdgeId);
+    if (removeSelected()) {
+      closeEdgeEditModal();
+    }
   }
 
   function saveNodeDraft() {
@@ -433,6 +474,10 @@ export function KeywordMindmap() {
 
   useEffect(() => {
     if (!documents.length) return;
+    if (!hasLoadedDocumentsRef.current) {
+      setSavedSnapshot(JSON.stringify(documents));
+      hasLoadedDocumentsRef.current = true;
+    }
     window.localStorage.setItem(documentsStorageKey, JSON.stringify(documents));
   }, [documents]);
 
@@ -579,6 +624,7 @@ export function KeywordMindmap() {
 
       if (refreshedPayload?.data?.documents) {
         setDocuments(refreshedPayload.data.documents);
+        setSavedSnapshot(JSON.stringify(refreshedPayload.data.documents));
       }
 
       setRemoteEnabled(Boolean(refreshedPayload?.remoteEnabled ?? remoteEnabled));
@@ -586,9 +632,13 @@ export function KeywordMindmap() {
       setSaveState("saved");
       setSaveMessage("저장 완료! GitHub에 반영되었습니다.");
       window.alert("저장 완료! GitHub에 반영되었습니다.");
+      setSavedSnapshot(JSON.stringify(refreshedPayload?.data?.documents ?? nextDocuments));
+      hasLoadedDocumentsRef.current = true;
+      return true;
     } catch (error) {
       setSaveState("error");
       setSaveMessage(error instanceof Error ? error.message : "GitHub 저장에 실패했습니다.");
+      return false;
     }
   }
 
@@ -622,8 +672,13 @@ export function KeywordMindmap() {
     setSelectedDocumentId(nextSelectedId);
     setDocumentTitle(trimmedTitle);
     setDocuments(nextDocuments);
-    await saveToGithub(nextDocuments);
+    return saveToGithub(nextDocuments);
   }
+
+  useNavigationGuard({
+    isDirty: JSON.stringify(documents) !== savedSnapshot,
+    onSave: saveCurrentDocument,
+  });
 
   function openNewDocumentModal() {
     setNewDocumentTitle("");
@@ -721,12 +776,34 @@ export function KeywordMindmap() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="grid gap-6">
       <div className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/90 pb-24 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur-sm">
         <div className="border-b border-violet-100 bg-violet-50/70 px-4 py-3">
-          <div className="mb-2">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-violet-500">Keyword Map</p>
-            <h2 className="mt-1 text-base font-semibold tracking-[-0.03em] text-slate-900">핵심 키워드 연결지도</h2>
+          <div className="mb-2 flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-violet-500">Keyword Map</p>
+              <h2 className="mt-1 text-base font-semibold tracking-[-0.03em] text-slate-900">핵심 키워드 연결지도</h2>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                onClick={() => addKeywordAtPosition()}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-violet-200 bg-white/80 text-sm text-violet-700 shadow-sm transition hover:-translate-y-0.5 hover:border-violet-300 hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-violet-200/80 active:scale-[0.98]"
+                aria-label="새 키워드 추가"
+                title="새 키워드 추가"
+              >
+                <FontAwesomeIcon icon={faPlus} />
+              </button>
+              <button
+                type="button"
+                onClick={() => void saveCurrentDocument()}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50/90 text-sm text-emerald-700 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-200/80 active:scale-[0.98]"
+                aria-label="저장"
+                title="GitHub에 저장"
+              >
+                <FontAwesomeIcon icon={faFloppyDisk} />
+              </button>
+            </div>
           </div>
 
           <div className="rounded-[14px] bg-transparent p-0">
@@ -768,7 +845,7 @@ export function KeywordMindmap() {
           </div>
         </div>
 
-        <div className="relative h-[640px] w-full overflow-hidden border-b border-slate-200 bg-[radial-gradient(circle_at_top,_rgba(167,139,250,0.12),_transparent_35%),linear-gradient(180deg,_#fff_0%,_#f8fafc_100%)]">
+        <div className="relative h-[680px] w-full overflow-hidden border-b border-slate-200 bg-[radial-gradient(circle_at_top,_rgba(167,139,250,0.12),_transparent_35%),linear-gradient(180deg,_#fff_0%,_#f8fafc_100%)] lg:h-[760px]">
           <ReactFlowProvider>
             <KeywordMindmapFlow
               nodes={nodes}
@@ -782,8 +859,7 @@ export function KeywordMindmap() {
               }}
               onNodeDoubleClick={openNodeEditModal}
               onEdgeClick={(_, edge) => {
-                setSelectedEdgeId(edge.id);
-                setSelectedNodeId(null);
+                openEdgeEditModal(edge);
               }}
               addKeywordAtPosition={addKeywordAtPosition}
               showMiniMap={showMiniMap}
@@ -928,7 +1004,53 @@ export function KeywordMindmap() {
         </div>
       ) : null}
 
-      <aside className="rounded-[28px] border border-slate-200/80 bg-white/90 p-4 pb-28 shadow-[0_12px_30px_rgba(15,23,42,0.04)] backdrop-blur-sm">
+      {editingEdgeId ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 p-3 backdrop-blur-[2px]">
+          <div className="w-full max-w-md rounded-[24px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.12)]">
+            <div className="flex items-center justify-between gap-3 pb-3">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-500">link editor</p>
+                <h3 className="text-lg font-semibold text-slate-900">링크 설명 편집</h3>
+              </div>
+              <button
+                type="button"
+                onClick={closeEdgeEditModal}
+                className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-600"
+              >
+                닫기
+              </button>
+            </div>
+
+            <textarea
+              value={edgeDraft}
+              onChange={(event) => setEdgeDraft(event.target.value)}
+              placeholder="연결 설명을 추가해 보세요."
+              rows={6}
+              autoFocus
+              className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-6 text-slate-800 outline-none focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
+            />
+
+            <div className="mt-4 flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={deleteEditingEdge}
+                className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700"
+              >
+                삭제
+              </button>
+              <button
+                type="button"
+                onClick={saveEdgeDraft}
+                className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white"
+              >
+                저장
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <aside className="hidden rounded-[28px] border border-slate-200/80 bg-white/90 p-4 pb-28 shadow-[0_12px_30px_rgba(15,23,42,0.04)] backdrop-blur-sm">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">Editor</p>

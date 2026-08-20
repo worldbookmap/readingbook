@@ -18,6 +18,7 @@ import characterMapLibrary from "@/data/character-map-library.json";
 import storyEventLibrary from "@/data/story-event-library.json";
 import { CustomSelect } from "@/components/custom-select";
 import { FloatingSyncMenu } from "@/components/floating-sync-menu";
+import { useNavigationGuard } from "@/components/navigation-guard";
 
 const storageKey = "readingbook-story-event-library";
 const selectedWorkStorageKey = "readingbook-story-event-selected-work";
@@ -280,6 +281,7 @@ export function StoryEventTimeline() {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const emptyBoardTimerRef = useRef<number | null>(null);
   const longPressTimerRef = useRef<number | null>(null);
+  const [savedSnapshot, setSavedSnapshot] = useState(JSON.stringify(buildInitialWorks()));
   const dragRef = useRef<{
     id: string;
     startPointerX: number;
@@ -419,6 +421,7 @@ export function StoryEventTimeline() {
           setWorks(parsed.works);
           setSelectedWorkId(latestWork.id);
           setSelectedEventId(latestWork.events[0]?.id ?? null);
+          setSavedSnapshot(JSON.stringify(parsed.works));
         });
       }
     } catch {
@@ -854,6 +857,7 @@ export function StoryEventTimeline() {
       };
       const loadedWorks = payload.data.works ?? [];
       setWorks(loadedWorks);
+      setSavedSnapshot(JSON.stringify(loadedWorks));
       setSelectedWorkId((current) => {
         const nextSelected = loadedWorks.find((work) => work.id === current)?.id ?? loadedWorks[0]?.id ?? "";
         setSelectedEventId(loadedWorks.find((work) => work.id === nextSelected)?.events[0]?.id ?? null);
@@ -897,6 +901,7 @@ export function StoryEventTimeline() {
 
       const loadedWorks = refreshedPayload?.data.works ?? works;
       setWorks(loadedWorks);
+      setSavedSnapshot(JSON.stringify(loadedWorks));
       setSelectedWorkId((current) => {
         const nextSelected = loadedWorks.find((work) => work.id === current)?.id ?? loadedWorks[0]?.id ?? "";
         setSelectedEventId(loadedWorks.find((work) => work.id === nextSelected)?.events[0]?.id ?? null);
@@ -907,11 +912,18 @@ export function StoryEventTimeline() {
       setSaveState("saved");
       setSaveMessage("저장 완료! 최신 데이터가 반영되었습니다.");
       window.alert("저장 완료! GitHub에 반영되었습니다.");
+      return true;
     } catch (error) {
       setSaveState("error");
       setSaveMessage(error instanceof Error ? error.message : "GitHub 저장에 실패했습니다.");
+      return false;
     }
   }
+
+  useNavigationGuard({
+    isDirty: JSON.stringify(works) !== savedSnapshot,
+    onSave: saveToGithub,
+  });
 
   function openDetailModal(eventId: string) {
     setSelectedEventId(eventId);

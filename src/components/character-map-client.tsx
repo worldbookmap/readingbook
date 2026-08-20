@@ -23,8 +23,9 @@ import "@xyflow/react/dist/style.css";
 import { CharacterMapLibrary, CharacterNode, CharacterRelationship, RelationshipType } from "@/lib/types";
 import { CustomSelect } from "@/components/custom-select";
 import { FloatingSyncMenu } from "@/components/floating-sync-menu";
+import { useNavigationGuard } from "@/components/navigation-guard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMap } from "@fortawesome/free-solid-svg-icons";
+import { faBookOpen, faFloppyDisk, faMap, faUserPlus } from "@fortawesome/free-solid-svg-icons";
 
 const storageKey = "readingbook-character-map-library";
 const selectedWorkStorageKey = "readingbook-character-map-selected-work";
@@ -283,6 +284,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
   const [showMiniMap, setShowMiniMap] = useState(false);
   const longPressTimerRef = useRef<number | null>(null);
+  const [savedSnapshot, setSavedSnapshot] = useState(JSON.stringify(library));
 
   const selectedWork = useMemo(
     () => works.find((work) => work.id === selectedWorkId) ?? works[0] ?? null,
@@ -313,6 +315,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         startTransition(() => {
           setWorks(parsed.works);
           setSelectedWorkId(nextSelected);
+          setSavedSnapshot(JSON.stringify(parsed));
         });
       }
     } catch {
@@ -334,6 +337,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
 
         if (payload.data?.works?.length) {
           setWorks(payload.data.works);
+          setSavedSnapshot(JSON.stringify({ works: payload.data.works }));
           const savedWorkId = window.localStorage.getItem(selectedWorkStorageKey);
           const nextSelected = payload.data.works.some((work) => work.id === savedWorkId)
             ? savedWorkId ?? ""
@@ -369,6 +373,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
 
       if (payload.data?.works?.length) {
         setWorks(payload.data.works);
+        setSavedSnapshot(JSON.stringify({ works: payload.data.works }));
         setSelectedWorkId((current) =>
           payload.data?.works.some((work) => work.id === current)
             ? current
@@ -410,6 +415,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
 
       if (refreshedPayload?.data?.works?.length) {
         setWorks(refreshedPayload.data.works);
+        setSavedSnapshot(JSON.stringify({ works: refreshedPayload.data.works }));
       }
 
       setRemoteEnabled(Boolean(refreshedPayload?.remoteEnabled ?? remoteEnabled));
@@ -417,11 +423,19 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
       setSaveState("saved");
       setSaveMessage("저장 완료! GitHub에 반영되었습니다.");
       window.alert("저장 완료! GitHub에 반영되었습니다.");
+      setSavedSnapshot(JSON.stringify({ works: refreshedPayload?.data?.works ?? works }));
+      return true;
     } catch (error) {
       setSaveState("error");
       setSaveMessage(error instanceof Error ? error.message : "GitHub 저장에 실패했습니다.");
+      return false;
     }
   }
+
+  useNavigationGuard({
+    isDirty: JSON.stringify({ works }) !== savedSnapshot,
+    onSave: saveToGithub,
+  });
 
   useEffect(() => {
     if (!selectedWork) {
@@ -947,7 +961,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         </div>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_360px]">
+      <div className="grid gap-6">
         <section className="overflow-hidden rounded-[32px] border border-slate-300/80 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.04)]">
         <div className="flex items-center justify-between gap-3 border-b border-slate-200/80 px-4 py-4 sm:px-6">
           <div className="min-w-0">
@@ -958,10 +972,14 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             <button
               type="button"
               onClick={addNode}
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-[11px] font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200/80 active:scale-[0.98] sm:px-3.5 sm:text-xs"
+              className="group inline-flex h-10 w-10 min-w-10 items-center justify-center gap-2 overflow-hidden rounded-2xl border border-slate-200 bg-white px-0 text-sm text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition-[width,transform,border-color,background-color,padding] hover:w-auto hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 hover:px-3 focus-visible:w-auto focus-visible:px-3 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200/80 active:scale-[0.98]"
+              aria-label="인물 추가"
+              title="인물 추가"
             >
-              <span aria-hidden="true">＋</span>
-              인물 추가
+              <FontAwesomeIcon icon={faUserPlus} />
+              <span className="max-w-0 whitespace-nowrap opacity-0 transition-[max-width,opacity] duration-200 group-hover:max-w-20 group-hover:opacity-100 group-focus-within:max-w-20 group-focus-within:opacity-100">
+                인물 추가
+              </span>
             </button>
             <button
               type="button"
@@ -970,10 +988,26 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                 setNewWorkTitle("");
                 setIsNewWorkModalOpen(true);
               }}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-3 py-2 text-[11px] font-semibold text-white shadow-[0_8px_18px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-300 active:scale-[0.98] sm:px-3.5 sm:text-xs"
+              className="group inline-flex h-10 w-10 min-w-10 items-center justify-center gap-2 overflow-hidden rounded-2xl bg-slate-900 px-0 text-sm text-white shadow-[0_8px_18px_rgba(15,23,42,0.08)] transition-[width,transform,background-color,padding] hover:w-auto hover:-translate-y-0.5 hover:bg-slate-700 hover:px-3 focus-visible:w-auto focus-visible:px-3 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-300 active:scale-[0.98]"
+              aria-label="작품 추가"
+              title="작품 추가"
             >
-              <span aria-hidden="true">＋</span>
-              작품 추가
+              <FontAwesomeIcon icon={faBookOpen} />
+              <span className="max-w-0 whitespace-nowrap opacity-0 transition-[max-width,opacity] duration-200 group-hover:max-w-20 group-hover:opacity-100 group-focus-within:max-w-20 group-focus-within:opacity-100">
+                작품 추가
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={saveToGithub}
+              className="group inline-flex h-10 w-10 min-w-10 items-center justify-center gap-2 overflow-hidden rounded-2xl border border-emerald-200 bg-emerald-50 px-0 text-sm text-emerald-700 shadow-[0_8px_18px_rgba(16,185,129,0.08)] transition-[width,transform,border-color,background-color,padding] hover:w-auto hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-100 hover:px-3 focus-visible:w-auto focus-visible:px-3 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-200/80 active:scale-[0.98]"
+              aria-label="저장"
+              title="저장"
+            >
+              <FontAwesomeIcon icon={faFloppyDisk} />
+              <span className="max-w-0 whitespace-nowrap opacity-0 transition-[max-width,opacity] duration-200 group-hover:max-w-20 group-hover:opacity-100 group-focus-within:max-w-20 group-focus-within:opacity-100">
+                저장
+              </span>
             </button>
           </div>
         </div>
@@ -1037,7 +1071,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         </div>
       </section>
 
-      <aside className="rounded-[28px] border border-slate-200/80 bg-white/90 p-4 pb-28 shadow-[0_12px_28px_rgba(15,23,42,0.04)] backdrop-blur-sm">
+      <aside className="hidden rounded-[28px] border border-slate-200/80 bg-white/90 p-4 pb-28 shadow-[0_12px_28px_rgba(15,23,42,0.04)] backdrop-blur-sm">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">Editor</p>
