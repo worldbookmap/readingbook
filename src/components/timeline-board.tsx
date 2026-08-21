@@ -38,17 +38,16 @@ function compareCards(left: TimelineCard, right: TimelineCard, regionOrder: Time
     return regionOrder.indexOf(left.region) - regionOrder.indexOf(right.region);
   }
 
-  const leftOrder = left.order ?? Number.MAX_SAFE_INTEGER;
-  const rightOrder = right.order ?? Number.MAX_SAFE_INTEGER;
-  if (leftOrder !== rightOrder) {
-    return leftOrder - rightOrder;
-  }
-
   if (left.year !== right.year) {
     return left.year - right.year;
   }
 
-  return left.title.localeCompare(right.title, "ko");
+  const titleComparison = left.title.localeCompare(right.title, "ko");
+  if (titleComparison !== 0) {
+    return titleComparison;
+  }
+
+  return (left.order ?? Number.MAX_SAFE_INTEGER) - (right.order ?? Number.MAX_SAFE_INTEGER);
 }
 
 function normalizeCards(cards: TimelineCard[], regionOrder: TimelineRegion[]) {
@@ -56,17 +55,16 @@ function normalizeCards(cards: TimelineCard[], regionOrder: TimelineRegion[]) {
     const regionCards = cards
       .filter((card) => card.region === region)
       .sort((left, right) => {
-        const leftOrder = left.order ?? Number.MAX_SAFE_INTEGER;
-        const rightOrder = right.order ?? Number.MAX_SAFE_INTEGER;
-        if (leftOrder !== rightOrder) {
-          return leftOrder - rightOrder;
-        }
-
         if (left.year !== right.year) {
           return left.year - right.year;
         }
 
-        return left.title.localeCompare(right.title, "ko");
+        const titleComparison = left.title.localeCompare(right.title, "ko");
+        if (titleComparison !== 0) {
+          return titleComparison;
+        }
+
+        return (left.order ?? Number.MAX_SAFE_INTEGER) - (right.order ?? Number.MAX_SAFE_INTEGER);
       });
 
     return regionCards.map((card, index) => ({ ...card, order: index }));
@@ -1068,10 +1066,9 @@ export function TimelineBoard({ initialCards }: Props) {
                               onDragEnd={() => setDraggedId(null)}
                               onClick={() => setActiveId(card.id)}
                               onDoubleClick={() => openCardModal(card.id)}
-                              className="block w-full rounded-[20px] border bg-white p-4 text-left shadow-sm transition active:scale-[0.99]"
+                              className="block w-full rounded-2xl border bg-white p-3 text-left shadow-sm transition active:scale-[0.99]"
                               style={{
                                 width: `min(100%, ${card.size ?? 260}px)`,
-                                minHeight: Math.round((card.size ?? 260) * 0.55),
                                 borderColor: card.color ?? (isActive ? "#38bdf8" : "rgba(226,232,240,1)"),
                                 boxShadow: isActive
                                   ? "0 14px 30px rgba(56,189,248,0.18)"
@@ -1087,15 +1084,12 @@ export function TimelineBoard({ initialCards }: Props) {
                                   탭
                                 </span>
                               </div>
-                              <h4 className="mt-3 text-sm font-semibold text-slate-900">{card.title}</h4>
-                              <p className="mt-2 text-xs leading-5 text-slate-600 line-clamp-3">
-                                {card.description}
-                              </p>
-                              <div className="mt-3 flex flex-wrap gap-2">
+                              <h4 className="mt-2 line-clamp-2 text-sm font-semibold text-slate-900">{card.title}</h4>
+                              <div className="mt-2 flex flex-wrap gap-1">
                                 {card.tags.slice(0, 3).map((tag) => (
                                   <span
                                     key={tag}
-                                    className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] text-slate-500"
+                                    className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500"
                                   >
                                     {tag}
                                   </span>
@@ -1117,7 +1111,7 @@ export function TimelineBoard({ initialCards }: Props) {
           </div>
         </div>
 
-        <div className="mt-6 hidden gap-4 lg:grid lg:grid-cols-2 2xl:grid-cols-3">
+        <div className="mt-6 hidden gap-3 lg:grid lg:grid-cols-3 2xl:grid-cols-4">
           {regionNames.map((region) => {
             const regionCards = cards
               .filter((card) => card.region === region)
@@ -1133,19 +1127,19 @@ export function TimelineBoard({ initialCards }: Props) {
                     setDraggedId(null);
                   }
                 }}
-                className="rounded-[28px] border border-[#1e3038]/12 bg-[linear-gradient(180deg,_#fcfaf5_0%,_#f0e9de_100%)] p-4 shadow-[0_12px_28px_rgba(45,43,37,0.05)]"
+                className="rounded-[24px] border border-[#1e3038]/12 bg-[linear-gradient(180deg,_#fcfaf5_0%,_#f0e9de_100%)] p-3 shadow-[0_12px_28px_rgba(45,43,37,0.05)]"
               >
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f2dfd0] text-[#a85f35]">
+                <div className="mb-3 flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#f2dfd0] text-[#a85f35]">
                     <FontAwesomeIcon icon={faGlobe} />
                   </div>
                   <div>
                     <h3 className="font-semibold text-slate-900">{region}</h3>
-                    <p className="text-sm text-slate-500">{regionCards.length}개의 카드</p>
+                    <p className="text-xs text-slate-500">{regionCards.length}개의 카드</p>
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {regionCards.map((card) => {
                     const isActive = card.id === activeCard?.id;
 
@@ -1166,10 +1160,9 @@ export function TimelineBoard({ initialCards }: Props) {
                         }}
                         onClick={() => setActiveId(card.id)}
                         onDoubleClick={() => openCardModal(card.id)}
-                        className="block w-full rounded-[24px] border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1"
+                        className="block w-full rounded-2xl border border-slate-200 bg-white p-3 text-left shadow-sm transition hover:-translate-y-0.5"
                         style={{
                           width: `min(100%, ${card.size ?? 260}px)`,
-                          minHeight: Math.round((card.size ?? 260) * 0.55),
                           borderColor: card.color ?? (isActive ? "#111827" : "rgba(226,232,240,1)"),
                           boxShadow: isActive
                             ? "0 16px 36px rgba(15,23,42,0.08)"
@@ -1185,13 +1178,12 @@ export function TimelineBoard({ initialCards }: Props) {
                             drag
                           </span>
                         </div>
-                        <h4 className="mt-3 text-base font-semibold text-slate-900">{card.title}</h4>
-                        <p className="mt-2 text-sm leading-6 text-slate-600">{card.description}</p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {card.tags.map((tag) => (
+                        <h4 className="mt-2 line-clamp-2 text-sm font-semibold text-slate-900">{card.title}</h4>
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {card.tags.slice(0, 3).map((tag) => (
                             <span
                               key={tag}
-                              className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-500"
+                              className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500"
                             >
                               {tag}
                             </span>
