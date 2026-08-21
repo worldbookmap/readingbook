@@ -213,8 +213,20 @@
       "order": 0
     },
     {
+      "id": "2a88c16f-a5df-4cc8-8372-bcc7c979d142",
+      "region": "중동",
+      "year": -330,
+      "yearLabel": "BC 330",
+      "title": "알렉산드로스 대왕이 아케메네스조 페르시아를 정복",
+      "description": "알렉산드로스 대왕이 아케메네스조 페르시아를 정복",
+      "tags": [],
+      "color": "#f59e0b",
+      "size": 350,
+      "order": 1
+    },
+    {
       "id": "179012a0-4667-4a99-a826-5cf5c5b08783",
-      "region": "유대인",
+      "region": "이스라엘지역",
       "year": -4000,
       "yearLabel": "BC 4000",
       "title": "아담",
@@ -226,7 +238,7 @@
     },
     {
       "id": "cbf6584e-a11e-46ee-8bff-6e7403f2df0b",
-      "region": "유대인",
+      "region": "이스라엘지역",
       "year": -2705,
       "yearLabel": "BC 2705",
       "title": "노아",
@@ -238,7 +250,7 @@
     },
     {
       "id": "0cb8f328-5f21-4d83-b366-c46b7c7d844a",
-      "region": "유대인",
+      "region": "이스라엘지역",
       "year": -2350,
       "yearLabel": "BC 2350",
       "title": "노아의 대홍수",
@@ -250,7 +262,7 @@
     },
     {
       "id": "cf9fb6a7-f755-454b-8a40-481256c49a6e",
-      "region": "유대인",
+      "region": "이스라엘지역",
       "year": -2000,
       "yearLabel": "BC 2000",
       "title": "아브라함 가나안으로 떠남",
@@ -262,7 +274,7 @@
     },
     {
       "id": "272f305d-4888-4d6e-97e4-b8b2e0fa8fc7",
-      "region": "유대인",
+      "region": "이스라엘지역",
       "year": -1450,
       "yearLabel": "BC 1450",
       "title": "이삭-요셉-모세",
@@ -270,11 +282,11 @@
       "tags": [],
       "color": "#f59e0b",
       "size": 350,
-      "order": 1
+      "order": 4
     },
     {
       "id": "b195f347-0d0d-431b-8724-cf56eb7518d0",
-      "region": "유대인",
+      "region": "이스라엘지역",
       "year": -1446,
       "yearLabel": "BC 1446",
       "title": "출애굽기",
@@ -282,11 +294,11 @@
       "tags": [],
       "color": "#f59e0b",
       "size": 350,
-      "order": 1
+      "order": 5
     },
     {
       "id": "e0a902cc-28d0-42f4-9a3d-09891abbde05",
-      "region": "유대인",
+      "region": "이스라엘지역",
       "year": -1406,
       "yearLabel": "BC 1406",
       "title": "여호수아 가나안 입성",
@@ -296,11 +308,11 @@
       ],
       "color": "#f59e0b",
       "size": 350,
-      "order": 1
+      "order": 6
     },
     {
       "id": "c4855f88-791f-45d7-8626-d568efb653fb",
-      "region": "유대인",
+      "region": "이스라엘지역",
       "year": -1021,
       "yearLabel": "BC 1021",
       "title": "이스라엘 1대왕 사울",
@@ -308,11 +320,11 @@
       "tags": [],
       "color": "#f59e0b",
       "size": 350,
-      "order": 1
+      "order": 7
     },
     {
       "id": "7ba1cc66-afbc-4adc-8f97-53db25853849",
-      "region": "유대인",
+      "region": "이스라엘지역",
       "year": -1010,
       "yearLabel": "BC 1010",
       "title": "이스라엘 2대왕 다윗",
@@ -320,11 +332,11 @@
       "tags": [],
       "color": "#f59e0b",
       "size": 350,
-      "order": 1
+      "order": 8
     },
     {
       "id": "77c7b58c-15fc-43ee-8495-fcec464af9de",
-      "region": "유대인",
+      "region": "이스라엘지역",
       "year": -970,
       "yearLabel": "BC 970",
       "title": "이스라엘 3대왕 솔로몬",
@@ -332,11 +344,11 @@
       "tags": [],
       "color": "#f59e0b",
       "size": 350,
-      "order": 1
+      "order": 9
     },
     {
       "id": "5d6816f4-e4d4-490c-8f35-42d738fe25be",
-      "region": "유대인",
+      "region": "이스라엘지역",
       "year": -722,
       "yearLabel": "BC 722",
       "title": "북이스라엘 멸망",
@@ -344,11 +356,11 @@
       "tags": [],
       "color": "#f59e0b",
       "size": 350,
-      "order": 1
+      "order": 10
     },
     {
       "id": "250f19e7-4175-49d6-b7ce-8182ccb8e160",
-      "region": "유대인",
+      "region": "이스라엘지역",
       "year": -586,
       "yearLabel": "BC 586",
       "title": "남유다 멸망",
@@ -356,11 +368,11 @@
       "tags": [],
       "color": "#f59e0b",
       "size": 350,
-      "order": 1
+      "order": 11
     },
     {
       "id": "3c126c59-9f55-4430-a39a-3bf55ecdc6a8",
-      "region": "유대인",
+      "region": "이스라엘지역",
       "year": -537,
       "yearLabel": "BC 537",
       "title": "예루살렘 복귀 및 성전 재건",
@@ -368,7 +380,43 @@
       "tags": [],
       "color": "#f59e0b",
       "size": 350,
-      "order": 1
+      "order": 12
+    },
+    {
+      "id": "a5c6a184-6b44-4d1c-b164-c2dd2ba76042",
+      "region": "이스라엘지역",
+      "year": -63,
+      "yearLabel": "BC 63",
+      "title": "로마 속주 편입",
+      "description": "* 기원전 63년 로마 폼페이우스에게 항복, 로마의 속주가 됨\n\t* 유대인이 아닌 이를 통치자로 내세움\n\t\t* 헤롯대왕: 강압통치\n\t\t\t* 기원전 37년 마사다 요새 건설\n* 기원전 4년 헤롯대왕 사망\n* 기원후 6년 로마는 유대지역을 시리아 속주에 편입, 직접 통치\n\t* 로마의 다신교 관행과 충돌, 거부 -> 유대-로마 전쟁 \n* 66년 그리스인-유대인 소송에서 그리스인 승리, 유대인 학살, 로마 수비대 방관\n\t* 반발, 폭동-> 로마 갈릴리 공격: 1차 유대-로마 전쟁",
+      "tags": [],
+      "color": "#f59e0b",
+      "size": 350,
+      "order": 13
+    },
+    {
+      "id": "3af1f6c6-bc23-46b9-b4be-e361e8cea74f",
+      "region": "이스라엘지역",
+      "year": 70,
+      "yearLabel": "70",
+      "title": "성전 파괴",
+      "description": "* 70년 티투스 지휘하에 예루살렘 포위, 성전 파괴 \n\t* 마사다 요새 마지막 저항: 자결",
+      "tags": [],
+      "color": "#f59e0b",
+      "size": 350,
+      "order": 14
+    },
+    {
+      "id": "42d7869c-b230-45b0-b5fc-5aa029b5b677",
+      "region": "이스라엘지역",
+      "year": 136,
+      "yearLabel": "136",
+      "title": "디아스포라",
+      "description": "* 117년 하드리아누스 황제\n\t* 강경 정책 시행\n\t* 132년 대규모 반란: 제2차 유대-로마 전쟁\n\t* 136년 마지막 거점 베타르 요새 함락 \n\t* 자치권, 영토 완전 상실\n\t* 예루살렘을 아엘리아 카피톨리나로 개명하고 유대인 출입 금지\n* 디아스포라 시작",
+      "tags": [],
+      "color": "#f59e0b",
+      "size": 350,
+      "order": 15
     }
   ]
 }
