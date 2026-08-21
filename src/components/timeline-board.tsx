@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowsLeftRight,
   faCloudArrowUp,
+  faFolderPlus,
   faGripVertical,
   faTable,
   faGlobe,
@@ -181,6 +182,7 @@ export function TimelineBoard({ initialCards }: Props) {
   const [remoteEnabled, setRemoteEnabled] = useState(false);
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isCreatingCard, setIsCreatingCard] = useState(false);
   const [modalDraft, setModalDraft] = useState<{
     id: string;
@@ -333,6 +335,7 @@ export function TimelineBoard({ initialCards }: Props) {
     setRegionNames((current) => [...current, trimmedRegion]);
     setDraft((current) => ({ ...current, region: trimmedRegion }));
     setNewRegionName("");
+    setIsCategoryModalOpen(false);
   }
 
   function moveCard(cardId: string, region: TimelineRegion, targetId?: string) {
@@ -563,6 +566,46 @@ export function TimelineBoard({ initialCards }: Props) {
 
   return (
     <>
+      {isCategoryModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-[28px] border border-[#1e3038]/15 bg-[#fffdf9] p-5 shadow-[0_28px_80px_rgba(30,48,56,0.22)]">
+            <h3 className="text-xl font-semibold text-slate-900">카테고리 추가</h3>
+            <input
+              value={newRegionName}
+              onChange={(event) => setNewRegionName(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  createRegion();
+                }
+              }}
+              placeholder="예: 중동"
+              autoFocus
+              className={`${inputClassName} mt-4`}
+            />
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setNewRegionName("");
+                  setIsCategoryModalOpen(false);
+                }}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={createRegion}
+                disabled={!newRegionName.trim() || regionNames.includes(newRegionName.trim())}
+                className="rounded-2xl bg-[#1e3038] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2b4650] disabled:cursor-not-allowed disabled:bg-slate-300"
+              >
+                추가
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {isCardModalOpen && modalDraft ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
           <div className="w-full max-w-lg rounded-[28px] border border-[#1e3038]/15 bg-[#fffdf9] p-5 shadow-[0_28px_80px_rgba(30,48,56,0.22)]">
@@ -939,6 +982,15 @@ export function TimelineBoard({ initialCards }: Props) {
               <FontAwesomeIcon icon={faArrowsLeftRight} className="text-[#b86b3d]" />
               카드를 드래그해서 다른 지역으로 이동하거나 순서를 바꾸세요.
             </div>
+            <button
+              type="button"
+              onClick={() => setIsCategoryModalOpen(true)}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#1e3038]/15 bg-white text-lg text-[#1e3038] shadow-[0_10px_24px_rgba(30,48,56,0.1)] transition hover:-translate-y-0.5 hover:border-[#b86b3d] hover:text-[#a85f35] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#b86b3d]/30"
+              aria-label="카테고리 추가"
+              title="카테고리 추가"
+            >
+              <FontAwesomeIcon icon={faFolderPlus} />
+            </button>
             <button
               type="button"
               onClick={openNewCardModalForBlankSpace}
