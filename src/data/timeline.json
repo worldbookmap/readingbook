@@ -29,6 +29,18 @@
       "order": 0
     },
     {
+      "id": "5d0da70a-b683-4a2f-a834-fdb3fb42f259",
+      "region": "동유럽",
+      "year": 1350,
+      "yearLabel": "1350",
+      "title": "흑사병",
+      "description": "14세기 중반무렵 유럽 전역 페스트 창궐",
+      "tags": [],
+      "color": "#f59e0b",
+      "size": 350,
+      "order": 1
+    },
+    {
       "id": "asia-1443",
       "region": "아시아",
       "year": 1443,
@@ -201,14 +213,26 @@
       "order": 0
     },
     {
-      "id": "5d0da70a-b683-4a2f-a834-fdb3fb42f259",
-      "region": "동유럽",
-      "year": 1350,
-      "yearLabel": "1350",
-      "title": "흑사병",
-      "description": "14세기 중반무렵 유럽 전역 페스트 창궐",
+      "id": "179012a0-4667-4a99-a826-5cf5c5b08783",
+      "region": "유대인",
+      "year": -3761,
+      "yearLabel": "BC 3761",
+      "title": "아담",
+      "description": "메소포타미아 시작과 비슷\n10세대가 지나고 타락 -> 대홍수",
       "tags": [],
-      "color": "#f59e0b",
+      "color": "#0062ff",
+      "size": 350,
+      "order": 1
+    },
+    {
+      "id": "cbf6584e-a11e-46ee-8bff-6e7403f2df0b",
+      "region": "유대인",
+      "year": -2705,
+      "yearLabel": "BC 2705",
+      "title": "노아",
+      "description": "설명을 입력해 주세요.",
+      "tags": [],
+      "color": "#0040ff",
       "size": 350,
       "order": 1
     }
