@@ -583,7 +583,7 @@ export function TimelineBoard({ initialCards }: Props) {
             <span className="text-[10px] font-semibold text-[#a85f35]">{hoveredCard.card.region}</span>
           </div>
           <p className="mt-2 text-sm font-semibold text-slate-900">{hoveredCard.card.title}</p>
-          <p className="mt-2 text-xs leading-5 text-slate-600">{hoveredCard.card.description || "설명이 아직 없습니다."}</p>
+          <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-600">{hoveredCard.card.description || "설명이 아직 없습니다."}</p>
           {hoveredCard.card.tags.length ? (
             <div className="mt-3 flex flex-wrap gap-1">
               {hoveredCard.card.tags.map((tag) => (
@@ -969,7 +969,7 @@ export function TimelineBoard({ initialCards }: Props) {
                   <p>
                     <span className="font-semibold text-slate-900">지역:</span> {activeCard.region}
                   </p>
-                  <p className="line-clamp-3">{activeCard.description || "설명이 아직 없습니다."}</p>
+                  <p className="whitespace-pre-wrap line-clamp-3">{activeCard.description || "설명이 아직 없습니다."}</p>
                 </div>
               ) : (
                 <p className="text-slate-400">선택된 카드가 없습니다.</p>
