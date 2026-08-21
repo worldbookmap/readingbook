@@ -152,8 +152,8 @@
             "title": "서큐레 아들",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
-            "x": 450,
-            "y": 465,
+            "x": 463,
+            "y": 688,
             "color": "#d357fe",
             "size": 120
           },
@@ -174,8 +174,8 @@
             "title": "하녀",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
-            "x": 304,
-            "y": 723,
+            "x": 301,
+            "y": 845,
             "color": "#ecfeff",
             "size": 100
           },
@@ -218,10 +218,21 @@
             "title": "남편",
             "summary": "4년째 전쟁터에서 안돌아옴",
             "majorActions": [],
-            "x": 498,
+            "x": 565,
             "y": 287,
             "color": "#fee2e2",
             "size": 100
+          },
+          {
+            "id": "a25959e2-d6fd-4add-9d12-bf5d9a3194ac",
+            "name": "하산",
+            "title": "동생, 형수 사랑",
+            "summary": "설명을 추가해 보세요.",
+            "majorActions": [],
+            "x": 619,
+            "y": 518,
+            "color": "#adadad",
+            "size": 160
           }
         ],
         "relationships": [
