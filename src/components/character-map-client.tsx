@@ -49,6 +49,39 @@ type Props = {
 
 const colorPalette = ["#fdf2f8", "#eff6ff", "#ecfeff", "#fef3c7", "#f5f3ff", "#dcfce7", "#fee2e2"];
 
+function addRoleRelationship(
+  sourceId: string,
+  subtitle: string,
+  nodes: CharacterFlowNode[],
+  edges: CharacterFlowEdge[],
+): CharacterFlowEdge[] {
+  const match = subtitle.trim().match(/^(.+?)의\s+(.+)$/);
+  if (!match) return edges;
+
+  const targetName = match[1].trim();
+  const linkLabel = match[2].trim();
+  const targetNode = nodes.find((node) => node.id !== sourceId && node.data.label.trim() === targetName);
+
+  if (!targetNode || edges.some((edge) => edge.source === sourceId && edge.target === targetNode.id && edge.label === linkLabel)) {
+    return edges;
+  }
+
+  return [
+    ...edges,
+    {
+      id: crypto.randomUUID(),
+      source: sourceId,
+      target: targetNode.id,
+      label: linkLabel,
+      type: "smoothstep",
+      animated: true,
+      data: { type: "기타", label: linkLabel },
+      style: { stroke: "#64748b" },
+      markerEnd: { type: MarkerType.ArrowClosed, color: "#64748b" },
+    },
+  ];
+}
+
 function toReactNodes(nodes: CharacterNode[]): CharacterFlowNode[] {
   return nodes.map((node, index) => ({
     id: node.id,
@@ -561,6 +594,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   function handleNodeSave() {
     if (!selectedNodeId || !nodeDraft) return;
 
+    const subtitle = nodeDraft.subtitle.trim() || "새 인물";
     const nextNodes = nodes.map((node) =>
       node.id === selectedNodeId
         ? {
@@ -568,7 +602,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             data: {
               ...node.data,
               label: nodeDraft.label.trim() || "새 인물",
-              subtitle: nodeDraft.subtitle.trim() || "새 인물",
+              subtitle,
               summary: nodeDraft.summary.trim(),
               color: nodeDraft.color,
               size: Math.max(160, Math.min(340, Number(nodeDraft.size) || 220)),
@@ -577,8 +611,10 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
         : node,
     );
 
+    const nextEdges = addRoleRelationship(selectedNodeId, subtitle, nextNodes, edges);
     setNodes(nextNodes);
-    updateSelectedWorkSeed(nextNodes, edges);
+    setEdges(nextEdges);
+    updateSelectedWorkSeed(nextNodes, nextEdges);
     setIsEditing(false);
     setIsDetailModalOpen(false);
     setSelectedNodeId(null);
