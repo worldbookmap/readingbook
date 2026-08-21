@@ -7,6 +7,7 @@ import {
   faCloudArrowUp,
   faFolderPlus,
   faGripVertical,
+  faPen,
   faTable,
   faGlobe,
   faPlus,
@@ -24,13 +25,13 @@ const eraOptions = ["전체", "고대", "중세", "근대", "현대"] as const;
 const cardColors = ["#f59e0b", "#38bdf8", "#a78bfa", "#34d399", "#fb7185", "#f97316"];
 
 function buildRegionOrder(cards: TimelineCard[]) {
-  const regionSet = new Set<TimelineRegion>(defaultRegions);
+  const regionSet = new Set<TimelineRegion>();
 
   cards.forEach((card) => {
     regionSet.add(card.region);
   });
 
-  return Array.from(regionSet);
+  return regionSet.size > 0 ? Array.from(regionSet) : defaultRegions;
 }
 
 function compareCards(left: TimelineCard, right: TimelineCard, regionOrder: TimelineRegion[]) {
@@ -181,6 +182,7 @@ export function TimelineBoard({ initialCards }: Props) {
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [editingRegion, setEditingRegion] = useState<TimelineRegion | null>(null);
   const [hoveredCard, setHoveredCard] = useState<{ card: TimelineCard; x: number; y: number } | null>(null);
   const [isCreatingCard, setIsCreatingCard] = useState(false);
   const [modalDraft, setModalDraft] = useState<{
@@ -327,14 +329,46 @@ export function TimelineBoard({ initialCards }: Props) {
 
   function createRegion() {
     const trimmedRegion = newRegionName.trim();
-    if (!trimmedRegion || regionNames.includes(trimmedRegion)) {
+    if (!trimmedRegion || (!editingRegion && regionNames.includes(trimmedRegion)) || (editingRegion !== trimmedRegion && regionNames.includes(trimmedRegion))) {
       return;
     }
 
-    setRegionNames((current) => [...current, trimmedRegion]);
-    setDraft((current) => ({ ...current, region: trimmedRegion }));
+    if (editingRegion) {
+      const nextRegions = regionNames.map((region) => region === editingRegion ? trimmedRegion : region);
+      setRegionNames(nextRegions);
+      setCards((current) => normalizeCards(
+        current.map((card) => card.region === editingRegion ? { ...card, region: trimmedRegion } : card),
+        nextRegions,
+      ));
+      setDraft((current) => ({ ...current, region: current.region === editingRegion ? trimmedRegion : current.region }));
+      setEditingRegion(null);
+    } else {
+      setRegionNames((current) => [...current, trimmedRegion]);
+      setDraft((current) => ({ ...current, region: trimmedRegion }));
+    }
+
     setNewRegionName("");
     setIsCategoryModalOpen(false);
+  }
+
+  function openCategoryEditModal(region: TimelineRegion) {
+    setEditingRegion(region);
+    setNewRegionName(region);
+    setIsCategoryModalOpen(true);
+  }
+
+  function deleteRegion(region: TimelineRegion) {
+    const regionCards = cards.filter((card) => card.region === region);
+    const message = regionCards.length > 0
+      ? `"${region}" 카테고리와 ${regionCards.length}개 카드를 삭제하시겠습니까?`
+      : `"${region}" 카테고리를 삭제하시겠습니까?`;
+    if (!window.confirm(message)) return;
+
+    const nextRegions = regionNames.filter((current) => current !== region);
+    const nextCards = normalizeCards(cards.filter((card) => card.region !== region), nextRegions);
+    setRegionNames(nextRegions);
+    setCards(nextCards);
+    setActiveId(nextCards[0]?.id ?? "");
   }
 
   function moveCard(cardId: string, region: TimelineRegion, targetId?: string) {
@@ -597,7 +631,7 @@ export function TimelineBoard({ initialCards }: Props) {
       {isCategoryModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-[28px] border border-[#1e3038]/15 bg-[#fffdf9] p-5 shadow-[0_28px_80px_rgba(30,48,56,0.22)]">
-            <h3 className="text-xl font-semibold text-slate-900">카테고리 추가</h3>
+            <h3 className="text-xl font-semibold text-slate-900">{editingRegion ? "카테고리 이름 수정" : "카테고리 추가"}</h3>
             <input
               value={newRegionName}
               onChange={(event) => setNewRegionName(event.target.value)}
@@ -615,6 +649,7 @@ export function TimelineBoard({ initialCards }: Props) {
                 type="button"
                 onClick={() => {
                   setNewRegionName("");
+                  setEditingRegion(null);
                   setIsCategoryModalOpen(false);
                 }}
                 className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
@@ -624,10 +659,10 @@ export function TimelineBoard({ initialCards }: Props) {
               <button
                 type="button"
                 onClick={createRegion}
-                disabled={!newRegionName.trim() || regionNames.includes(newRegionName.trim())}
+                disabled={!newRegionName.trim() || (newRegionName.trim() !== editingRegion && regionNames.includes(newRegionName.trim()))}
                 className="rounded-2xl bg-[#1e3038] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2b4650] disabled:cursor-not-allowed disabled:bg-slate-300"
               >
-                추가
+                {editingRegion ? "저장" : "추가"}
               </button>
             </div>
           </div>
@@ -1012,7 +1047,11 @@ export function TimelineBoard({ initialCards }: Props) {
             </div>
             <button
               type="button"
-              onClick={() => setIsCategoryModalOpen(true)}
+              onClick={() => {
+                setEditingRegion(null);
+                setNewRegionName("");
+                setIsCategoryModalOpen(true);
+              }}
               className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#1e3038]/15 bg-white text-lg text-[#1e3038] shadow-[0_10px_24px_rgba(30,48,56,0.1)] transition hover:-translate-y-0.5 hover:border-[#b86b3d] hover:text-[#a85f35] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#b86b3d]/30"
               aria-label="카테고리 추가"
               title="카테고리 추가"
@@ -1079,7 +1118,26 @@ export function TimelineBoard({ initialCards }: Props) {
                         <h3 className="text-base font-semibold">{region}</h3>
                         <p className="text-xs opacity-80">{regionCards.length}개의 카드</p>
                       </div>
-                      <FontAwesomeIcon icon={faGlobe} className="text-sm opacity-70" />
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => openCategoryEditModal(region)}
+                          className="flex h-7 w-7 items-center justify-center rounded-full bg-white/70 text-[11px] transition hover:bg-white"
+                          aria-label={`${region} 카테고리 수정`}
+                          title="카테고리 수정"
+                        >
+                          <FontAwesomeIcon icon={faPen} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteRegion(region)}
+                          className="flex h-7 w-7 items-center justify-center rounded-full bg-white/70 text-[11px] text-rose-600 transition hover:bg-white"
+                          aria-label={`${region} 카테고리 삭제`}
+                          title="카테고리 삭제"
+                        >
+                          <FontAwesomeIcon icon={faTrash} />
+                        </button>
+                      </div>
                     </div>
 
                     <div className="mt-3 space-y-2">
@@ -1162,13 +1220,35 @@ export function TimelineBoard({ initialCards }: Props) {
                 }}
                 className="rounded-[24px] border border-[#1e3038]/12 bg-[linear-gradient(180deg,_#fcfaf5_0%,_#f0e9de_100%)] p-3 shadow-[0_12px_28px_rgba(45,43,37,0.05)]"
               >
-                <div className="mb-3 flex items-center gap-2">
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#f2dfd0] text-[#a85f35]">
                     <FontAwesomeIcon icon={faGlobe} />
                   </div>
                   <div>
                     <h3 className="font-semibold text-slate-900">{region}</h3>
                     <p className="text-xs text-slate-500">{regionCards.length}개의 카드</p>
+                  </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => openCategoryEditModal(region)}
+                      className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-[11px] text-slate-600 transition hover:border-slate-300"
+                      aria-label={`${region} 카테고리 수정`}
+                      title="카테고리 수정"
+                    >
+                      <FontAwesomeIcon icon={faPen} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteRegion(region)}
+                      className="flex h-7 w-7 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-[11px] text-rose-600 transition hover:border-rose-300"
+                      aria-label={`${region} 카테고리 삭제`}
+                      title="카테고리 삭제"
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
+                    </button>
                   </div>
                 </div>
 
