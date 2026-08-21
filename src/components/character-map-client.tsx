@@ -605,7 +605,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
               subtitle,
               summary: nodeDraft.summary.trim(),
               color: nodeDraft.color,
-              size: Math.max(160, Math.min(340, Number(nodeDraft.size) || 220)),
+              size: Math.max(30, Math.min(250, Number(nodeDraft.size) || 220)),
             },
           }
         : node,
@@ -1446,8 +1446,8 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                     </label>
                     <input
                       type="range"
-                      min="160"
-                      max="340"
+                      min="30"
+                      max="250"
                       step="10"
                       value={nodeDraft.size}
                       onChange={(event) => setNodeDraft((current) => (current ? { ...current, size: event.target.value } : current))}
