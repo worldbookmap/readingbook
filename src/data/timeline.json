@@ -92,18 +92,56 @@
       "order": 0
     },
     {
+      "id": "46f857fe-e125-4275-b8c3-a2fe36131910",
+      "region": "이슬람",
+      "year": 570,
+      "yearLabel": "570",
+      "title": "무함마드 탄생",
+      "description": "아라비아 반도의 메카에서 무함마드 탄생\n* 아나톨리아반도의 비잔티움 제국, 이란 지역의 사산조 페르시아 시기\n* 비잔티움 제국이 사산조 페르시아와의 전쟁 기간: 향신료 무역으로 경제적 번영",
+      "tags": [
+        "이슬람"
+      ],
+      "color": "#f59e0b",
+      "size": 350,
+      "order": 0
+    },
+    {
+      "id": "9a5f1367-4e8d-4cdd-997a-43a59143ec84",
+      "region": "이슬람",
+      "year": 610,
+      "yearLabel": "610",
+      "title": "이슬람교 창시",
+      "description": "다신교 사회라 통일이 어려웠기에 유일신 종교 필요",
+      "tags": [],
+      "color": "#f59e0b",
+      "size": 330,
+      "order": 1
+    },
+    {
       "id": "74d3762d-d0cc-48f5-9584-052027b24617",
       "title": "헤지라",
       "yearLabel": "622",
       "year": 622,
-      "region": "중동",
+      "region": "이슬람",
       "description": "무함마드가 메카에서 메디나로 도피한 해로 이슬람교 원년",
       "tags": [
         "내 이름은 빨강"
       ],
       "color": "#f59e0b",
-      "size": 260,
-      "order": 0
+      "size": 360,
+      "order": 2
+    },
+    {
+      "id": "f15f48f8-baae-4b6d-a78c-2de4434de030",
+      "region": "이슬람",
+      "year": 632,
+      "yearLabel": "632",
+      "title": "무함마드 사망",
+      "description": "후계자(칼리프) 선출 문제 발생\n\t* 가장 가까운 친척 알리 이븐 아비 탈리브가 어림(훗날 4대 칼리프)",
+      "tags": [],
+      "color": "#f59e0b",
+      "size": 320,
+      "order": 3
     }
   ]
 }
