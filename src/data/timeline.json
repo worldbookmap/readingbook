@@ -215,14 +215,14 @@
     {
       "id": "179012a0-4667-4a99-a826-5cf5c5b08783",
       "region": "유대인",
-      "year": -3761,
-      "yearLabel": "BC 3761",
+      "year": -4000,
+      "yearLabel": "BC 4000",
       "title": "아담",
       "description": "메소포타미아 시작과 비슷\n10세대가 지나고 타락 -> 대홍수",
       "tags": [],
       "color": "#0062ff",
       "size": 350,
-      "order": 1
+      "order": 0
     },
     {
       "id": "cbf6584e-a11e-46ee-8bff-6e7403f2df0b",
@@ -230,9 +230,33 @@
       "year": -2705,
       "yearLabel": "BC 2705",
       "title": "노아",
-      "description": "설명을 입력해 주세요.",
+      "description": "노아의 자손 타락(메소포타미아 지역 다신교와 관련)",
       "tags": [],
       "color": "#0040ff",
+      "size": 350,
+      "order": 1
+    },
+    {
+      "id": "0cb8f328-5f21-4d83-b366-c46b7c7d844a",
+      "region": "유대인",
+      "year": -2350,
+      "yearLabel": "BC 2350",
+      "title": "노아의 대홍수",
+      "description": "노아가 600세 되던해",
+      "tags": [],
+      "color": "#f59e0b",
+      "size": 350,
+      "order": 1
+    },
+    {
+      "id": "cf9fb6a7-f755-454b-8a40-481256c49a6e",
+      "region": "유대인",
+      "year": -2000,
+      "yearLabel": "BC 2000",
+      "title": "아브라함 가나안으로 떠남",
+      "description": "설명을 입력해 주세요.",
+      "tags": [],
+      "color": "#f59e0b",
       "size": 350,
       "order": 1
     }
