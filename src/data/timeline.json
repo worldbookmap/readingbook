@@ -40,7 +40,7 @@
         "문자"
       ],
       "size": 350,
-  "order": 0
+      "order": 0
     },
     {
       "id": "us-1776",
@@ -199,6 +199,18 @@
       ],
       "size": 350,
       "order": 0
+    },
+    {
+      "id": "5d0da70a-b683-4a2f-a834-fdb3fb42f259",
+      "region": "동유럽",
+      "year": 1350,
+      "yearLabel": "1350",
+      "title": "흑사병",
+      "description": "14세기 중반무렵 유럽 전역 페스트 창궐",
+      "tags": [],
+      "color": "#f59e0b",
+      "size": 350,
+      "order": 1
     }
   ]
 }
