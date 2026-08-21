@@ -214,14 +214,14 @@
           },
           {
             "id": "7ed1a50c-ea86-4b79-8890-06908032ac35",
-            "name": "서큐레 남편",
+            "name": "서큐레남편",
             "title": "남편",
             "summary": "4년째 전쟁터에서 안돌아옴",
             "majorActions": [],
             "x": 565,
             "y": 301,
             "color": "#fee2e2",
-            "size": 70
+            "size": 90
           },
           {
             "id": "a25959e2-d6fd-4add-9d12-bf5d9a3194ac",
@@ -229,8 +229,8 @@
             "title": "서큐레남편의 동생",
             "summary": "형수 사랑함",
             "majorActions": [],
-            "x": 619,
-            "y": 518,
+            "x": 536,
+            "y": 471,
             "color": "#7d7d7d",
             "size": 100
           }
@@ -340,6 +340,13 @@
             "toId": "937cdea1-e23b-4dda-a68a-49b8d44d2296",
             "type": "기타",
             "label": "책 제작 명령"
+          },
+          {
+            "id": "dc608404-24a2-49aa-b938-2be9ce8a9ffc",
+            "fromId": "a25959e2-d6fd-4add-9d12-bf5d9a3194ac",
+            "toId": "7ed1a50c-ea86-4b79-8890-06908032ac35",
+            "type": "기타",
+            "label": "동생"
           }
         ]
       }
