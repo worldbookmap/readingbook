@@ -226,13 +226,13 @@
           {
             "id": "a25959e2-d6fd-4add-9d12-bf5d9a3194ac",
             "name": "하산",
-            "title": "동생, 형수 사랑",
-            "summary": "설명을 추가해 보세요.",
+            "title": "서큐레남편의 동생",
+            "summary": "형수 사랑함",
             "majorActions": [],
             "x": 619,
             "y": 518,
-            "color": "#adadad",
-            "size": 160
+            "color": "#7d7d7d",
+            "size": 100
           }
         ],
         "relationships": [
