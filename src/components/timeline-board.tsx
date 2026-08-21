@@ -181,6 +181,7 @@ export function TimelineBoard({ initialCards }: Props) {
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [hoveredCard, setHoveredCard] = useState<{ card: TimelineCard; x: number; y: number } | null>(null);
   const [isCreatingCard, setIsCreatingCard] = useState(false);
   const [modalDraft, setModalDraft] = useState<{
     id: string;
@@ -388,6 +389,14 @@ export function TimelineBoard({ initialCards }: Props) {
     setIsCardModalOpen(true);
   }
 
+  function showCardPreview(card: TimelineCard, event: React.MouseEvent<HTMLElement>) {
+    setHoveredCard({
+      card,
+      x: Math.min(event.clientX + 16, window.innerWidth - 304),
+      y: Math.min(event.clientY + 16, window.innerHeight - 220),
+    });
+  }
+
   function saveModalChanges() {
     if (!modalDraft) {
       return;
@@ -564,6 +573,27 @@ export function TimelineBoard({ initialCards }: Props) {
 
   return (
     <>
+      {hoveredCard ? (
+        <div
+          className="pointer-events-none fixed z-[60] w-72 rounded-2xl border border-[#1e3038]/15 bg-[#fffdf9]/95 p-3 shadow-[0_18px_40px_rgba(30,48,56,0.2)] backdrop-blur-sm"
+          style={{ left: hoveredCard.x, top: hoveredCard.y }}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <span className="rounded-full bg-[#1e3038] px-2 py-0.5 text-[10px] font-semibold text-white">{hoveredCard.card.yearLabel}</span>
+            <span className="text-[10px] font-semibold text-[#a85f35]">{hoveredCard.card.region}</span>
+          </div>
+          <p className="mt-2 text-sm font-semibold text-slate-900">{hoveredCard.card.title}</p>
+          <p className="mt-2 text-xs leading-5 text-slate-600">{hoveredCard.card.description || "설명이 아직 없습니다."}</p>
+          {hoveredCard.card.tags.length ? (
+            <div className="mt-3 flex flex-wrap gap-1">
+              {hoveredCard.card.tags.map((tag) => (
+                <span key={tag} className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-600">#{tag}</span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       {isCategoryModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-[28px] border border-[#1e3038]/15 bg-[#fffdf9] p-5 shadow-[0_28px_80px_rgba(30,48,56,0.22)]">
@@ -1064,6 +1094,9 @@ export function TimelineBoard({ initialCards }: Props) {
                               draggable
                               onDragStart={() => setDraggedId(card.id)}
                               onDragEnd={() => setDraggedId(null)}
+                              onMouseEnter={(event) => showCardPreview(card, event)}
+                              onMouseMove={(event) => showCardPreview(card, event)}
+                              onMouseLeave={() => setHoveredCard(null)}
                               onClick={() => setActiveId(card.id)}
                               onDoubleClick={() => openCardModal(card.id)}
                               className="block w-full rounded-2xl border bg-white p-3 text-left shadow-sm transition active:scale-[0.99]"
@@ -1150,6 +1183,9 @@ export function TimelineBoard({ initialCards }: Props) {
                         draggable
                         onDragStart={() => setDraggedId(card.id)}
                         onDragEnd={() => setDraggedId(null)}
+                        onMouseEnter={(event) => showCardPreview(card, event)}
+                        onMouseMove={(event) => showCardPreview(card, event)}
+                        onMouseLeave={() => setHoveredCard(null)}
                         onDragOver={(event) => event.preventDefault()}
                         onDrop={(event) => {
                           event.preventDefault();
@@ -1275,6 +1311,9 @@ export function TimelineBoard({ initialCards }: Props) {
                                 <button
                                   key={card.id}
                                   type="button"
+                                  onMouseEnter={(event) => showCardPreview(card, event)}
+                                  onMouseMove={(event) => showCardPreview(card, event)}
+                                  onMouseLeave={() => setHoveredCard(null)}
                                   onClick={() => setActiveId(card.id)}
                                   onDoubleClick={() => openCardModal(card.id)}
                                   className="block rounded-2xl bg-slate-50 px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100"
