@@ -236,11 +236,12 @@
           "year": 0,
           "yearLabel": "",
           "chapter": "챕터 4",
-          "summary": "사건 설명을 입력해 주세요.",
+          "summary": "페르시아 등지 떠돌다 돌아옴",
           "tags": [],
           "x": 334,
           "y": 584,
-          "color": "#7c3aed"
+          "color": "#7c3aed",
+          "size": 220
         },
         {
           "id": "bd6a2073-81ce-42bc-8342-aaf2c73bc6d4",
