@@ -242,18 +242,18 @@
             "majorActions": [],
             "x": 1176,
             "y": -413,
-            "color": "#eff6ff",
+            "color": "#d38301",
             "size": 80
           },
           {
             "id": "a84e54ad-ceff-48ea-910e-cd08ffd24df0",
             "name": "이브라힘 미르자",
             "title": "타마스프의 조카",
-            "summary": "설명을 추가해 보세요.",
+            "summary": "술탄\n샤 타마스프의 대가들을 불러들여와 책을 만들기 시작",
             "majorActions": [],
             "x": 1085,
             "y": -241,
-            "color": "#ecfeff",
+            "color": "#d38301",
             "size": 150
           }
         ],
