@@ -78,7 +78,7 @@
             "x": 755,
             "y": 303,
             "color": "#f97316",
-            "size": 170
+            "size": 90
           },
           {
             "id": "58624393-cb10-4ae0-a16a-1df504e218f8",
@@ -185,8 +185,8 @@
             "title": "화원장",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
-            "x": 943,
-            "y": 159,
+            "x": 778,
+            "y": 45,
             "color": "#fef3c7",
             "size": 100
           },
@@ -255,6 +255,39 @@
             "y": -241,
             "color": "#d38301",
             "size": 150
+          },
+          {
+            "id": "ad018ae6-6f6b-4d97-acf5-91838cf54160",
+            "name": "나비",
+            "title": "에니시테의 화공",
+            "summary": "이 인물의 역할을 적어보세요.",
+            "majorActions": [],
+            "x": 750,
+            "y": 398,
+            "color": "#fef3c7",
+            "size": 90
+          },
+          {
+            "id": "39bfb993-9c6f-424b-9e33-7da2b22bc1a2",
+            "name": "올리브",
+            "title": "에니시테의 화공",
+            "summary": "이 인물의 역할을 적어보세요.",
+            "majorActions": [],
+            "x": 752,
+            "y": 501,
+            "color": "#f5f3ff",
+            "size": 90
+          },
+          {
+            "id": "0ee3ffb1-8b61-4803-952d-26edc4f26022",
+            "name": "황새",
+            "title": "에니시테의 화공",
+            "summary": "이 인물의 역할을 적어보세요.",
+            "majorActions": [],
+            "x": 809,
+            "y": 735,
+            "color": "#dcfce7",
+            "size": 90
           }
         ],
         "relationships": [
@@ -376,6 +409,27 @@
             "toId": "12da2db2-c2e0-4e71-b506-5982725ab46c",
             "type": "기타",
             "label": "조카"
+          },
+          {
+            "id": "3125ed46-46ce-46f3-af76-1e11c418dc46",
+            "fromId": "ad018ae6-6f6b-4d97-acf5-91838cf54160",
+            "toId": "937cdea1-e23b-4dda-a68a-49b8d44d2296",
+            "type": "기타",
+            "label": "화공"
+          },
+          {
+            "id": "ca7d46d3-66f1-487a-9877-a029c13e7c60",
+            "fromId": "39bfb993-9c6f-424b-9e33-7da2b22bc1a2",
+            "toId": "937cdea1-e23b-4dda-a68a-49b8d44d2296",
+            "type": "기타",
+            "label": "화공"
+          },
+          {
+            "id": "0ecbb856-9181-4a70-a86f-71d3283636e9",
+            "fromId": "0ee3ffb1-8b61-4803-952d-26edc4f26022",
+            "toId": "937cdea1-e23b-4dda-a68a-49b8d44d2296",
+            "type": "기타",
+            "label": "화공"
           }
         ]
       }
