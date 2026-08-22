@@ -266,6 +266,19 @@
           "x": 608,
           "y": 232,
           "color": "#f97316"
+        },
+        {
+          "id": "3eea7cb1-be00-4df0-aa0a-8204ddf1ade0",
+          "title": "카라, 에니시테 명으로 화원 염탐",
+          "year": 0,
+          "yearLabel": "",
+          "chapter": "1",
+          "summary": "새 사건을 입력해 주세요.",
+          "tags": [],
+          "x": 343,
+          "y": 955,
+          "color": "#f59e0b",
+          "size": 220
         }
       ],
       "linkedCharacterWorkId": "8649314d-16a4-4e3d-91e1-e835efb7e499"
