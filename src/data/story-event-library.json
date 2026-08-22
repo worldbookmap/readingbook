@@ -253,6 +253,18 @@
           "x": 340,
           "y": 764,
           "color": "#ef4444"
+        },
+        {
+          "id": "261c549c-d685-4be6-8617-0aa592ed2015",
+          "title": "술탄, 에니시테에게 책 제작맡김",
+          "year": 0,
+          "yearLabel": "",
+          "chapter": "챕터 6",
+          "summary": "사건 설명을 입력해 주세요.",
+          "tags": [],
+          "x": 626,
+          "y": -354,
+          "color": "#f97316"
         }
       ],
       "linkedCharacterWorkId": "8649314d-16a4-4e3d-91e1-e835efb7e499"
