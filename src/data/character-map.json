@@ -288,6 +288,17 @@
             "y": 735,
             "color": "#dcfce7",
             "size": 90
+          },
+          {
+            "id": "8ea9aa80-8e53-4c36-8c46-8787335c0ecb",
+            "name": "인물 21",
+            "title": "새 인물",
+            "summary": "이 인물의 역할을 적어보세요.",
+            "majorActions": [],
+            "x": -119,
+            "y": 556,
+            "color": "#fee2e2",
+            "size": 220
           }
         ],
         "relationships": [
@@ -430,6 +441,13 @@
             "toId": "937cdea1-e23b-4dda-a68a-49b8d44d2296",
             "type": "기타",
             "label": "화공"
+          },
+          {
+            "id": "edge-1787448884293",
+            "fromId": "806435f5-f6c7-4aa9-bdf6-f00f798b34ad",
+            "toId": "a25959e2-d6fd-4add-9d12-bf5d9a3194ac",
+            "type": "기타",
+            "label": "카라의 편지를 하산에게 읽어주라함"
           }
         ]
       }
