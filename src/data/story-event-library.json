@@ -301,10 +301,23 @@
           "chapter": "1",
           "summary": "새 사건을 입력해 주세요.",
           "tags": [],
-          "x": -1,
-          "y": 1379,
+          "x": 312,
+          "y": 1447,
           "color": "#2563eb",
-          "size": 220
+          "size": 290
+        },
+        {
+          "id": "c23b1d45-74b5-47ca-9d22-cac05ad577b1",
+          "title": "엘레강스 장례식 진행",
+          "year": 0,
+          "yearLabel": "",
+          "chapter": "",
+          "summary": "살인자도 참여",
+          "tags": [],
+          "x": 150,
+          "y": 570,
+          "color": "#ad3e00",
+          "size": 230
         }
       ],
       "linkedCharacterWorkId": "8649314d-16a4-4e3d-91e1-e835efb7e499"
