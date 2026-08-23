@@ -171,13 +171,13 @@
           {
             "id": "623823e1-65fc-4216-9adb-529b6baa31b6",
             "name": "히이리예",
-            "title": "하녀",
-            "summary": "이 인물의 역할을 적어보세요.",
+            "title": "에니시테의 하녀",
+            "summary": "에니시테와 동침",
             "majorActions": [],
-            "x": 301,
-            "y": 845,
-            "color": "#ecfeff",
-            "size": 100
+            "x": 322,
+            "y": 927,
+            "color": "#b92d5d",
+            "size": 60
           },
           {
             "id": "0efa1a76-b1c0-4c3b-a76f-6a49e99d3f6d",
@@ -229,8 +229,8 @@
             "title": "서큐레남편의 동생",
             "summary": "형수 사랑함",
             "majorActions": [],
-            "x": 536,
-            "y": 471,
+            "x": 619,
+            "y": 515,
             "color": "#7d7d7d",
             "size": 100
           },
@@ -298,6 +298,39 @@
             "x": -119,
             "y": 556,
             "color": "#fee2e2",
+            "size": 220
+          },
+          {
+            "id": "57ca4675-63e2-41c7-bae3-cd10e503e471",
+            "name": "인물 22",
+            "title": "새 인물",
+            "summary": "이 인물의 역할을 적어보세요.",
+            "majorActions": [],
+            "x": 695,
+            "y": 631,
+            "color": "#fdf2f8",
+            "size": 220
+          },
+          {
+            "id": "a0989862-ea5b-4b4d-9740-6b29db202dc4",
+            "name": "인물 23",
+            "title": "새 인물",
+            "summary": "이 인물의 역할을 적어보세요.",
+            "majorActions": [],
+            "x": 558,
+            "y": 374,
+            "color": "#eff6ff",
+            "size": 220
+          },
+          {
+            "id": "22386422-3b56-4d29-bcbc-db1f30bed65b",
+            "name": "인물 24",
+            "title": "새 인물",
+            "summary": "이 인물의 역할을 적어보세요.",
+            "majorActions": [],
+            "x": 530,
+            "y": 1059,
+            "color": "#ecfeff",
             "size": 220
           }
         ],
@@ -448,6 +481,13 @@
             "toId": "a25959e2-d6fd-4add-9d12-bf5d9a3194ac",
             "type": "기타",
             "label": "카라의 편지를 하산에게 읽어주라함"
+          },
+          {
+            "id": "97dc6a06-6e0b-4b33-ae2f-01af6b358ef1",
+            "fromId": "623823e1-65fc-4216-9adb-529b6baa31b6",
+            "toId": "937cdea1-e23b-4dda-a68a-49b8d44d2296",
+            "type": "기타",
+            "label": "하녀"
           }
         ]
       }
