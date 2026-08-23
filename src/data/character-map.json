@@ -72,7 +72,7 @@
           {
             "id": "44bfad71-8628-49e5-912e-076404759619",
             "name": "엘레강스",
-            "title": "죽은자",
+            "title": "죽은자, 수요일",
             "summary": "금박 담당 세밀화가\n이니시테: 다르게 그림을 그리는 것이 다르게 본다?",
             "majorActions": [],
             "x": 755,
@@ -119,8 +119,8 @@
             "title": "새 인물",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
-            "x": 252,
-            "y": 47,
+            "x": 189,
+            "y": -331,
             "color": "#fefb41",
             "size": 100
           },
@@ -259,7 +259,7 @@
           {
             "id": "ad018ae6-6f6b-4d97-acf5-91838cf54160",
             "name": "나비",
-            "title": "에니시테의 화공",
+            "title": "세밀화가, 일요일",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
             "x": 750,
@@ -270,7 +270,7 @@
           {
             "id": "39bfb993-9c6f-424b-9e33-7da2b22bc1a2",
             "name": "올리브",
-            "title": "에니시테의 화공",
+            "title": "세밀화가,  화요일",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
             "x": 752,
@@ -281,11 +281,11 @@
           {
             "id": "0ee3ffb1-8b61-4803-952d-26edc4f26022",
             "name": "황새",
-            "title": "에니시테의 화공",
+            "title": "세밀화가, 금요일",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
-            "x": 809,
-            "y": 735,
+            "x": 769,
+            "y": 631,
             "color": "#dcfce7",
             "size": 90
           },
@@ -301,37 +301,15 @@
             "size": 220
           },
           {
-            "id": "57ca4675-63e2-41c7-bae3-cd10e503e471",
-            "name": "인물 22",
-            "title": "새 인물",
-            "summary": "이 인물의 역할을 적어보세요.",
-            "majorActions": [],
-            "x": 695,
-            "y": 631,
-            "color": "#fdf2f8",
-            "size": 220
-          },
-          {
-            "id": "a0989862-ea5b-4b4d-9740-6b29db202dc4",
-            "name": "인물 23",
-            "title": "새 인물",
-            "summary": "이 인물의 역할을 적어보세요.",
-            "majorActions": [],
-            "x": 558,
-            "y": 374,
-            "color": "#eff6ff",
-            "size": 220
-          },
-          {
             "id": "22386422-3b56-4d29-bcbc-db1f30bed65b",
-            "name": "인물 24",
-            "title": "새 인물",
-            "summary": "이 인물의 역할을 적어보세요.",
+            "name": "목요일",
+            "title": "세밀화가",
+            "summary": "젊은 나이에 죽음",
             "majorActions": [],
-            "x": 530,
-            "y": 1059,
+            "x": 768,
+            "y": 753,
             "color": "#ecfeff",
-            "size": 220
+            "size": 90
           }
         ],
         "relationships": [
