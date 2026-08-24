@@ -97,8 +97,8 @@
             "title": "살인자",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
-            "x": 962,
-            "y": 348,
+            "x": 948,
+            "y": 276,
             "color": "#ecfeff",
             "size": 170
           },
@@ -177,7 +177,7 @@
             "x": 322,
             "y": 927,
             "color": "#b92d5d",
-            "size": 60
+            "size": 90
           },
           {
             "id": "0efa1a76-b1c0-4c3b-a76f-6a49e99d3f6d",
@@ -284,21 +284,10 @@
             "title": "세밀화가, 금요일",
             "summary": "이 인물의 역할을 적어보세요.",
             "majorActions": [],
-            "x": 769,
-            "y": 631,
+            "x": 755,
+            "y": 613,
             "color": "#dcfce7",
             "size": 90
-          },
-          {
-            "id": "8ea9aa80-8e53-4c36-8c46-8787335c0ecb",
-            "name": "인물 21",
-            "title": "새 인물",
-            "summary": "이 인물의 역할을 적어보세요.",
-            "majorActions": [],
-            "x": -119,
-            "y": 556,
-            "color": "#fee2e2",
-            "size": 220
           },
           {
             "id": "22386422-3b56-4d29-bcbc-db1f30bed65b",
@@ -306,8 +295,8 @@
             "title": "세밀화가",
             "summary": "젊은 나이에 죽음",
             "majorActions": [],
-            "x": 768,
-            "y": 753,
+            "x": 744,
+            "y": 729,
             "color": "#ecfeff",
             "size": 90
           }
