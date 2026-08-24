@@ -308,6 +308,32 @@
           "y": 1686,
           "color": "#ad3e00",
           "size": 230
+        },
+        {
+          "id": "4b4d802e-9e03-4a17-8b3b-a4236e555559",
+          "title": "살인자, 에니시테 찾아감",
+          "year": 0,
+          "yearLabel": "",
+          "chapter": "1",
+          "summary": "새 사건을 입력해 주세요.",
+          "tags": [],
+          "x": 355,
+          "y": 2046,
+          "color": "#7c3aed",
+          "size": 220
+        },
+        {
+          "id": "b50ad826-8b52-48e4-805e-87a27e633ebf",
+          "title": "카라-세큐레 유대인집에서 밀회",
+          "year": 0,
+          "yearLabel": "",
+          "chapter": "1",
+          "summary": "새 사건을 입력해 주세요.",
+          "tags": [],
+          "x": 106.66810319747455,
+          "y": 410,
+          "color": "#ef4444",
+          "size": 220
         }
       ],
       "linkedCharacterWorkId": "8649314d-16a4-4e3d-91e1-e835efb7e499"
