@@ -563,7 +563,7 @@ export function StoryEventTimeline() {
       title: eventDraft.title.trim(),
       year,
       yearLabel,
-      chapter: eventDraft.chapter.trim() || `챕터 ${nextIndex + 1}`,
+      chapter: eventDraft.chapter.trim(),
       summary: eventDraft.summary.trim() || "사건 설명을 입력해 주세요.",
       tags: eventDraft.tags
         .split(",")
@@ -588,7 +588,7 @@ export function StoryEventTimeline() {
     setEventDraft(defaultEventDraft);
   }
 
-  function createEventAtBoardPosition(x: number, y: number, initialTitle?: string) {
+  function createEventAtBoardPosition(clickX: number, clickY: number, initialTitle?: string) {
     if (!selectedWork) {
       return;
     }
@@ -599,11 +599,11 @@ export function StoryEventTimeline() {
       title: initialTitle ?? `사건 ${nextIndex + 1}`,
       year: 0,
       yearLabel: "",
-      chapter: `챕터 ${nextIndex + 1}`,
+      chapter: "",
       summary: "새 사건을 입력해 주세요.",
       tags: [],
-      x: clamp(x, 30, Math.max(30, boardMetrics.width - cardWidth)),
-      y: clamp(y, 30, Math.max(30, boardMetrics.height - cardHeight)),
+      x: clamp(clickX - cardWidth / 2, 30, Math.max(30, boardMetrics.width - cardWidth)),
+      y: clamp(clickY - cardHeight / 2, 30, Math.max(30, boardMetrics.height - cardHeight)),
       color: eventPalette[nextIndex % eventPalette.length],
     };
 
@@ -1169,7 +1169,7 @@ export function StoryEventTimeline() {
                   const boardPointerY = (event.clientY - rect.top - boardPan.y) / timelineZoom;
 
                   emptyBoardTimerRef.current = window.setTimeout(() => {
-                    createEventAtBoardPosition(boardPointerX - cardWidth / 2, boardPointerY - cardHeight / 2);
+                    createEventAtBoardPosition(boardPointerX, boardPointerY);
                   }, 650);
                   beginBoardDrag(event);
                 }}
@@ -1186,7 +1186,7 @@ export function StoryEventTimeline() {
 
                   const boardPointerX = (event.clientX - rect.left - boardPan.x) / timelineZoom;
                   const boardPointerY = (event.clientY - rect.top - boardPan.y) / timelineZoom;
-                  createEventAtBoardPosition(boardPointerX - cardWidth / 2, boardPointerY - cardHeight / 2, `새 사건 ${selectedWork.events.length + 1}`);
+                  createEventAtBoardPosition(boardPointerX, boardPointerY, `새 사건 ${selectedWork.events.length + 1}`);
                 }}
                 onWheel={(event) => {
                   event.preventDefault();
@@ -1303,7 +1303,7 @@ export function StoryEventTimeline() {
                     onNodeClick={(node) => setSelectedEventId(node.id)}
                     onNodeDoubleClick={(node) => openDetailModal(node.id)}
                     onNodeDragStop={handleFlowNodeDragStop}
-                    onCreateEvent={(position) => createEventAtBoardPosition(position.x - cardWidth / 2, position.y - cardHeight / 2)}
+                    onCreateEvent={(position) => createEventAtBoardPosition(position.x, position.y)}
                     showMiniMap={showMiniMap}
                   />
                 </ReactFlowProvider>
@@ -1471,18 +1471,8 @@ export function StoryEventTimeline() {
                 />
                 <input
                   value={eventDraft.chapter}
-                  onFocus={(event) => {
-                    clearDefaultValueIfNeeded(
-                      eventDraft.chapter,
-                      ["새 장면", "장면 or 챕터"],
-                      (nextValue) => {
-                        setEventDraft((current) => ({ ...current, chapter: nextValue }));
-                      },
-                      event,
-                    );
-                  }}
                   onChange={(event) => setEventDraft((current) => ({ ...current, chapter: event.target.value }))}
-                  placeholder="장면 or 챕터"
+                  placeholder="chapter"
                   className={inputClassName}
                 />
                 <textarea
