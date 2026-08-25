@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useEffect, useMemo, useState } from "react";
 import {
   Background,
   Connection,
@@ -198,7 +198,6 @@ type CharacterMapFlowProps = {
   onEdgeClick: (event: { clientX: number; clientY: number }, edge: Edge) => void;
   onNodeDoubleClick: (event: { clientX: number; clientY: number }, node: Node) => void;
   addNodeAtPosition: (position?: { x: number; y: number }) => void;
-  longPressTimerRef: React.RefObject<number | null>;
   showMiniMap: boolean;
 };
 
@@ -212,7 +211,6 @@ function CharacterMapFlow({
   onEdgeClick,
   onNodeDoubleClick,
   addNodeAtPosition,
-  longPressTimerRef,
   showMiniMap,
 }: CharacterMapFlowProps) {
   const reactFlowInstance = useReactFlow();
@@ -231,30 +229,6 @@ function CharacterMapFlow({
         const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY });
         if (event.detail === 2) {
           addNodeAtPosition(position);
-        }
-      }}
-      onPointerDown={(event) => {
-        if (event.target instanceof HTMLElement && event.target.closest(".react-flow__node")) return;
-
-        if (longPressTimerRef.current) {
-          window.clearTimeout(longPressTimerRef.current);
-        }
-
-        longPressTimerRef.current = window.setTimeout(() => {
-          const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY });
-          addNodeAtPosition(position);
-        }, 600);
-      }}
-      onPointerUp={() => {
-        if (longPressTimerRef.current) {
-          window.clearTimeout(longPressTimerRef.current);
-          longPressTimerRef.current = null;
-        }
-      }}
-      onPointerLeave={() => {
-        if (longPressTimerRef.current) {
-          window.clearTimeout(longPressTimerRef.current);
-          longPressTimerRef.current = null;
         }
       }}
       nodeTypes={nodeTypes}
@@ -316,7 +290,6 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const [remoteEnabled, setRemoteEnabled] = useState(false);
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
   const [showMiniMap, setShowMiniMap] = useState(false);
-  const longPressTimerRef = useRef<number | null>(null);
   const [savedSnapshot, setSavedSnapshot] = useState(JSON.stringify(library));
 
   const selectedWork = useMemo(
@@ -1091,7 +1064,6 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                 openDetailModal(node.id);
               }}
               addNodeAtPosition={addNodeAtPosition}
-              longPressTimerRef={longPressTimerRef}
               showMiniMap={showMiniMap}
             />
           </ReactFlowProvider>
