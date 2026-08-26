@@ -308,7 +308,6 @@ export function KeywordMindmap() {
   const [documentTitle, setDocumentTitle] = useState("문서 1");
   const [newDocumentTitle, setNewDocumentTitle] = useState("");
   const [isNewDocumentModalOpen, setIsNewDocumentModalOpen] = useState(false);
-  const [editingDocumentId, setEditingDocumentId] = useState<string | null>(null);
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
   const [editingEdgeId, setEditingEdgeId] = useState<string | null>(null);
   const [nodeDraft, setNodeDraft] = useState({ label: "", category: "", description: "", tags: "", color: "#f5f3ff", size: "200" });
@@ -683,34 +682,11 @@ export function KeywordMindmap() {
 
   function openNewDocumentModal() {
     setNewDocumentTitle("");
-    setEditingDocumentId(null);
     setIsNewDocumentModalOpen(true);
   }
 
   function createNewDocument() {
     const trimmedTitle = newDocumentTitle.trim();
-
-    if (editingDocumentId) {
-      const target = documents.find((document) => document.id === editingDocumentId);
-      if (!target) return;
-
-      const nextTitle = trimmedTitle || target.title;
-      setDocuments((current) =>
-        current.map((document) =>
-          document.id === editingDocumentId
-            ? { ...document, title: nextTitle, updatedAt: new Date().toISOString() }
-            : document,
-        ),
-      );
-      if (selectedDocumentId === editingDocumentId) {
-        setDocumentTitle(nextTitle);
-      }
-      setNewDocumentTitle("");
-      setEditingDocumentId(null);
-      setIsNewDocumentModalOpen(false);
-      return;
-    }
-
     const nextIndex = documents.length + 1;
     const documentName = trimmedTitle || `문서 ${nextIndex}`;
     const blankMap = {
@@ -741,9 +717,9 @@ export function KeywordMindmap() {
     const target = documents.find((document) => document.id === documentId);
     if (!target) return;
 
-    setEditingDocumentId(target.id);
-    setNewDocumentTitle(target.title);
-    setIsNewDocumentModalOpen(true);
+    setSelectedDocumentId(target.id);
+    setDocumentTitle(target.title);
+    applyDocument(target);
   }
 
   function loadDocument(documentId: string) {
@@ -907,14 +883,11 @@ export function KeywordMindmap() {
             <div className="flex items-center justify-between gap-3 pb-3">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-500">new document</p>
-                <h3 className="text-lg font-semibold text-slate-900">{editingDocumentId ? "문서 이름 수정" : "새 문서 만들기"}</h3>
+                <h3 className="text-lg font-semibold text-slate-900">새 문서 만들기</h3>
               </div>
               <button
                 type="button"
-                onClick={() => {
-                  setEditingDocumentId(null);
-                  setIsNewDocumentModalOpen(false);
-                }}
+                onClick={() => setIsNewDocumentModalOpen(false)}
                 className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-600"
               >
                 닫기
@@ -933,10 +906,7 @@ export function KeywordMindmap() {
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    setEditingDocumentId(null);
-                    setIsNewDocumentModalOpen(false);
-                  }}
+                  onClick={() => setIsNewDocumentModalOpen(false)}
                   className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700"
                 >
                   취소
@@ -946,7 +916,7 @@ export function KeywordMindmap() {
                   onClick={createNewDocument}
                   className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white"
                 >
-                  {editingDocumentId ? "저장" : "만들기"}
+                  만들기
                 </button>
               </div>
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useEffect, useMemo, useState } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
   Connection,
@@ -48,39 +48,6 @@ type Props = {
 };
 
 const colorPalette = ["#fdf2f8", "#eff6ff", "#ecfeff", "#fef3c7", "#f5f3ff", "#dcfce7", "#fee2e2"];
-
-function addRoleRelationship(
-  sourceId: string,
-  subtitle: string,
-  nodes: CharacterFlowNode[],
-  edges: CharacterFlowEdge[],
-): CharacterFlowEdge[] {
-  const match = subtitle.trim().match(/^(.+?)의\s+(.+)$/);
-  if (!match) return edges;
-
-  const targetName = match[1].trim();
-  const linkLabel = match[2].trim();
-  const targetNode = nodes.find((node) => node.id !== sourceId && node.data.label.trim() === targetName);
-
-  if (!targetNode || edges.some((edge) => edge.source === sourceId && edge.target === targetNode.id && edge.label === linkLabel)) {
-    return edges;
-  }
-
-  return [
-    ...edges,
-    {
-      id: crypto.randomUUID(),
-      source: sourceId,
-      target: targetNode.id,
-      label: linkLabel,
-      type: "smoothstep",
-      animated: true,
-      data: { type: "기타", label: linkLabel },
-      style: { stroke: "#64748b" },
-      markerEnd: { type: MarkerType.ArrowClosed, color: "#64748b" },
-    },
-  ];
-}
 
 function toReactNodes(nodes: CharacterNode[]): CharacterFlowNode[] {
   return nodes.map((node, index) => ({
@@ -198,6 +165,7 @@ type CharacterMapFlowProps = {
   onEdgeClick: (event: { clientX: number; clientY: number }, edge: Edge) => void;
   onNodeDoubleClick: (event: { clientX: number; clientY: number }, node: Node) => void;
   addNodeAtPosition: (position?: { x: number; y: number }) => void;
+  longPressTimerRef: React.RefObject<number | null>;
   showMiniMap: boolean;
 };
 
@@ -211,6 +179,7 @@ function CharacterMapFlow({
   onEdgeClick,
   onNodeDoubleClick,
   addNodeAtPosition,
+  longPressTimerRef,
   showMiniMap,
 }: CharacterMapFlowProps) {
   const reactFlowInstance = useReactFlow();
@@ -229,6 +198,30 @@ function CharacterMapFlow({
         const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY });
         if (event.detail === 2) {
           addNodeAtPosition(position);
+        }
+      }}
+      onPointerDown={(event) => {
+        if (event.target instanceof HTMLElement && event.target.closest(".react-flow__node")) return;
+
+        if (longPressTimerRef.current) {
+          window.clearTimeout(longPressTimerRef.current);
+        }
+
+        longPressTimerRef.current = window.setTimeout(() => {
+          const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY });
+          addNodeAtPosition(position);
+        }, 600);
+      }}
+      onPointerUp={() => {
+        if (longPressTimerRef.current) {
+          window.clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
+        }
+      }}
+      onPointerLeave={() => {
+        if (longPressTimerRef.current) {
+          window.clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
         }
       }}
       nodeTypes={nodeTypes}
@@ -290,6 +283,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   const [remoteEnabled, setRemoteEnabled] = useState(false);
   const [remoteSha, setRemoteSha] = useState<string | null>(null);
   const [showMiniMap, setShowMiniMap] = useState(false);
+  const longPressTimerRef = useRef<number | null>(null);
   const [savedSnapshot, setSavedSnapshot] = useState(JSON.stringify(library));
 
   const selectedWork = useMemo(
@@ -567,7 +561,6 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
   function handleNodeSave() {
     if (!selectedNodeId || !nodeDraft) return;
 
-    const subtitle = nodeDraft.subtitle.trim() || "새 인물";
     const nextNodes = nodes.map((node) =>
       node.id === selectedNodeId
         ? {
@@ -575,19 +568,17 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
             data: {
               ...node.data,
               label: nodeDraft.label.trim() || "새 인물",
-              subtitle,
+              subtitle: nodeDraft.subtitle.trim() || "새 인물",
               summary: nodeDraft.summary.trim(),
               color: nodeDraft.color,
-              size: Math.max(30, Math.min(250, Number(nodeDraft.size) || 220)),
+              size: Math.max(160, Math.min(340, Number(nodeDraft.size) || 220)),
             },
           }
         : node,
     );
 
-    const nextEdges = addRoleRelationship(selectedNodeId, subtitle, nextNodes, edges);
     setNodes(nextNodes);
-    setEdges(nextEdges);
-    updateSelectedWorkSeed(nextNodes, nextEdges);
+    updateSelectedWorkSeed(nextNodes, edges);
     setIsEditing(false);
     setIsDetailModalOpen(false);
     setSelectedNodeId(null);
@@ -1064,6 +1055,7 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                 openDetailModal(node.id);
               }}
               addNodeAtPosition={addNodeAtPosition}
+              longPressTimerRef={longPressTimerRef}
               showMiniMap={showMiniMap}
             />
           </ReactFlowProvider>
@@ -1418,8 +1410,8 @@ export function CharacterMapClient({ library, defaultWorkId }: Props) {
                     </label>
                     <input
                       type="range"
-                      min="30"
-                      max="250"
+                      min="160"
+                      max="340"
                       step="10"
                       value={nodeDraft.size}
                       onChange={(event) => setNodeDraft((current) => (current ? { ...current, size: event.target.value } : current))}
