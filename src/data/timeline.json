@@ -15,6 +15,18 @@
       "order": 0
     },
     {
+      "id": "f3db3ac4-2359-4956-a1c4-e1f6432d5e3d",
+      "region": "서유럽",
+      "year": 476,
+      "yearLabel": "476",
+      "title": "서로마 멸망",
+      "description": "설명을 입력해 주세요.",
+      "tags": [],
+      "color": "#f59e0b",
+      "size": 260,
+      "order": 1
+    },
+    {
       "id": "eueast-330",
       "region": "동유럽",
       "year": 330,
@@ -39,6 +51,42 @@
       "color": "#f59e0b",
       "size": 350,
       "order": 1
+    },
+    {
+      "id": "d0d73466-4cfc-414c-98c1-2ed6682f690a",
+      "region": "동유럽",
+      "year": 1054,
+      "yearLabel": "1054",
+      "title": "동/서 교회 정식 결별 선언",
+      "description": "십자가와 우상숭배 논쟁\n콘스탄티노플: 동로마교회로서 그리스 정교의 본산",
+      "tags": [],
+      "color": "#f59e0b",
+      "size": 320,
+      "order": 2
+    },
+    {
+      "id": "90118bf6-3dbe-445b-9176-c39356b4d4ce",
+      "region": "동유럽",
+      "year": 1203,
+      "yearLabel": "1203",
+      "title": "4차십자군 원정 중 콘스탄티노플 약탈",
+      "description": "",
+      "tags": [],
+      "color": "#f59e0b",
+      "size": 320,
+      "order": 3
+    },
+    {
+      "id": "c3be4909-c17b-4343-a360-76d320681747",
+      "region": "동유럽",
+      "year": 1453,
+      "yearLabel": "1453",
+      "title": "오스만제국, 콘스탄티노플 점령",
+      "description": "오스만 제국의 술탄 메흐메트 2세에 의해 점령당하고 이스탄불로 이름 바뀜",
+      "tags": [],
+      "color": "#f59e0b",
+      "size": 320,
+      "order": 4
     },
     {
       "id": "asia-1443",
@@ -499,51 +547,18 @@
       "order": 15
     },
     {
-      "id": "f3db3ac4-2359-4956-a1c4-e1f6432d5e3d",
-      "region": "서유럽",
-      "year": 476,
-      "yearLabel": "476",
-      "title": "서로마 멸망",
-      "description": "설명을 입력해 주세요.",
-      "tags": [],
-      "color": "#f59e0b",
-      "size": 260,
-      "order": 1
-    },
-    {
-      "id": "d0d73466-4cfc-414c-98c1-2ed6682f690a",
-      "region": "동유럽",
-      "year": 1054,
-      "yearLabel": "1054",
-      "title": "동/서 교회 정식 결별 선언",
-      "description": "십자가와 우상숭배 논쟁\n콘스탄티노플: 동로마교회로서 그리스 정교의 본산",
-      "tags": [],
-      "color": "#f59e0b",
-      "size": 320,
-      "order": 2
-    },
-    {
-      "id": "90118bf6-3dbe-445b-9176-c39356b4d4ce",
-      "region": "동유럽",
-      "year": 1203,
-      "yearLabel": "1203",
-      "title": "4차십자군 원정 중 콘스탄티노플 약탈",
-      "description": "",
-      "tags": [],
-      "color": "#f59e0b",
-      "size": 320,
-      "order": 2
-    },
-    {
-      "id": "c3be4909-c17b-4343-a360-76d320681747",
-      "region": "동유럽",
-      "year": 1453,
-      "yearLabel": "1453",
-      "title": "오스만제국, 콘스탄티노플 점령",
-      "description": "오스만 제국의 술탄 메흐메트 2세에 의해 점령당하고 이스탄불로 이름 바뀜",
-      "tags": [],
-      "color": "#f59e0b",
-      "size": 320,
+      "id": "902302eb-11c8-4a43-97e6-8114864cbe42",
+      "region": "기타",
+      "year": 335,
+      "yearLabel": "335",
+      "title": "성묘교회",
+      "description": "콘스탄티누스가 즉위 30주년을 앞드고 골고다 언덕 무덤 위에 교회 설립",
+      "tags": [
+        "기독교",
+        "비잔티움"
+      ],
+      "color": "#263e0f",
+      "size": 310,
       "order": 2
     }
   ]
