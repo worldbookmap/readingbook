@@ -560,6 +560,18 @@
       "color": "#f59e0b",
       "size": 350,
       "order": 15
+    },
+    {
+      "id": "b7b43a59-f82c-405f-9062-38cf8ad67087",
+      "region": "동유럽",
+      "year": 1923,
+      "yearLabel": "1923",
+      "title": "터키공화국 수립",
+      "description": "오스만 왕정 무너짐",
+      "tags": [],
+      "color": "#0a64f5",
+      "size": 320,
+      "order": 2
     }
   ]
 }
