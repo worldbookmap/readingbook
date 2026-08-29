@@ -27,6 +27,20 @@
       "order": 1
     },
     {
+      "id": "95afa776-1239-4c9d-9a20-781e672d5855",
+      "region": "서유럽",
+      "year": 64,
+      "yearLabel": "64",
+      "title": "로마 대화재",
+      "description": "네로황제는 책임을 기독교도들에게 돌림",
+      "tags": [
+        "로마"
+      ],
+      "color": "#f59e0b",
+      "size": 330,
+      "order": 2
+    },
+    {
       "id": "eueast-330",
       "region": "동유럽",
       "year": 330,
@@ -574,18 +588,18 @@
       "order": 15
     },
     {
-      "id": "95afa776-1239-4c9d-9a20-781e672d5855",
+      "id": "b3ee4246-7b8b-473a-a59b-a1c8e22a0f9d",
       "region": "서유럽",
-      "year": 64,
-      "yearLabel": "64",
-      "title": "로마 대화재",
-      "description": "네로황제는 책임을 기독교도들에게 돌림",
+      "year": 313,
+      "yearLabel": "313",
+      "title": "밀라노 칙령",
+      "description": "서기 313년 로마 제국의 황제 콘스탄티누스 1세와 리키니우스가 합의하여 발표한, 기독교를 포함한 모든 종교의 자유를 공인한 선언\n기독교도들 박해 벗어남",
       "tags": [
         "로마"
       ],
       "color": "#f59e0b",
       "size": 330,
-      "order": 2
+      "order": 3
     }
   ]
 }
