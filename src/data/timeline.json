@@ -524,6 +524,21 @@
       "order": 6
     },
     {
+      "id": "164b5997-8bd0-4290-a157-ab488c3ba52b",
+      "region": "이스라엘지역",
+      "year": 692,
+      "yearLabel": "692",
+      "title": "바위의 돔 건설",
+      "description": "설명을 입력해 주세요.",
+      "tags": [
+        "이슬람",
+        "예루살렘"
+      ],
+      "color": "#f59e0b",
+      "size": 320,
+      "order": 7
+    },
+    {
       "id": "c4855f88-791f-45d7-8626-d568efb653fb",
       "region": "이스라엘지역",
       "year": -1021,
@@ -533,7 +548,7 @@
       "tags": [],
       "color": "#f59e0b",
       "size": 350,
-      "order": 7
+      "order": 8
     },
     {
       "id": "7ba1cc66-afbc-4adc-8f97-53db25853849",
@@ -545,7 +560,7 @@
       "tags": [],
       "color": "#f59e0b",
       "size": 350,
-      "order": 8
+      "order": 9
     },
     {
       "id": "77c7b58c-15fc-43ee-8495-fcec464af9de",
@@ -557,7 +572,7 @@
       "tags": [],
       "color": "#f59e0b",
       "size": 350,
-      "order": 9
+      "order": 10
     },
     {
       "id": "5d6816f4-e4d4-490c-8f35-42d738fe25be",
@@ -569,7 +584,7 @@
       "tags": [],
       "color": "#f59e0b",
       "size": 350,
-      "order": 10
+      "order": 11
     },
     {
       "id": "250f19e7-4175-49d6-b7ce-8182ccb8e160",
@@ -581,7 +596,7 @@
       "tags": [],
       "color": "#f59e0b",
       "size": 350,
-      "order": 11
+      "order": 12
     },
     {
       "id": "3c126c59-9f55-4430-a39a-3bf55ecdc6a8",
@@ -593,7 +608,7 @@
       "tags": [],
       "color": "#f59e0b",
       "size": 350,
-      "order": 12
+      "order": 13
     },
     {
       "id": "a5c6a184-6b44-4d1c-b164-c2dd2ba76042",
@@ -605,7 +620,7 @@
       "tags": [],
       "color": "#f59e0b",
       "size": 350,
-      "order": 13
+      "order": 14
     },
     {
       "id": "3af1f6c6-bc23-46b9-b4be-e361e8cea74f",
@@ -617,7 +632,7 @@
       "tags": [],
       "color": "#f59e0b",
       "size": 350,
-      "order": 14
+      "order": 15
     },
     {
       "id": "42d7869c-b230-45b0-b5fc-5aa029b5b677",
@@ -629,18 +644,31 @@
       "tags": [],
       "color": "#f59e0b",
       "size": 350,
-      "order": 15
+      "order": 16
     },
     {
-      "id": "164b5997-8bd0-4290-a157-ab488c3ba52b",
-      "region": "이스라엘지역",
-      "year": 692,
-      "yearLabel": "692",
-      "title": "바위의 돔 건설",
+      "id": "6856ea34-da9c-4eea-a3cc-f40cb097ee90",
+      "region": "동유럽",
+      "year": 0,
+      "yearLabel": "730 ~ 787",
+      "title": "성상파괴운동 1차",
       "description": "설명을 입력해 주세요.",
       "tags": [
-        "이슬람",
-        "예루살렘"
+        "비잔티움"
+      ],
+      "color": "#f59e0b",
+      "size": 330,
+      "order": 6
+    },
+    {
+      "id": "cb27c02e-4e2e-44c6-bef1-db9ee33ecbbb",
+      "region": "동유럽",
+      "year": 0,
+      "yearLabel": "815 ~ 843",
+      "title": "성상파괴 2차",
+      "description": "설명을 입력해 주세요.",
+      "tags": [
+        "비잔티움"
       ],
       "color": "#f59e0b",
       "size": 320,
