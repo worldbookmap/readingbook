@@ -1277,6 +1277,7 @@ export function TimelineBoard({ initialCards }: Props) {
                 <div className="bg-emerald-100 px-4 py-3 text-sm font-semibold text-emerald-900">연도</div>
                 {regionNames.map((region) => {
                   const accent = getRegionAccent(region);
+                  const regionColor = getRegionCardColor(region);
 
                   return (
                     <div
@@ -1290,6 +1291,7 @@ export function TimelineBoard({ initialCards }: Props) {
                       }}
                       onDragEnd={() => setDraggedRegion(null)}
                       className={`cursor-grab border-b bg-gradient-to-br px-4 py-3 text-sm font-semibold transition active:cursor-grabbing ${accent}`}
+                      style={{ backgroundColor: regionColor, borderColor: `${regionColor}80` }}
                     >
                       {region}
                     </div>
@@ -1309,9 +1311,14 @@ export function TimelineBoard({ initialCards }: Props) {
                       const matchingCards = summaryCards
                         .filter((card) => card.region === region && card.year === row.year)
                         .sort((left, right) => compareCards(left, right, regionNames));
+                      const regionColor = getRegionCardColor(region);
 
                       return (
-                        <div key={`${row.year}-${region}`} className="bg-white px-4 py-4 text-sm text-slate-600">
+                        <div
+                          key={`${row.year}-${region}`}
+                          className="px-4 py-4 text-sm text-slate-600"
+                          style={{ backgroundColor: `${regionColor}18`, borderLeft: `4px solid ${regionColor}` }}
+                        >
                           {matchingCards.length > 0 ? (
                             <div className="space-y-2">
                               {matchingCards.map((card) => (
@@ -1320,7 +1327,11 @@ export function TimelineBoard({ initialCards }: Props) {
                                   type="button"
                                   onClick={() => setActiveId(card.id)}
                                   onDoubleClick={() => openCardModal(card.id)}
-                                  className="block rounded-2xl bg-slate-50 px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+                                  className="block w-full rounded-2xl border px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:brightness-95"
+                                  style={{
+                                    backgroundColor: `${regionColor}30`,
+                                    borderColor: `${regionColor}80`,
+                                  }}
                                 >
                                   {card.title}
                                 </button>
