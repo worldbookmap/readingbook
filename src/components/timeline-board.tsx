@@ -21,16 +21,16 @@ const defaultRegions: TimelineRegion[] = ["서유럽", "동유럽", "아시아",
 const storageKey = "readingbook-timeline";
 const eraOptions = ["전체", "고대", "중세", "근대", "현대"] as const;
 const cardColors = ["#f59e0b", "#38bdf8", "#a78bfa", "#34d399", "#fb7185", "#f97316"];
-const fixedCardSize = 260;
+const fixedCardSize = 320;
 
 function getRegionCardColor(region: TimelineRegion) {
   const regionColorMap: Record<TimelineRegion, string> = {
-    서유럽: "#38bdf8",
-    동유럽: "#a78bfa",
-    아시아: "#f59e0b",
-    미국: "#34d399",
-    남미: "#fb7185",
-    기타: "#94a3b8",
+    서유럽: "#9cc8ff",
+    동유럽: "#c8b5ff",
+    아시아: "#ffc874",
+    미국: "#8fe0b1",
+    남미: "#ff9bb1",
+    기타: "#d7dde5",
   };
 
   return regionColorMap[region] ?? cardColors[0];
@@ -166,7 +166,12 @@ function normalizeCards(cards: TimelineCard[], regionOrder: TimelineRegion[]) {
         return left.title.localeCompare(right.title, "ko");
       });
 
-    return regionCards.map((card, index) => ({ ...card, order: index }));
+    return regionCards.map((card, index) => ({
+      ...card,
+      color: getRegionCardColor(card.region),
+      size: fixedCardSize,
+      order: index,
+    }));
   });
 }
 
@@ -233,7 +238,7 @@ const defaultDraft: DraftCard = {
   region: defaultRegions[0],
   description: "",
   tags: "",
-  color: cardColors[0],
+  color: getRegionCardColor(defaultRegions[0]),
 };
 function clearDefaultValueIfNeeded(
   currentValue: string,
@@ -495,7 +500,7 @@ export function TimelineBoard({ initialCards }: Props) {
                 .split(",")
                 .map((tag) => tag.trim())
                 .filter(Boolean),
-              color: modalDraft.color || getRegionCardColor(modalDraft.region),
+              color: getRegionCardColor(modalDraft.region),
               size: fixedCardSize,
             },
       ),
