@@ -21,6 +21,20 @@ const defaultRegions: TimelineRegion[] = ["서유럽", "동유럽", "아시아",
 const storageKey = "readingbook-timeline";
 const eraOptions = ["전체", "고대", "중세", "근대", "현대"] as const;
 const cardColors = ["#f59e0b", "#38bdf8", "#a78bfa", "#34d399", "#fb7185", "#f97316"];
+const fixedCardSize = 260;
+
+function getRegionCardColor(region: TimelineRegion) {
+  const regionColorMap: Record<TimelineRegion, string> = {
+    서유럽: "#38bdf8",
+    동유럽: "#a78bfa",
+    아시아: "#f59e0b",
+    미국: "#34d399",
+    남미: "#fb7185",
+    기타: "#94a3b8",
+  };
+
+  return regionColorMap[region] ?? cardColors[0];
+}
 
 function parseBoundYear(rawYear: string) {
   const cleaned = rawYear.trim();
@@ -94,6 +108,13 @@ function buildRegionOrder(cards: TimelineCard[]) {
   });
 
   return Array.from(regionSet);
+}
+
+function buildRegionSelectOptions(regionNames: TimelineRegion[]) {
+  return [
+    ...regionNames.map((region) => ({ value: region, label: region })),
+    { value: "__new_region__", label: "직접입력" },
+  ];
 }
 
 function compareCards(left: TimelineCard, right: TimelineCard, regionOrder: TimelineRegion[]) {
@@ -197,8 +218,6 @@ function reorderRegions(
 const inputClassName =
   "w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-800 shadow-[0_2px_8px_rgba(15,23,42,0.03)] outline-none transition-all duration-200 placeholder:text-slate-400 selection:bg-slate-200 selection:text-slate-900 hover:border-slate-300 focus:border-slate-700 focus:ring-4 focus:ring-slate-200/80 invalid:border-rose-300 invalid:text-rose-700 invalid:focus:ring-rose-100";
 const textareaClassName = `${inputClassName} h-28`;
-const secondaryButtonClassName =
-  "inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200/80";
 type DraftCard = {
   title: string;
   yearLabel: string;
@@ -206,7 +225,6 @@ type DraftCard = {
   description: string;
   tags: string;
   color: string;
-  size: string;
 };
 
 const defaultDraft: DraftCard = {
@@ -216,7 +234,6 @@ const defaultDraft: DraftCard = {
   description: "",
   tags: "",
   color: cardColors[0],
-  size: "260",
 };
 function clearDefaultValueIfNeeded(
   currentValue: string,
@@ -267,7 +284,6 @@ export function TimelineBoard({ initialCards }: Props) {
     tags: string;
     region: TimelineRegion;
     color: string;
-    size: string;
   } | null>(null);
   const [draft, setDraft] = useState<DraftCard>(defaultDraft);
   const [newRegionName, setNewRegionName] = useState("");
@@ -358,8 +374,8 @@ export function TimelineBoard({ initialCards }: Props) {
       title: "새 카드",
       description: "설명을 입력해 주세요.",
       tags: [],
-      color: cardColors[0],
-      size: 260,
+      color: getRegionCardColor(nextRegion),
+      size: fixedCardSize,
       order: cards.filter((card) => card.region === nextRegion).length,
     };
 
@@ -372,8 +388,7 @@ export function TimelineBoard({ initialCards }: Props) {
       description: "설명을 입력해 주세요.",
       tags: "",
       region: nextRegion,
-      color: cardColors[0],
-      size: "260",
+      color: getRegionCardColor(nextRegion),
     });
     setIsCreatingCard(true);
     setIsCardModalOpen(true);
@@ -390,14 +405,21 @@ export function TimelineBoard({ initialCards }: Props) {
     window.localStorage.removeItem(storageKey);
   }
 
-  function createRegion() {
-    const trimmedRegion = newRegionName.trim();
-    if (!trimmedRegion || regionNames.includes(trimmedRegion)) {
+  function createRegion(nextRegionValue?: string) {
+    const trimmedRegion = (nextRegionValue ?? newRegionName).trim();
+    if (!trimmedRegion) {
       return;
     }
 
-    setRegionNames((current) => [...current, trimmedRegion]);
-    setDraft((current) => ({ ...current, region: trimmedRegion }));
+    const nextRegion = trimmedRegion;
+    if (regionNames.some((region) => region.toLowerCase() === nextRegion.toLowerCase())) {
+      setNewRegionName("");
+      return;
+    }
+
+    setRegionNames((current) => [...current, nextRegion]);
+    setDraft((current) => ({ ...current, region: nextRegion }));
+    setModalDraft((current) => (current ? { ...current, region: nextRegion } : current));
     setNewRegionName("");
   }
 
@@ -446,8 +468,7 @@ export function TimelineBoard({ initialCards }: Props) {
       description: targetCard.description,
       tags: targetCard.tags.join(", "),
       region: targetCard.region,
-      color: targetCard.color ?? cardColors[0],
-      size: String(targetCard.size ?? 260),
+      color: targetCard.color ?? getRegionCardColor(targetCard.region),
     });
     setIsCreatingCard(false);
     setIsCardModalOpen(true);
@@ -474,8 +495,8 @@ export function TimelineBoard({ initialCards }: Props) {
                 .split(",")
                 .map((tag) => tag.trim())
                 .filter(Boolean),
-              color: modalDraft.color,
-              size: Math.max(160, Math.min(420, Number(modalDraft.size) || 260)),
+              color: modalDraft.color || getRegionCardColor(modalDraft.region),
+              size: fixedCardSize,
             },
       ),
     );
@@ -697,13 +718,28 @@ export function TimelineBoard({ initialCards }: Props) {
                   <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">지역</label>
                   <CustomSelect
                     value={modalDraft.region}
-                    onChange={(nextValue) =>
+                    onChange={(nextValue) => {
+                      if (nextValue === "__new_region__") {
+                        const entered = window.prompt("새 지역 이름을 입력하세요.", "");
+                        if (entered === null) {
+                          return;
+                        }
+
+                        const trimmed = entered.trim();
+                        if (!trimmed) {
+                          return;
+                        }
+
+                        createRegion(trimmed);
+                        return;
+                      }
+
                       setModalDraft((current) =>
                         current ? { ...current, region: nextValue as TimelineRegion } : current,
-                      )
-                    }
+                      );
+                    }}
                     className="w-full"
-                    options={regionNames.map((region) => ({ value: region, label: region }))}
+                    options={buildRegionSelectOptions(regionNames)}
                   />
                 </div>
               </div>
@@ -744,22 +780,6 @@ export function TimelineBoard({ initialCards }: Props) {
                   value={modalDraft.color}
                   onChange={(event) => setModalDraft((current) => (current ? { ...current, color: event.target.value } : current))}
                   className="h-11 w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 p-1"
-                />
-              </div>
-              <div>
-                <label className="mb-1 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                  <span>카드 크기</span>
-                  <span>{modalDraft.size}px</span>
-                </label>
-                <input
-                  type="range"
-                  min="160"
-                  max="420"
-                  step="10"
-                  value={modalDraft.size}
-                  onChange={(event) => setModalDraft((current) => (current ? { ...current, size: event.target.value } : current))}
-                  className="mt-3 w-full accent-[#b86b3d]"
-                  aria-label="카드 크기"
                 />
               </div>
             </div>
@@ -834,31 +854,31 @@ export function TimelineBoard({ initialCards }: Props) {
             />
             <CustomSelect
               value={draft.region}
-              onChange={(nextValue) =>
+              onChange={(nextValue) => {
+                if (nextValue === "__new_region__") {
+                  const entered = window.prompt("새 지역 이름을 입력하세요.", "");
+                  if (entered === null) {
+                    return;
+                  }
+
+                  const trimmed = entered.trim();
+                  if (!trimmed) {
+                    return;
+                  }
+
+                  createRegion(trimmed);
+                  setDraft((current) => ({ ...current, region: trimmed }));
+                  return;
+                }
+
                 setDraft((current) => ({
                   ...current,
                   region: nextValue as TimelineRegion,
-                }))
-              }
+                }));
+              }}
               className="w-full"
-              options={regionNames.map((region) => ({ value: region, label: region }))}
+              options={buildRegionSelectOptions(regionNames)}
             />
-            <div className="space-y-2">
-              <input
-                value={newRegionName}
-                onChange={(event) => setNewRegionName(event.target.value)}
-                placeholder="새 카테고리 이름"
-                className={inputClassName}
-              />
-              <button
-                type="button"
-                onClick={createRegion}
-                className={secondaryButtonClassName}
-              >
-                <FontAwesomeIcon icon={faPlus} />
-                카테고리 추가
-              </button>
-            </div>
             <textarea
               value={draft.description}
               onFocus={(event) => {
@@ -900,22 +920,6 @@ export function TimelineBoard({ initialCards }: Props) {
               className="h-11 w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 p-1"
               aria-label="카드 색상"
             />
-            <div>
-              <label className="mb-1 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                <span>카드 크기</span>
-                <span>{draft.size}px</span>
-              </label>
-              <input
-                type="range"
-                min="160"
-                max="420"
-                step="10"
-                value={draft.size}
-                onChange={(event) => setDraft((current) => ({ ...current, size: event.target.value }))}
-                className="mt-3 w-full accent-[#b86b3d]"
-                aria-label="카드 크기"
-              />
-            </div>
             <button
               type="submit"
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-[0_12px_26px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 hover:bg-slate-700 active:scale-[0.99]"
@@ -1092,9 +1096,10 @@ export function TimelineBoard({ initialCards }: Props) {
                               onDoubleClick={() => openCardModal(card.id)}
                               className="block w-full rounded-[20px] border bg-white p-4 text-left shadow-sm transition active:scale-[0.99]"
                               style={{
-                                width: `min(100%, ${card.size ?? 260}px)`,
-                                minHeight: Math.round((card.size ?? 260) * 0.55),
-                                borderColor: card.color ?? (isActive ? "#38bdf8" : "rgba(226,232,240,1)"),
+                                width: `min(100%, ${fixedCardSize}px)`,
+                                minHeight: Math.round(fixedCardSize * 0.55),
+                                borderColor: card.color ?? getRegionCardColor(card.region) ?? (isActive ? "#38bdf8" : "rgba(226,232,240,1)"),
+                                backgroundColor: card.color ?? getRegionCardColor(card.region),
                                 boxShadow: isActive
                                   ? "0 14px 30px rgba(56,189,248,0.18)"
                                   : "0 8px 20px rgba(15,23,42,0.05)",
@@ -1190,9 +1195,10 @@ export function TimelineBoard({ initialCards }: Props) {
                         onDoubleClick={() => openCardModal(card.id)}
                         className="block w-full rounded-[24px] border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1"
                         style={{
-                          width: `min(100%, ${card.size ?? 260}px)`,
-                          minHeight: Math.round((card.size ?? 260) * 0.55),
-                          borderColor: card.color ?? (isActive ? "#111827" : "rgba(226,232,240,1)"),
+                          width: `min(100%, ${fixedCardSize}px)`,
+                          minHeight: Math.round(fixedCardSize * 0.55),
+                          borderColor: card.color ?? getRegionCardColor(card.region) ?? (isActive ? "#111827" : "rgba(226,232,240,1)"),
+                          backgroundColor: card.color ?? getRegionCardColor(card.region),
                           boxShadow: isActive
                             ? "0 16px 36px rgba(15,23,42,0.08)"
                             : "0 10px 30px rgba(15,23,42,0.04)",
