@@ -22,6 +22,70 @@ const storageKey = "readingbook-timeline";
 const eraOptions = ["전체", "고대", "중세", "근대", "현대"] as const;
 const cardColors = ["#f59e0b", "#38bdf8", "#a78bfa", "#34d399", "#fb7185", "#f97316"];
 
+function parseBoundYear(rawYear: string) {
+  const cleaned = rawYear.trim();
+  if (!cleaned) {
+    return Number.NaN;
+  }
+
+  const upper = cleaned.toUpperCase().replace(/년경$/, "").replace(/년$/, "");
+  const normalized = upper.replace(/\s+/g, " ").trim();
+
+  if (normalized.startsWith("BC")) {
+    const numeric = Number(normalized.replace(/^BC\s*/, "").replace(/[^0-9-]/g, ""));
+    return Number.isNaN(numeric) ? Number.NaN : -numeric;
+  }
+
+  const numeric = Number(normalized.replace(/[^0-9-]/g, ""));
+  return Number.isNaN(numeric) ? Number.NaN : numeric;
+}
+
+function parseYearRange(yearLabel: string) {
+  const trimmed = yearLabel.trim();
+  if (!trimmed) {
+    return { startYear: 0, endYear: 0, isRange: false };
+  }
+
+  const normalized = trimmed.replace(/[–—]/g, "~").replace(/\s*~\s*/g, "~");
+  const rangeParts = normalized.split("~");
+
+  if (rangeParts.length === 2) {
+    const startYear = parseBoundYear(rangeParts[0]);
+    const endYear = parseBoundYear(rangeParts[1]);
+
+    if (!Number.isNaN(startYear) && !Number.isNaN(endYear)) {
+      const minYear = Math.min(startYear, endYear);
+      const maxYear = Math.max(startYear, endYear);
+      return { startYear: minYear, endYear: maxYear, isRange: true };
+    }
+  }
+
+  const singleYear = parseBoundYear(trimmed);
+  const safeYear = Number.isNaN(singleYear) ? 0 : singleYear;
+  return { startYear: safeYear, endYear: safeYear, isRange: false };
+}
+
+function parseYear(yearLabel: string) {
+  return parseYearRange(yearLabel).startYear;
+}
+
+function formatYearText(year: number) {
+  if (year === 0) {
+    return "0";
+  }
+
+  return year < 0 ? `BC ${Math.abs(year)}` : `${year}`;
+}
+
+function formatYearLabelText(yearLabel: string) {
+  const range = parseYearRange(yearLabel);
+  if (!range.isRange) {
+    return yearLabel.trim() || formatYearText(range.startYear);
+  }
+
+  return `${formatYearText(range.startYear)} ~ ${formatYearText(range.endYear)}`;
+}
+
 function buildRegionOrder(cards: TimelineCard[]) {
   const regionSet = new Set<TimelineRegion>(defaultRegions);
 
@@ -43,8 +107,15 @@ function compareCards(left: TimelineCard, right: TimelineCard, regionOrder: Time
     return leftOrder - rightOrder;
   }
 
-  if (left.year !== right.year) {
-    return left.year - right.year;
+  const leftRange = parseYearRange(left.yearLabel);
+  const rightRange = parseYearRange(right.yearLabel);
+
+  if (leftRange.startYear !== rightRange.startYear) {
+    return leftRange.startYear - rightRange.startYear;
+  }
+
+  if (leftRange.endYear !== rightRange.endYear) {
+    return leftRange.endYear - rightRange.endYear;
   }
 
   return left.title.localeCompare(right.title, "ko");
@@ -61,8 +132,14 @@ function normalizeCards(cards: TimelineCard[], regionOrder: TimelineRegion[]) {
           return leftOrder - rightOrder;
         }
 
-        if (left.year !== right.year) {
-          return left.year - right.year;
+        const leftRange = parseYearRange(left.yearLabel);
+        const rightRange = parseYearRange(right.yearLabel);
+        if (leftRange.startYear !== rightRange.startYear) {
+          return leftRange.startYear - rightRange.startYear;
+        }
+
+        if (leftRange.endYear !== rightRange.endYear) {
+          return leftRange.endYear - rightRange.endYear;
         }
 
         return left.title.localeCompare(right.title, "ko");
@@ -269,17 +346,6 @@ export function TimelineBoard({ initialCards }: Props) {
 
   const activeCard = cards.find((card) => card.id === activeId) ?? cards[0];
 
-  function parseYear(yearLabel: string) {
-    const cleaned = yearLabel.trim().toUpperCase();
-    if (cleaned.startsWith("BC")) {
-      const numeric = Number(cleaned.replace("BC", "").trim());
-      return Number.isNaN(numeric) ? 0 : -numeric;
-    }
-
-    const numeric = Number(cleaned);
-    return Number.isNaN(numeric) ? 0 : numeric;
-  }
-
   function openNewCardModalForBlankSpace() {
     const nextId = crypto.randomUUID();
     const nextRegion = regionNames[0] ?? defaultRegions[0];
@@ -466,7 +532,15 @@ export function TimelineBoard({ initialCards }: Props) {
     return matchesSearch && matchesEra(card);
   });
 
-  const yearRows = Array.from(new Set(summaryCards.map((card) => `${card.year}|${card.yearLabel}`)))
+  const yearRows = Array.from(
+    new Set(
+      summaryCards.map((card) => {
+        const range = parseYearRange(card.yearLabel);
+        const yearKey = `${range.startYear}|${card.yearLabel.trim() || formatYearText(range.startYear)}`;
+        return yearKey;
+      }),
+    ),
+  )
     .map((value) => {
       const [year, yearLabel] = value.split("|");
       return { year: Number(year), yearLabel };
@@ -893,7 +967,7 @@ export function TimelineBoard({ initialCards }: Props) {
               {activeCard ? (
                 <div className="space-y-2">
                   <p>
-                    <span className="font-semibold text-slate-900">연도:</span> {activeCard.yearLabel}
+                    <span className="font-semibold text-slate-900">연도:</span> {formatYearLabelText(activeCard.yearLabel)}
                   </p>
                   <p>
                     <span className="font-semibold text-slate-900">지역:</span> {activeCard.region}
@@ -1028,7 +1102,7 @@ export function TimelineBoard({ initialCards }: Props) {
                             >
                               <div className="flex items-center justify-between gap-3">
                                 <span className="rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ backgroundColor: card.color ?? "#38bdf8" }}>
-                                  {card.yearLabel}
+                                  {formatYearLabelText(card.yearLabel)}
                                 </span>
                                 <span className="inline-flex items-center gap-1 text-xs text-slate-400">
                                   <FontAwesomeIcon icon={faGripVertical} />
@@ -1126,7 +1200,7 @@ export function TimelineBoard({ initialCards }: Props) {
                       >
                         <div className="flex items-center justify-between gap-3">
                           <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                            {card.yearLabel}
+                            {formatYearLabelText(card.yearLabel)}
                           </span>
                           <span className="inline-flex items-center gap-1 text-xs text-slate-400">
                             <FontAwesomeIcon icon={faGripVertical} />
@@ -1216,7 +1290,9 @@ export function TimelineBoard({ initialCards }: Props) {
                     <div
                       className="bg-slate-50 px-4 py-4 text-sm font-semibold text-slate-700"
                     >
-                      {row.yearLabel}
+                      <span className="inline-flex rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold tracking-wide text-slate-700 shadow-sm">
+                        {formatYearLabelText(row.yearLabel)}
+                      </span>
                     </div>
                     {regionNames.map((region) => {
                       const matchingCards = summaryCards
@@ -1258,7 +1334,9 @@ export function TimelineBoard({ initialCards }: Props) {
                 return (
                   <div key={`${row.year}-${row.yearLabel}`} className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-semibold text-slate-900">{row.yearLabel}</p>
+                      <p className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-semibold text-slate-900 shadow-sm">
+                        {formatYearLabelText(row.yearLabel)}
+                      </p>
                       <span className="text-xs text-slate-500">{rowCards.length}개</span>
                     </div>
                     <div className="mt-3 space-y-2">
@@ -1276,7 +1354,7 @@ export function TimelineBoard({ initialCards }: Props) {
                               <p className="text-xs text-slate-500">{card.region}</p>
                             </div>
                             <span className="rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ backgroundColor: card.color ?? "#38bdf8" }}>
-                              {card.yearLabel}
+                              {formatYearLabelText(card.yearLabel)}
                             </span>
                           </button>
                         ))
