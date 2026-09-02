@@ -28,6 +28,17 @@
             "y": -40,
             "color": "#ffb3b3",
             "size": 190
+          },
+          {
+            "id": "8f68bc4e-4cf6-4cdb-a5cb-4ec3a7eab3cd",
+            "name": "퓌순",
+            "title": "네시베네 딸",
+            "summary": "어렸을 때부터 아는 인물",
+            "majorActions": [],
+            "x": 96,
+            "y": -58,
+            "color": "#c2ffa8",
+            "size": 190
           }
         ],
         "relationships": [
@@ -37,6 +48,13 @@
             "toId": "2b2a5d28-1bc0-478c-9e29-40de5dbb52b8",
             "type": "기타",
             "label": "약혼"
+          },
+          {
+            "id": "edge-1788337496678",
+            "fromId": "8f68bc4e-4cf6-4cdb-a5cb-4ec3a7eab3cd",
+            "toId": "786f14a2-4c0e-4978-9194-bb97c47c358b",
+            "type": "기타",
+            "label": "자꾸 관심이 감"
           }
         ]
       }
