@@ -1,6 +1,47 @@
 {
   "works": [
     {
+      "id": "fc49fdb9-2aa0-4404-9069-105ec152c385",
+      "title": "순수박물관",
+      "titleKo": "순수박물관",
+      "author": "새 작품",
+      "seed": {
+        "nodes": [
+          {
+            "id": "786f14a2-4c0e-4978-9194-bb97c47c358b",
+            "name": "케말",
+            "title": "중심 인물",
+            "summary": "이 인물이 이야기에 어떤 위치를 차지하는지 적어보세요.",
+            "majorActions": [],
+            "x": 415,
+            "y": -89,
+            "color": "#fdf2f8",
+            "size": 220
+          },
+          {
+            "id": "2b2a5d28-1bc0-478c-9e29-40de5dbb52b8",
+            "name": "시벨",
+            "title": "약혼자",
+            "summary": "초반에 결혼하기로 한 사람으로 나옴",
+            "majorActions": [],
+            "x": 709,
+            "y": -40,
+            "color": "#ffb3b3",
+            "size": 190
+          }
+        ],
+        "relationships": [
+          {
+            "id": "edge-1788337120768",
+            "fromId": "786f14a2-4c0e-4978-9194-bb97c47c358b",
+            "toId": "2b2a5d28-1bc0-478c-9e29-40de5dbb52b8",
+            "type": "기타",
+            "label": "약혼"
+          }
+        ]
+      }
+    },
+    {
       "id": "b14851ac-8b0b-4fcf-a12a-9f603f5b95bf",
       "title": "싯다르타",
       "titleKo": "싯다르타",
