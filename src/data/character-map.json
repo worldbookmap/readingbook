@@ -319,12 +319,12 @@
             "id": "ad018ae6-6f6b-4d97-acf5-91838cf54160",
             "name": "나비",
             "title": "세밀화가, 일요일",
-            "summary": "이 인물의 역할을 적어보세요.",
+            "summary": "본명: 하산",
             "majorActions": [],
             "x": 750,
             "y": 398,
             "color": "#fef3c7",
-            "size": 90
+            "size": 160
           },
           {
             "id": "39bfb993-9c6f-424b-9e33-7da2b22bc1a2",
@@ -341,12 +341,12 @@
             "id": "0ee3ffb1-8b61-4803-952d-26edc4f26022",
             "name": "황새",
             "title": "세밀화가, 금요일",
-            "summary": "이 인물의 역할을 적어보세요.",
+            "summary": "본명: 무스타파",
             "majorActions": [],
-            "x": 755,
-            "y": 613,
+            "x": 833,
+            "y": 665,
             "color": "#dcfce7",
-            "size": 90
+            "size": 160
           },
           {
             "id": "22386422-3b56-4d29-bcbc-db1f30bed65b",
@@ -354,8 +354,8 @@
             "title": "세밀화가",
             "summary": "젊은 나이에 죽음",
             "majorActions": [],
-            "x": 744,
-            "y": 729,
+            "x": 770,
+            "y": 799,
             "color": "#ecfeff",
             "size": 90
           }
