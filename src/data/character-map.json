@@ -154,7 +154,7 @@
             "id": "afcad045-1be8-49c2-8225-5656389db757",
             "name": "살인자",
             "title": "살인자",
-            "summary": "이 인물의 역할을 적어보세요.",
+            "summary": "비흐자드",
             "majorActions": [],
             "x": 948,
             "y": 276,
@@ -321,8 +321,8 @@
             "title": "세밀화가, 일요일",
             "summary": "본명: 하산",
             "majorActions": [],
-            "x": 750,
-            "y": 398,
+            "x": 730,
+            "y": 370,
             "color": "#fef3c7",
             "size": 160
           },
@@ -358,6 +358,17 @@
             "y": 799,
             "color": "#ecfeff",
             "size": 90
+          },
+          {
+            "id": "862e1faa-62f5-42bb-b240-406ba7227843",
+            "name": "인물 22",
+            "title": "새 인물",
+            "summary": "이 인물의 역할을 적어보세요.",
+            "majorActions": [],
+            "x": 773,
+            "y": 959,
+            "color": "#fdf2f8",
+            "size": 220
           }
         ],
         "relationships": [
