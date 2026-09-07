@@ -347,6 +347,32 @@
           "y": 2292,
           "color": "#f97316",
           "size": 220
+        },
+        {
+          "id": "7fdbc0f1-4f42-4e5f-b439-30080900c005",
+          "title": "나비 세 세밀화가 찾아가서 취조, 결국 올리브가 범인으로 드러남",
+          "year": 0,
+          "yearLabel": "",
+          "chapter": "2",
+          "summary": "새 사건을 입력해 주세요.",
+          "tags": [],
+          "x": 367,
+          "y": 2495,
+          "color": "#f59e0b",
+          "size": 220
+        },
+        {
+          "id": "04f5fa65-b0c6-45f9-bd81-f0af3392ba83",
+          "title": "올리브, 하산에게 죽음",
+          "year": 0,
+          "yearLabel": "",
+          "chapter": "2",
+          "summary": "하산은 자신의 빨간 칼을 들고 있는 올리브를 카라의 동료로 생각하고 죽임",
+          "tags": [],
+          "x": 346,
+          "y": 2701,
+          "color": "#0f766e",
+          "size": 220
         }
       ],
       "linkedCharacterWorkId": "8649314d-16a4-4e3d-91e1-e835efb7e499"
