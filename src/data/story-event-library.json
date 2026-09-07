@@ -373,6 +373,19 @@
           "y": 2701,
           "color": "#0f766e",
           "size": 220
+        },
+        {
+          "id": "21391c7f-b28b-49d1-b94a-f6191f6aa0a8",
+          "title": "술탄, 죽고 새 술탄은 그림 자체를 버림",
+          "year": 0,
+          "yearLabel": "",
+          "chapter": "2",
+          "summary": "헤라트파의 옛 장인들과 유럽 장인들간의 화풍대결은 결국 어떤 결과에도 도달하지 못함",
+          "tags": [],
+          "x": 336,
+          "y": 2907,
+          "color": "#2563eb",
+          "size": 220
         }
       ],
       "linkedCharacterWorkId": "8649314d-16a4-4e3d-91e1-e835efb7e499"
