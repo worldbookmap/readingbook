@@ -250,6 +250,34 @@
       "order": 1
     },
     {
+      "id": "a5f1c8a7-b6fe-42f8-91d8-54dc50f93e10",
+      "region": "아시아",
+      "year": 1250,
+      "yearLabel": "1250",
+      "title": "쉘주크 투르크 몽골에 멸망",
+      "description": "13세기 중반\n셀주크 제국이 멸망하자 힘의 공백이 생겨 작은 공국들 움틀거리고, 그중 하나가 오스만 제국",
+      "tags": [
+        "투르크",
+        "튀르키예",
+        "오스만"
+      ],
+      "color": "#ffc874",
+      "size": 320,
+      "order": 2
+    },
+    {
+      "id": "3b75dcb9-7d18-446d-a225-f063856402f4",
+      "region": "아시아",
+      "year": 1299,
+      "yearLabel": "1299",
+      "title": "오스만제국 건설",
+      "description": "설명을 입력해 주세요.",
+      "tags": [],
+      "color": "#ffc874",
+      "size": 320,
+      "order": 3
+    },
+    {
       "id": "us-1776",
       "region": "미국",
       "year": 1776,
@@ -725,34 +753,6 @@
       "color": "#f59e0b",
       "size": 320,
       "order": 16
-    },
-    {
-      "id": "a5f1c8a7-b6fe-42f8-91d8-54dc50f93e10",
-      "region": "아시아",
-      "year": 1250,
-      "yearLabel": "1250",
-      "title": "쉘주크 투르크 몽골에 멸망",
-      "description": "13세기 중반\n셀주크 제국이 멸망하자 힘의 공백이 생겨 작은 공국들 움틀거리고, 그중 하나가 오스만 제국",
-      "tags": [
-        "투르크",
-        "튀르키예",
-        "오스만"
-      ],
-      "color": "#ffc874",
-      "size": 320,
-      "order": 6
-    },
-    {
-      "id": "3b75dcb9-7d18-446d-a225-f063856402f4",
-      "region": "아시아",
-      "year": 1299,
-      "yearLabel": "1299",
-      "title": "오스만제국 건설",
-      "description": "설명을 입력해 주세요.",
-      "tags": [],
-      "color": "#ffc874",
-      "size": 320,
-      "order": 6
     }
   ]
 }
