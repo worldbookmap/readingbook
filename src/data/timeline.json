@@ -318,6 +318,21 @@
       "order": 11
     },
     {
+      "id": "65833430-b9fb-4acd-a9f0-9a0c9386e7eb",
+      "region": "동유럽",
+      "year": 1683,
+      "yearLabel": "1683",
+      "title": "오스만제국, 비엔나 공격 실패",
+      "description": "",
+      "tags": [
+        "오스만",
+        "합스부르크"
+      ],
+      "color": "#c8b5ff",
+      "size": 320,
+      "order": 12
+    },
+    {
       "id": "6856ea34-da9c-4eea-a3cc-f40cb097ee90",
       "region": "동유럽",
       "year": 0,
@@ -329,7 +344,7 @@
       ],
       "color": "#c8b5ff",
       "size": 320,
-      "order": 12
+      "order": 13
     },
     {
       "id": "asia-1443",
@@ -868,15 +883,14 @@
       "order": 16
     },
     {
-      "id": "65833430-b9fb-4acd-a9f0-9a0c9386e7eb",
+      "id": "82ebc3ad-f00a-45f5-8267-e4b5e0bc7576",
       "region": "동유럽",
-      "year": 1683,
-      "yearLabel": "1683",
-      "title": "오스만제국, 비엔나 공격 실패",
-      "description": "",
+      "year": 1920,
+      "yearLabel": "1920",
+      "title": "세브르 조약",
+      "description": "1차 대전 직후 프랑스 파리 근교 세브르에서 연합국과 오스만 제국 사이 체결 조약.\n오스만 제국은 사실상 해체되고, 갈갈이 찢김",
       "tags": [
-        "오스만",
-        "합스부르크"
+        "오스만"
       ],
       "color": "#c8b5ff",
       "size": 320,
