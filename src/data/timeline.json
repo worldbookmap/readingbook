@@ -128,6 +128,34 @@
       "order": 8
     },
     {
+      "id": "72907ffb-8d96-4a98-80e6-b2d49ab31b0e",
+      "region": "서유럽",
+      "year": 1492,
+      "yearLabel": "1492",
+      "title": "콜롬버스 신대륙 발견",
+      "description": "설명을 입력해 주세요.",
+      "tags": [
+        "스페인"
+      ],
+      "color": "#9cc8ff",
+      "size": 320,
+      "order": 9
+    },
+    {
+      "id": "8e43326d-165e-4711-91d3-49d267bcec35",
+      "region": "서유럽",
+      "year": 1492,
+      "yearLabel": "1492",
+      "title": "스페인 통일",
+      "description": "스페인의 이사벨 1세와 페르난도 2세가 마지막 이슬람 왕국인 그라나다를 정복하며 국토회복운동(레콩키스타)을 완성하고 통일 왕국을 이뤘습니다",
+      "tags": [
+        "스페인"
+      ],
+      "color": "#9cc8ff",
+      "size": 320,
+      "order": 10
+    },
+    {
       "id": "eueast-330",
       "region": "동유럽",
       "year": 330,
@@ -840,32 +868,19 @@
       "order": 16
     },
     {
-      "id": "72907ffb-8d96-4a98-80e6-b2d49ab31b0e",
-      "region": "서유럽",
-      "year": 1492,
-      "yearLabel": "1492",
-      "title": "콜롬버스 신대륙 발견",
-      "description": "설명을 입력해 주세요.",
+      "id": "65833430-b9fb-4acd-a9f0-9a0c9386e7eb",
+      "region": "동유럽",
+      "year": 1683,
+      "yearLabel": "1683",
+      "title": "오스만제국, 비엔나 공격 실패",
+      "description": "",
       "tags": [
-        "스페인"
+        "오스만",
+        "합스부르크"
       ],
-      "color": "#9cc8ff",
+      "color": "#c8b5ff",
       "size": 320,
-      "order": 9
-    },
-    {
-      "id": "8e43326d-165e-4711-91d3-49d267bcec35",
-      "region": "서유럽",
-      "year": 1492,
-      "yearLabel": "1492",
-      "title": "스페인 통일",
-      "description": "스페인의 이사벨 1세와 페르난도 2세가 마지막 이슬람 왕국인 그라나다를 정복하며 국토회복운동(레콩키스타)을 완성하고 통일 왕국을 이뤘습니다",
-      "tags": [
-        "스페인"
-      ],
-      "color": "#9cc8ff",
-      "size": 320,
-      "order": 10
+      "order": 11
     }
   ]
 }
