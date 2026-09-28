@@ -3,7 +3,7 @@
     {
       "id": "4175e123-51ee-4991-810c-5aa4224e552f",
       "title": "실존주의",
-      "updatedAt": "2026-08-20T02:22:42.244Z",
+      "updatedAt": "2026-09-28T12:44:50.857Z",
       "nodes": [
         {
           "id": "new-root-1787015979398",
@@ -129,6 +129,45 @@
             "height": 162
           },
           "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "keyword-1790599455769",
+          "type": "keywordNode",
+          "position": {
+            "x": 370,
+            "y": 500
+          },
+          "data": {
+            "label": "새 키워드 7",
+            "description": "이 키워드의 의미와 연결 포인트를 적어보세요.",
+            "color": "#eff6ff"
+          },
+          "measured": {
+            "width": 200,
+            "height": 122
+          }
+        },
+        {
+          "id": "keyword-1790599457583",
+          "type": "keywordNode",
+          "position": {
+            "x": 897.7916666666665,
+            "y": -173.93750000000023
+          },
+          "data": {
+            "label": "실존주의",
+            "description": "키에르 케고르",
+            "color": "#ecfeff",
+            "category": "concept",
+            "tags": [],
+            "size": 200
+          },
+          "measured": {
+            "width": 200,
+            "height": 102
+          },
+          "selected": true,
           "dragging": false
         }
       ],
