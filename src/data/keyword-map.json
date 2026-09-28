@@ -3,7 +3,7 @@
     {
       "id": "4175e123-51ee-4991-810c-5aa4224e552f",
       "title": "실존주의",
-      "updatedAt": "2026-09-28T12:45:45.211Z",
+      "updatedAt": "2026-09-28T12:46:19.781Z",
       "nodes": [
         {
           "id": "new-root-1787015979398",
@@ -152,8 +152,8 @@
           "id": "keyword-1790599457583",
           "type": "keywordNode",
           "position": {
-            "x": 897.7916666666665,
-            "y": -173.93750000000023
+            "x": 792.8068055074382,
+            "y": -174.65412021269117
           },
           "data": {
             "label": "실존주의",
@@ -189,7 +189,7 @@
             "width": 200,
             "height": 102
           },
-          "selected": true,
+          "selected": false,
           "dragging": false
         }
       ],
@@ -288,6 +288,37 @@
             "color": "#7c3aed"
           },
           "selected": false
+        },
+        {
+          "id": "edge-1790599565154",
+          "source": "keyword-1790599457583",
+          "target": "keyword-1787019081364",
+          "label": "새 연결의 의미를 적어보세요.",
+          "animated": true,
+          "type": "smoothstep",
+          "style": {
+            "stroke": "#7c3aed"
+          },
+          "markerEnd": {
+            "type": "arrowclosed",
+            "color": "#7c3aed"
+          }
+        },
+        {
+          "id": "edge-1790599565159",
+          "source": "keyword-1790599457583",
+          "target": "keyword-1787019081364",
+          "label": "영향",
+          "animated": true,
+          "type": "smoothstep",
+          "style": {
+            "stroke": "#7c3aed"
+          },
+          "markerEnd": {
+            "type": "arrowclosed",
+            "color": "#7c3aed"
+          },
+          "selected": true
         }
       ]
     }
