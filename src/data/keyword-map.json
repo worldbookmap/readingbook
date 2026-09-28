@@ -3,7 +3,7 @@
     {
       "id": "4175e123-51ee-4991-810c-5aa4224e552f",
       "title": "실존주의",
-      "updatedAt": "2026-09-28T12:44:50.857Z",
+      "updatedAt": "2026-09-28T12:45:45.211Z",
       "nodes": [
         {
           "id": "new-root-1787015979398",
@@ -167,6 +167,28 @@
             "width": 200,
             "height": 102
           },
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "keyword-1790599492718",
+          "type": "keywordNode",
+          "position": {
+            "x": 1333.5684946908455,
+            "y": 1.334505409999366
+          },
+          "data": {
+            "label": "실존주의",
+            "description": "보부아르",
+            "color": "#fef3c7",
+            "category": "concept",
+            "tags": [],
+            "size": 200
+          },
+          "measured": {
+            "width": 200,
+            "height": 102
+          },
           "selected": true,
           "dragging": false
         }
@@ -250,6 +272,22 @@
             "type": "arrowclosed",
             "color": "#7c3aed"
           }
+        },
+        {
+          "id": "edge-1790599526345",
+          "source": "keyword-1787019081364",
+          "target": "keyword-1790599492718",
+          "label": "연인, 사상의 동료",
+          "animated": true,
+          "type": "smoothstep",
+          "style": {
+            "stroke": "#7c3aed"
+          },
+          "markerEnd": {
+            "type": "arrowclosed",
+            "color": "#7c3aed"
+          },
+          "selected": false
         }
       ]
     }
