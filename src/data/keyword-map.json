@@ -3,7 +3,7 @@
     {
       "id": "4175e123-51ee-4991-810c-5aa4224e552f",
       "title": "실존주의",
-      "updatedAt": "2026-09-28T12:53:25.721Z",
+      "updatedAt": "2026-09-28T13:43:21.668Z",
       "nodes": [
         {
           "id": "new-root-1787015979398",
@@ -167,7 +167,7 @@
             "width": 200,
             "height": 162
           },
-          "selected": true,
+          "selected": false,
           "dragging": false
         },
         {
@@ -210,6 +210,50 @@
           "measured": {
             "width": 200,
             "height": 122
+          },
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "keyword-1790602929734",
+          "type": "keywordNode",
+          "position": {
+            "x": 655.0502706168722,
+            "y": -581.4760045532632
+          },
+          "data": {
+            "label": "에드문트 후설",
+            "description": "",
+            "color": "#dcfce7",
+            "category": "현상학",
+            "tags": [],
+            "size": 200
+          },
+          "measured": {
+            "width": 200,
+            "height": 82
+          },
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "keyword-1790602961568",
+          "type": "keywordNode",
+          "position": {
+            "x": 729.4358630240557,
+            "y": -480.6293578943451
+          },
+          "data": {
+            "label": "레비나스",
+            "description": "",
+            "color": "#fdf2f8",
+            "category": "현상학",
+            "tags": [],
+            "size": 200
+          },
+          "measured": {
+            "width": 200,
+            "height": 82
           },
           "selected": false,
           "dragging": false
@@ -326,6 +370,22 @@
             "color": "#7c3aed"
           },
           "selected": false
+        },
+        {
+          "id": "edge-1790602990883",
+          "source": "keyword-1790602929734",
+          "target": "keyword-1790602961568",
+          "label": "스승-제자",
+          "animated": true,
+          "type": "smoothstep",
+          "style": {
+            "stroke": "#7c3aed"
+          },
+          "markerEnd": {
+            "type": "arrowclosed",
+            "color": "#7c3aed"
+          },
+          "selected": true
         }
       ]
     }
