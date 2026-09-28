@@ -3,7 +3,7 @@
     {
       "id": "4175e123-51ee-4991-810c-5aa4224e552f",
       "title": "실존주의",
-      "updatedAt": "2026-09-28T12:46:44.694Z",
+      "updatedAt": "2026-09-28T12:53:25.721Z",
       "nodes": [
         {
           "id": "new-root-1787015979398",
@@ -156,18 +156,18 @@
             "y": -174.65412021269117
           },
           "data": {
-            "label": "실존주의",
-            "description": "키에르 케고르",
+            "label": "키에르 케고르",
+            "description": "이것이냐 저것이냐의 선택을 통해 자아 형성하는 인간 존재 방식,\n이런 자유가 가져오는 위험들. \n“불안은 자유가 주는 현기증”",
             "color": "#ecfeff",
-            "category": "concept",
+            "category": "실존주의",
             "tags": [],
             "size": 200
           },
           "measured": {
             "width": 200,
-            "height": 102
+            "height": 162
           },
-          "selected": false,
+          "selected": true,
           "dragging": false
         },
         {
@@ -188,6 +188,28 @@
           "measured": {
             "width": 200,
             "height": 102
+          },
+          "selected": false,
+          "dragging": false
+        },
+        {
+          "id": "keyword-1790599819644",
+          "type": "keywordNode",
+          "position": {
+            "x": 1058.6611881859403,
+            "y": -176.98044076147343
+          },
+          "data": {
+            "label": "니체",
+            "description": "신앙에 매달릴 것이 아니라, 매 순간을 정확히 그대로 긍정하며 살기",
+            "color": "#f5f3ff",
+            "category": "실존주의",
+            "tags": [],
+            "size": 200
+          },
+          "measured": {
+            "width": 200,
+            "height": 122
           },
           "selected": false,
           "dragging": false
@@ -303,7 +325,7 @@
             "type": "arrowclosed",
             "color": "#7c3aed"
           },
-          "selected": true
+          "selected": false
         }
       ]
     }
