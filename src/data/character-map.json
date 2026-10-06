@@ -1,6 +1,61 @@
 {
   "works": [
     {
+      "id": "9ea0722c-aa8f-4d7a-beb3-864dd1709691",
+      "title": "언어의 무게",
+      "titleKo": "언어의 무게",
+      "author": "새 작품",
+      "seed": {
+        "nodes": [
+          {
+            "id": "dbbe29f8-82a9-4681-b204-72c4e04fbeea",
+            "name": "레이랰드",
+            "title": "중심 인물",
+            "summary": "언어 자체, 번역에 관심\n시한부 판정",
+            "majorActions": [],
+            "x": 220,
+            "y": 180,
+            "color": "#fdf2f8",
+            "size": 220
+          },
+          {
+            "id": "e9d6701f-a68c-47e6-b54b-1a18b77724d0",
+            "name": "리비아",
+            "title": "레이랜드의 엄마",
+            "summary": "설명을 추가해 보세요.",
+            "majorActions": [],
+            "x": 244,
+            "y": -132,
+            "color": "#eff6ff",
+            "size": 220
+          },
+          {
+            "id": "bd6937cf-c5a2-4743-9944-9bd069a8a60a",
+            "name": "워런",
+            "title": "삼촌",
+            "summary": "이 인물의 역할을 적어보세요.",
+            "majorActions": [],
+            "x": -108,
+            "y": -43,
+            "color": "#ecfeff",
+            "size": 220
+          },
+          {
+            "id": "755b9321-b0f9-4528-a0df-f441e3bfa5d8",
+            "name": "버크",
+            "title": "삼촌 옆집 사람",
+            "summary": "이 인물의 역할을 적어보세요.",
+            "majorActions": [],
+            "x": -185,
+            "y": 238,
+            "color": "#fef3c7",
+            "size": 220
+          }
+        ],
+        "relationships": []
+      }
+    },
+    {
       "id": "fc49fdb9-2aa0-4404-9069-105ec152c385",
       "title": "순수박물관",
       "titleKo": "순수박물관",
